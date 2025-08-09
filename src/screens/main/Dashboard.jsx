@@ -18,7 +18,7 @@ import LinearGradient from 'react-native-linear-gradient';
 import DashboardTabs from '../../components/DashboardTabs';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import AppText from '../../components/AppText';
-import Ionicons from 'react-native-vector-icons/Ionicons';
+
 import AppHeader from '../../components/AppHeader';
 import {AppImages} from '../../assets/images/AppImages';
 import Modal from 'react-native-modal';
@@ -41,44 +41,45 @@ const Dashboard = ({navigation}) => {
 
   const [loader, setLoader] = useState(false);
   const dispatch = useDispatch()
-  const companyData = [
-    {
-      id: 1,
-      name: 'Dashboard',
-      img: AppImages.building,
-      onPress: () => navigation.navigate('Detail'),
-    },
-    {
-      id: 2,
-      name: 'Sales',
-      img: AppImages.building,
-      onPress: () => navigation.navigate('Home', {type: "customer"}),
-    },
-    {
-      id: 3,
-      name: 'Purchases',
-      img: AppImages.building,
-      onPress: () => navigation.navigate('Home', {type: "supplier"}),
-    },
-    {
-      id: 4,
-      name: 'Inventory',
-      img: AppImages.building,
-      onPress: () => navigation.navigate('Home'),
-    },
-    {
-      id: 5,
-      name: 'Accounts',
-      img: AppImages.building,
-      onPress: () => navigation.navigate('Home'),
-    },
-    {
-      id: 6,
-      name: 'Distribution',
-      img: AppImages.buildings,
-      onPress: () => navigation.navigate('Home'),
-    },
-  ];
+const companyData = [
+  {
+    id: 1,
+    name: 'Dashboard',
+    icon: "grid",
+    onPress: () => navigation.navigate('Detail'),
+  },
+  {
+    id: 2,
+    name: 'Approval',
+    icon: "check-circle",
+    onPress: () => navigation.navigate('Home', {type: "customer"}),
+  },
+  {
+    id: 3,
+    name: 'Queries',
+    icon: "help-circle",
+    onPress: () => navigation.navigate('Home', {type: "supplier"}),
+  },
+  {
+    id: 4,
+    name: 'Inventory',
+    icon: "box",
+    onPress: () => navigation.navigate('Home'),
+  },
+  {
+    id: 5,
+    name: 'Accounts',
+    icon: "dollar-sign",
+    onPress: () => navigation.navigate('Home'),
+  },
+  {
+    id: 6,
+    name: 'Distribution',
+    icon: "truck",
+    onPress: () => navigation.navigate('Home'),
+  },
+];
+
 
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
@@ -257,15 +258,8 @@ const Dashboard = ({navigation}) => {
           renderItem={({item}) => {
             return (
               <DashboardTabs
-                img={item.img}
+                icon={item.icon}
                 name={item.name}
-                logo={
-                  <FontAwesome
-                    name={'send'}
-                    color={APPCOLORS.BLACK}
-                    size={responsiveFontSize(2.5)}
-                  />
-                }
                 onPress={item.onPress}
               />
             );
