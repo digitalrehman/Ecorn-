@@ -11,8 +11,8 @@ type props = {
 
 const TopTen = ({data,title, onPress}:props) => {
   return (
-    <TouchableOpacity onPress={onPress} style={{padding:20, alignItems:'center', justifyContent:'center', backgroundColor:APPCOLORS.BarColor, borderRadius:20}}>
-        <AppText title={title} titleSize={2} titleWeight/>
+    <TouchableOpacity onPress={onPress} style={{padding:20, alignItems:'center', justifyContent:'center', backgroundColor:APPCOLORS.Primary, borderRadius:20}}>
+        <AppText title={title} titleSize={2} titleColor={"white"} titleWeight/>
     </TouchableOpacity>
   )
 }

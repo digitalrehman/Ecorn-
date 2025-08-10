@@ -64,7 +64,7 @@ const AppHeader = ({ title, onPress }: props) => {
           </TouchableOpacity>
 
           <TouchableOpacity onPress={() => dispatch(setLogout())}>
-            <Ionicons name='log-out-outline' color={"red"} size={responsiveFontSize(3)} />
+            <AntDesign name='poweroff' color={"yellow"} size={responsiveFontSize(2.5)} />
           </TouchableOpacity>
 
         </View>
