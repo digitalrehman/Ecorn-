@@ -99,12 +99,7 @@ const AppHeader = ({ title, onPress }: props) => {
           </View>
 
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
-            <AntDesign
-              name='reload1'
-              size={responsiveFontSize(1.5)}
-              color={APPCOLORS.WHITE}
-            />
-            <AppText title='Refresh Balance' titleColor={APPCOLORS.WHITE} />
+            <AppText title='Currect Balance' titleColor={APPCOLORS.WHITE} />
           </View>
         </View>
       </View>

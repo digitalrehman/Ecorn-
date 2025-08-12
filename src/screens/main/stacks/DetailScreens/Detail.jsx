@@ -29,106 +29,106 @@ const Detail = ({navigation}) => {
 
   const [loader, setLoader] = useState(false);
   const revData = [
-  {
-    id: 1,
-    title: 'Income',
-    accessKey: 'income', // add this
-    Amount: slider_data?.cur_m_income,
-    Prev_title: 'Previous Month',
-    Prev_Amount: slider_data?.pre_m_income,
-    topColor: '#88C365',
-    bottomColor: '#719D44',
-    isUp: slider_data?.cur_m_income > slider_data?.pre_m_income,
-  },
-  {
-    id: 2,
-    title: 'Expense',
-    accessKey: 'expense',
-    Amount: slider_data?.cur_m_expense,
-    Prev_title: 'Previous Month',
-    Prev_Amount: slider_data?.pre_m_expense,
-    topColor: '#F7587C',
-    bottomColor: '#B12037',
-    isUp: slider_data?.cur_m_expense > slider_data?.pre_m_expense,
-  },
-  {
-    id: 3,
-    title: 'Revenue',
-    accessKey: 'revenu',
-    Amount: slider_data?.cur_m_revenue,
-    Prev_title: 'Previous Month',
-    Prev_Amount: slider_data?.pre_m_revenue,
-    topColor: '#EBE383',
-    bottomColor: '#D5C026',
-    isUp: slider_data?.cur_m_revenue > slider_data?.pre_m_revenue,
-  },
-  {
-    id: 4,
-    title: 'Equity',
-    accessKey: 'equity',
-    Amount: slider_data?.cur_m_equity,
-    Prev_title: 'Previous Month',
-    Prev_Amount: slider_data?.pre_m_equity,
-    topColor: '#73D3FD',
-    bottomColor: '#088CD8',
-    isUp: slider_data?.cur_m_equity > slider_data?.pre_m_equity,
-  },
-  {
-    id: 5,
-    title: 'Recovery',
-    accessKey: 'recovery',
-    Amount: slider_data?.cur_m_recovery,
-    Prev_title: 'Previous Month',
-    Prev_Amount: slider_data?.pre_m_recovery,
-    topColor: '#73D3FD',
-    bottomColor: '#DB0EC3',
-    isUp: slider_data?.cur_m_recovery > slider_data?.pre_m_recovery,
-  },
-  {
-    id: 6,
-    title: 'Cash',
-    accessKey: 'cash',
-    Amount: slider_data?.cur_m_cash,
-    Prev_title: 'Previous Month',
-    Prev_Amount: slider_data?.pre_m_cash,
-    topColor: '#88C365',
-    bottomColor: '#88C365',
-    isUp: slider_data?.cur_m_cash > slider_data?.pre_m_cash,
-  },
-  {
-    id: 7,
-    title: 'Bank',
-    accessKey: 'bank',
-    Amount: slider_data?.cur_m_bank,
-    Prev_title: 'Previous Month',
-    Prev_Amount: slider_data?.pre_m_bank,
-    topColor: '#8ED5E6',
-    bottomColor: '#6CB9A7',
-    isUp: slider_data?.cur_m_bank > slider_data?.pre_m_bank,
-  },
-  {
-    id: 8,
-    title: 'Receivable',
-    accessKey: 'receivable',
-    Amount: slider_data?.cur_m_receivable,
-    Prev_title: 'Previous Month',
-    Prev_Amount: slider_data?.pre_m_receivable,
-    topColor: '#E68E8E',
-    bottomColor: '#B96C6C',
-    isUp: slider_data?.cur_m_receivable > slider_data?.pre_m_receivable,
-  },
-  {
-    id: 9,
-    title: 'Payable',
-    accessKey: 'payable',
-    Amount: slider_data?.cur_m_payable,
-    Prev_title: 'Previous Month',
-    Prev_Amount: slider_data?.pre_m_payable,
-    topColor: '#EBE383',
-    bottomColor: '#D5C026',
-    isUp: slider_data?.cur_m_payable > slider_data?.pre_m_payable,
-  },
-];
+    {
+      id: 1,
+      title: 'Income',
+      accessKey: 'income', // add this
+      Amount: slider_data?.cur_m_income,
+      Prev_title: 'Previous Month',
+      Prev_Amount: slider_data?.pre_m_income,
+      topColor: '#88C365',
+      bottomColor: '#719D44',
+      isUp: slider_data?.cur_m_income > slider_data?.pre_m_income,
+    },
+    {
+      id: 2,
+      title: 'Expense',
+      accessKey: 'expense',
+      Amount: slider_data?.cur_m_expense,
+      Prev_title: 'Previous Month',
+      Prev_Amount: slider_data?.pre_m_expense,
+      topColor: '#F7587C',
+      bottomColor: '#B12037',
+      isUp: slider_data?.cur_m_expense > slider_data?.pre_m_expense,
+    },
+    {
+      id: 3,
+      title: 'Revenue',
+      accessKey: 'revenu',
+      Amount: slider_data?.cur_m_revenue,
+      Prev_title: 'Previous Month',
+      Prev_Amount: slider_data?.pre_m_revenue,
+      topColor: '#EBE383',
+      bottomColor: '#D5C026',
+      isUp: slider_data?.cur_m_revenue > slider_data?.pre_m_revenue,
+    },
+    {
+      id: 4,
+      title: 'Equity',
+      accessKey: 'equity',
+      Amount: slider_data?.cur_m_equity,
+      Prev_title: 'Previous Month',
+      Prev_Amount: slider_data?.pre_m_equity,
+      topColor: '#73D3FD',
+      bottomColor: '#088CD8',
+      isUp: slider_data?.cur_m_equity > slider_data?.pre_m_equity,
+    },
+    {
+      id: 5,
+      title: 'Recovery',
+      accessKey: 'recovery',
+      Amount: slider_data?.cur_m_recovery,
+      Prev_title: 'Previous Month',
+      Prev_Amount: slider_data?.pre_m_recovery,
+      topColor: '#73D3FD',
+      bottomColor: '#DB0EC3',
+      isUp: slider_data?.cur_m_recovery > slider_data?.pre_m_recovery,
+    },
+    {
+      id: 6,
+      title: 'Cash',
+      accessKey: 'cash',
+      Amount: slider_data?.cur_m_cash,
+      Prev_title: 'Previous Month',
+      Prev_Amount: slider_data?.pre_m_cash,
+      topColor: '#88C365',
+      bottomColor: '#88C365',
+      isUp: slider_data?.cur_m_cash > slider_data?.pre_m_cash,
+    },
+    {
+      id: 7,
+      title: 'Bank',
+      accessKey: 'bank',
+      Amount: slider_data?.cur_m_bank,
+      Prev_title: 'Previous Month',
+      Prev_Amount: slider_data?.pre_m_bank,
+      topColor: '#8ED5E6',
+      bottomColor: '#6CB9A7',
+      isUp: slider_data?.cur_m_bank > slider_data?.pre_m_bank,
+    },
+    {
+      id: 8,
+      title: 'Receivable',
+      accessKey: 'receivable',
+      Amount: slider_data?.cur_m_receivable,
+      Prev_title: 'Previous Month',
+      Prev_Amount: slider_data?.pre_m_receivable,
+      topColor: '#E68E8E',
+      bottomColor: '#B96C6C',
+      isUp: slider_data?.cur_m_receivable > slider_data?.pre_m_receivable,
+    },
+    {
+      id: 9,
+      title: 'Payable',
+      accessKey: 'payable',
+      Amount: slider_data?.cur_m_payable,
+      Prev_title: 'Previous Month',
+      Prev_Amount: slider_data?.pre_m_payable,
+      topColor: '#EBE383',
+      bottomColor: '#D5C026',
+      isUp: slider_data?.cur_m_payable > slider_data?.pre_m_payable,
+    },
+  ];
 
   const boxData = [
     {
@@ -279,8 +279,12 @@ const Detail = ({navigation}) => {
       ) : null}
 
       <ScrollView contentContainerStyle={{flexGrow: 1, paddingBottom: 100}}>
-        {/* <FlatList
-          data={revData}
+        <FlatList
+          data={revData.filter(
+            item =>
+              accessData?.[0]?.[item.accessKey] === '1' &&
+              parseFloat(item.Amount) !== 0,
+          )}
           numColumns={2}
           contentContainerStyle={{alignSelf: 'center', gap: 10, marginTop: 20}}
           renderItem={({item}) => {
@@ -292,8 +296,8 @@ const Detail = ({navigation}) => {
                 prev_title={item?.Prev_title}
                 prev_type={item?.Prev_type}
                 prev_amount={item?.Prev_Amount}
-                gradientTopColor={item?.topColor}
-                gradientBottomColor={item?.bottomColor}
+                gradientTopColor={APPCOLORS.Primary}
+                gradientBottomColor={APPCOLORS.Secondary}
                 IsUp={item?.isUp}
                 onPress={() =>
                   navigation.navigate('MoreDetail', {slider_data: AllData})
@@ -302,78 +306,9 @@ const Detail = ({navigation}) => {
               />
             );
           }}
-        /> */}
-        <FlatList
-  data={revData.filter(
-    item =>
-      accessData?.[0]?.[item.accessKey] === '1' &&
-      parseFloat(item.Amount) !== 0
-  )}
-  numColumns={2}
-  contentContainerStyle={{alignSelf: 'center', gap: 10, marginTop: 20}}
-  renderItem={({item}) => {
-    return (
-      <RevenueCards
-        title={item?.title}
-        type={item?.type}
-        amount={item?.Amount}
-        prev_title={item?.Prev_title}
-        prev_type={item?.Prev_type}
-        prev_amount={item?.Prev_Amount}
-        gradientTopColor={item?.topColor}
-        gradientBottomColor={item?.bottomColor}
-        IsUp={item?.isUp}
-        onPress={() =>
-          navigation.navigate('MoreDetail', {slider_data: AllData})
-        }
-        accessData={accessData}
-      />
-    );
-  }}
-/>
-
-
-        <FlatList
-          data={boxData}
-          numColumns={3}
-          contentContainerStyle={{alignSelf: 'center', gap: 10, marginTop: 20}}
-          renderItem={({item}) => {
-            return (
-              <BoxCards
-                title={item.title}
-                gradientTopColor={item.topColor}
-                gradientBottomColor={item.bottomColor}
-                amount={item.Amount}
-              />
-            );
-          }}
         />
 
         <View style={{padding: 20, marginTop: 20}}>
-          <AppText
-            title="Top 10"
-            titleSize={2}
-            titleColor={APPCOLORS.BLACK}
-            titleWeight
-          />
-        </View>
-
-        <View style={{padding: 20, marginTop: 20}}>
-          <AppText
-            title="Today Status"
-            titleSize={2}
-            titleColor={APPCOLORS.BLACK}
-            titleWeight
-          />
-
-          <View style={{marginTop: 10, gap: 10}}>
-            <NameAndBar title="Today Sales" barColor={'#EEB079'} />
-            <NameAndBar title="Today Recovery" barColor={'#62AECC'} />
-            <NameAndBar title="Today Purchase Order" barColor={'#A62C00'} />
-            <NameAndBar title="Today Order" barColor={'#358B00'} />
-            <NameAndBar title="Today Return" barColor={'#98B04B'} />
-          </View>
-
           <View style={{gap: 10, marginTop: 10}}>
             {accessData[0]?.customer_d == '1' && (
               <TopTen

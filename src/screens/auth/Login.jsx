@@ -3,16 +3,14 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  Image,
+  ActivityIndicator,
   ScrollView,
   StyleSheet,
 } from 'react-native';
 import React, {useState} from 'react';
 import LinearGradient from 'react-native-linear-gradient';
-import AppButton from '../../components/AppButton';
 import {useDispatch, useSelector} from 'react-redux';
 import {CurrentLogin, setLoader} from '../../redux/AuthSlice';
-
 import Toast from 'react-native-toast-message';
 import BaseUrl from '../../utils/BaseUrl';
 import {APPCOLORS} from '../../utils/APPCOLORS';
@@ -22,7 +20,6 @@ const Login = ({navigation}) => {
   const [password, setPassword] = useState('');
 
   const dispatch = useDispatch();
-
   const Loading = useSelector(state => state.Data.Loading);
 
   const loginUser = () => {
@@ -59,20 +56,24 @@ const Login = ({navigation}) => {
         <ScrollView
           style={{marginTop: 60}}
           contentContainerStyle={{flexGrow: 1, paddingBottom: 50}}>
-          {/* Logo */}
-          <Image
-            source={require('../../assets/images/Rider.png')}
+          
+          {/* Company Name instead of Logo */}
+          <Text
             style={{
               alignSelf: 'center',
-              height: 160,
-              width: 160,
-              borderRadius: 80,
+              fontSize: 22,
+              fontWeight: 'bold',
+              color: APPCOLORS.WHITE,
+              textAlign: 'center',
               marginBottom: 30,
-              resizeMode: 'contain',
-              backgroundColor: 'rgba(255,255,255,0.05)',
-              padding: 10,
-            }}
-          />
+              backgroundColor: 'rgba(255,255,255,0.1)',
+              paddingHorizontal: 15,
+              paddingVertical: 8,
+              borderRadius: 8,
+              letterSpacing: 1,
+            }}>
+            ERCON INDUSTRIES PVT Limited
+          </Text>
 
           {/* Login Card */}
           <View
@@ -90,32 +91,12 @@ const Login = ({navigation}) => {
               borderWidth: 1,
               borderColor: 'rgba(255,255,255,0.2)',
             }}>
-            <Text
-              style={{
-                color: APPCOLORS.WHITE,
-                fontSize: 32,
-                fontWeight: 'bold',
-                textAlign: 'center',
-                marginBottom: 25,
-              }}>
-              Welcome Back
-            </Text>
-
+         
             {/* Username Input */}
             <TextInput
               placeholder="Email or Username"
               placeholderTextColor="rgba(255,255,255,0.6)"
-              style={{
-                color: APPCOLORS.WHITE,
-                backgroundColor: 'rgba(255,255,255,0.1)',
-                borderRadius: 12,
-                paddingHorizontal: 15,
-                paddingVertical: 12,
-                marginBottom: 15,
-                fontSize: 16,
-                borderWidth: 1,
-                borderColor: 'rgba(255,255,255,0.15)',
-              }}
+              style={styles.input}
               onChangeText={txt => setUsername(txt)}
               value={username}
             />
@@ -125,23 +106,18 @@ const Login = ({navigation}) => {
               placeholder="Password"
               placeholderTextColor="rgba(255,255,255,0.6)"
               secureTextEntry
-              style={{
-                color: APPCOLORS.WHITE,
-                backgroundColor: 'rgba(255,255,255,0.1)',
-                borderRadius: 12,
-                paddingHorizontal: 15,
-                paddingVertical: 12,
-                fontSize: 16,
-                borderWidth: 1,
-                borderColor: 'rgba(255,255,255,0.15)',
-              }}
+              style={styles.input}
               onChangeText={txt => setPassword(txt)}
               value={password}
             />
 
-            {/* Button */}
-            <TouchableOpacity style={styles.button} onPress={loginUser}>
-              <Text style={styles.text}>Sign In</Text>
+            {/* Button with Loader */}
+            <TouchableOpacity style={styles.button} onPress={loginUser} disabled={Loading}>
+              {Loading ? (
+                <ActivityIndicator color="#fff" />
+              ) : (
+                <Text style={styles.text}>Sign In</Text>
+              )}
             </TouchableOpacity>
           </View>
         </ScrollView>
@@ -152,16 +128,26 @@ const Login = ({navigation}) => {
 
 export default Login;
 
-
 const styles = StyleSheet.create({
+  input: {
+    color: APPCOLORS.WHITE,
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    borderRadius: 12,
+    paddingHorizontal: 15,
+    paddingVertical: 12,
+    marginBottom: 15,
+    fontSize: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.15)',
+  },
   button: {
-    backgroundColor: APPCOLORS.BLACK, // theme ka color
+    backgroundColor: APPCOLORS.BLACK,
     paddingVertical: 12,
     paddingHorizontal: 20,
     borderRadius: 8,
     alignItems: 'center',
     elevation: 3,
-    marginTop: 20
+    marginTop: 20,
   },
   text: {
     color: "#FFFFFF",

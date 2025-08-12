@@ -28,7 +28,6 @@ const RevenueCards = ({amount,gradientBottomColor,gradientTopColor,title,type, I
     <LinearGradient colors={[gradientTopColor, gradientBottomColor ]}  start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={{padding:20, width:responsiveWidth(44), marginLeft:10, borderRadius:20, justifyContent:'space-between'}}>
 <View>
       <AppText title={title} titleSize={1.8} titleWeight titleColor={APPCOLORS.WHITE}/>
-      {/* <AppText title={type} titleSize={1.5} titleWeight titleColor={APPCOLORS.WHITE}/> */}
       <View style={{marginTop:2, flexDirection:'row', justifyContent:'space-between', alignItems:'center'}}>
       <AppText title={`Rs.${Math.round(amount).toLocaleString() }`} titleSize={2} titleColor={APPCOLORS.WHITE} titleWeight/>
 
@@ -51,10 +50,10 @@ const RevenueCards = ({amount,gradientBottomColor,gradientTopColor,title,type, I
       </View>
       </View>
 
-      <View style={{marginTop:20, gap:2, alignSelf:'flex-end'}}>
+      {/* <View style={{marginTop:20, gap:2, alignSelf:'flex-end'}}>
         <AppText title={`${prev_title}` } titleSize={1.7} titleWeight  titleColor={APPCOLORS.WHITE}/>
         <AppText title={`Rs.${Math.round(prev_amount).toLocaleString() }`} titleSize={1.7} titleColor={APPCOLORS.WHITE} titleWeight/>
-      </View>
+      </View> */}
 
     </LinearGradient>
     </TouchableOpacity>
