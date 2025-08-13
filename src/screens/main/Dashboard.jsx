@@ -50,7 +50,7 @@ const Dashboard = ({navigation}) => {
       id: 2,
       name: 'Approval',
       icon: 'check-circle',
-      onPress: () => navigation.navigate('Home', {type: 'customer'}),
+      onPress: () => navigation.navigate('AlertScreen', {type: 'customer'}),
     },
     {
       id: 3,

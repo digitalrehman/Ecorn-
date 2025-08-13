@@ -6,15 +6,14 @@ import {
   StyleSheet,
   ImageBackground,
 } from 'react-native';
-import { APPCOLORS } from '../utils/APPCOLORS';
+import {APPCOLORS} from '../utils/APPCOLORS';
 
-const GetStartedScreen = ({ navigation }) => {
+const GetStartedScreen = ({navigation}) => {
   return (
     <ImageBackground
       source={require('../assets/images/getstartedbg.jpg')}
       style={styles.background}
       blurRadius={3}>
-
       {/* Dark Shade on Image */}
       <View style={styles.imageOverlay} />
 

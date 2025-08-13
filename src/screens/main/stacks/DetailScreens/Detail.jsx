@@ -1,21 +1,14 @@
 import {
   View,
-  Text,
   FlatList,
   ScrollView,
   ActivityIndicator,
-  TouchableOpacity,
 } from 'react-native';
 import React, {useEffect, useState} from 'react';
 import SimpleHeader from '../../../../components/SimpleHeader';
 import RevenueCards from '../../../../components/RevenueCards';
-import BoxCards from '../../../../components/BoxCards';
-import AppText from '../../../../components/AppText';
 import {APPCOLORS} from '../../../../utils/APPCOLORS';
-import NameAndBar from '../../../../components/NameAndBar';
-import {BarChart} from 'react-native-chart-kit';
 import {responsiveHeight, responsiveWidth} from '../../../../utils/Responsive';
-import PieChart from 'react-native-pie-chart';
 import BaseUrl from '../../../../utils/BaseUrl';
 import axios from 'axios';
 import TopTen from '../../../../components/TopTen';
@@ -63,28 +56,6 @@ const Detail = ({navigation}) => {
       isUp: slider_data?.cur_m_revenue > slider_data?.pre_m_revenue,
     },
     {
-      id: 4,
-      title: 'Equity',
-      accessKey: 'equity',
-      Amount: slider_data?.cur_m_equity,
-      Prev_title: 'Previous Month',
-      Prev_Amount: slider_data?.pre_m_equity,
-      topColor: '#73D3FD',
-      bottomColor: '#088CD8',
-      isUp: slider_data?.cur_m_equity > slider_data?.pre_m_equity,
-    },
-    {
-      id: 5,
-      title: 'Recovery',
-      accessKey: 'recovery',
-      Amount: slider_data?.cur_m_recovery,
-      Prev_title: 'Previous Month',
-      Prev_Amount: slider_data?.pre_m_recovery,
-      topColor: '#73D3FD',
-      bottomColor: '#DB0EC3',
-      isUp: slider_data?.cur_m_recovery > slider_data?.pre_m_recovery,
-    },
-    {
       id: 6,
       title: 'Cash',
       accessKey: 'cash',
@@ -130,98 +101,7 @@ const Detail = ({navigation}) => {
     },
   ];
 
-  const boxData = [
-    {
-      id: 1,
-      title: 'Sales',
-      type: 'Revenue',
-      Amount: AllData?.today_data?.today_sale,
-      topColor: '#FF9168',
-      bottomColor: '#99573E',
-      isUp: true,
-    },
-    {
-      id: 2,
-      title: 'Recovery',
-      type: 'Revenue',
-      Amount: AllData?.today_data?.today_recovery,
-      topColor: '#FF704D',
-      bottomColor: '#99432E',
-      isUp: false,
-    },
-    {
-      id: 3,
-      title: 'Purchase Order',
-      type: 'Revenue',
-      Amount: AllData?.today_data?.today_po,
-      topColor: '#B58D86',
-      bottomColor: '#73514B',
-      isUp: true,
-    },
-    {
-      id: 4,
-      title: 'Sales order',
-      type: 'Revenue',
-      Amount: AllData?.today_data?.today_orders,
-      topColor: '#AFC1D1',
-      bottomColor: '#48A7CA',
-      isUp: false,
-    },
-    {
-      id: 5,
-      title: 'Vendor Payment',
-      type: 'Revenue',
-      Amount: AllData?.today_data?.today_payments,
-      topColor: '#F7587C',
-      bottomColor: '#48432F',
-      isUp: true,
-    },
-    {
-      id: 6,
-      title: 'Sales Return',
-      type: 'Revenue',
-      Amount: AllData?.today_data?.today_return,
-      topColor: '#564A48',
-      bottomColor: '#767676',
-      isUp: false,
-    },
-  ];
 
-  const bardata = {
-    labels: ['January', 'February', 'March', 'April', 'May', 'June'],
-    datasets: [
-      {
-        data: [0, 20, 60, 80, 90, 100],
-      },
-    ],
-  };
-
-  const chartConfig = {
-    backgroundGradientFrom: '#FFFFFF',
-    backgroundGradientFromOpacity: 1,
-    backgroundGradientTo: '#FFFFFF',
-    backgroundGradientToOpacity: 1,
-    color: (opacity = 1) => `#8979FF`, // Dark blue
-    strokeWidth: 2, // optional, default 3
-    barPercentage: 0.5,
-    propsForBackgroundLines: {
-      strokeDasharray: '', // Solid lines
-      stroke: '#e3e3e3', // Light grey horizontal lines
-    },
-    fillShadowGradientFrom: '#8979FF', // Or use hex: "#00008B"
-    fillShadowGradientFromOpacity: 1,
-    fillShadowGradientTo: '#8979FF', // Same for consistent color
-    fillShadowGradientToOpacity: 1,
-    useShadowColorFromDataset: false, // optional
-  };
-
-  const series = [{value: 430, color: '#0784B5'}];
-
-  const series2 = [{value: 430, color: '#39ACE7'}];
-
-  const series3 = [{value: 430, color: '#9BD4E4'}];
-
-  const series4 = [{value: 430, color: '#CADEEF'}];
 
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
@@ -310,56 +190,10 @@ const Detail = ({navigation}) => {
 
         <View style={{padding: 20, marginTop: 20}}>
           <View style={{gap: 10, marginTop: 10}}>
-            {accessData[0]?.customer_d == '1' && (
-              <TopTen
-                onPress={() =>
-                  navigation.navigate('TopTenScreen', {name: 'Customer'})
-                }
-                title="Top 10 Customer"
-              />
-            )}
-            {accessData[0]?.supplier_d == '1' && (
-              <TopTen
-                onPress={() =>
-                  navigation.navigate('TopTenScreen', {name: 'Suppliers'})
-                }
-                title="Top 10 Suppliers"
-              />
-            )}
-            {accessData[0]?.bank_d == '1' && (
-              <TopTen
-                onPress={() =>
-                  navigation.navigate('TopTenScreen', {name: 'Banks'})
-                }
-                title="Top 10 Banks"
-              />
-            )}
-            {accessData[0]?.item_d == '1' && (
-              <TopTen
-                onPress={() =>
-                  navigation.navigate('TopTenScreen', {name: 'Items'})
-                }
-                title="Top 10 Items"
-              />
-            )}
-            {accessData[0]?.salesman_d == '1' && (
-              <TopTen
-                onPress={() =>
-                  navigation.navigate('TopTenScreen', {name: 'Salesman'})
-                }
-                title="Top 10 Salesman"
-              />
-            )}
             {accessData[0]?.profit_loss_d == '1' && (
               <TopTen
                 onPress={() => navigation.navigate('ProfitAndLossScreen')}
                 title="Profit and Loss"
-              />
-            )}
-            {accessData[0]?.approval_d == '1' && (
-              <TopTen
-                onPress={() => navigation.navigate('AlertScreen')}
-                title="Approvals"
               />
             )}
 
@@ -371,118 +205,6 @@ const Detail = ({navigation}) => {
                 title="What About Today"
               />
             )}
-          </View>
-        </View>
-
-        <View style={{padding: 20}}>
-          <AppText title="Graph" titleSize={2} titleWeight />
-        </View>
-
-        <BarChart
-          style={{}}
-          data={bardata}
-          width={responsiveWidth(100)}
-          height={220}
-          yAxisLabel=""
-          chartConfig={chartConfig}
-          verticalLabelRotation={0}
-          withVerticalLabels={false}
-          showBarTops={false}
-        />
-
-        <View style={{padding: 20}}>
-          <AppText title="Total Stats" titleSize={2} titleWeight />
-          <View
-            style={{
-              flexDirection: 'row',
-              justifyContent: 'space-between',
-              marginTop: 20,
-            }}>
-            <View style={{alignItems: 'center', justifyContent: 'center'}}>
-              <PieChart
-                widthAndHeight={150}
-                series={series}
-                cover={0.7}
-                style={{alignSelf: 'center'}}
-              />
-
-              <View
-                style={{
-                  position: 'absolute',
-                  zIndex: 1,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}>
-                <AppText title="INCOME" titleSize={1.5} />
-                <AppText title="20,000" titleSize={1.5} />
-              </View>
-            </View>
-
-            <View style={{alignItems: 'center', justifyContent: 'center'}}>
-              <PieChart
-                widthAndHeight={150}
-                series={series2}
-                cover={0.7}
-                style={{alignSelf: 'center'}}
-              />
-
-              <View
-                style={{
-                  position: 'absolute',
-                  zIndex: 1,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}>
-                <AppText title="EXPENSE" titleSize={1.5} />
-                <AppText title="20,000" titleSize={1.5} />
-              </View>
-            </View>
-          </View>
-
-          <View
-            style={{
-              flexDirection: 'row',
-              justifyContent: 'space-between',
-              marginTop: 20,
-            }}>
-            <View style={{alignItems: 'center', justifyContent: 'center'}}>
-              <PieChart
-                widthAndHeight={150}
-                series={series3}
-                cover={0.7}
-                style={{alignSelf: 'center'}}
-              />
-
-              <View
-                style={{
-                  position: 'absolute',
-                  zIndex: 1,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}>
-                <AppText title="NET PROFIT" titleSize={1.5} />
-                <AppText title="20,000" titleSize={1.5} />
-              </View>
-            </View>
-            <View style={{alignItems: 'center', justifyContent: 'center'}}>
-              <PieChart
-                widthAndHeight={150}
-                series={series4}
-                cover={0.7}
-                style={{alignSelf: 'center'}}
-              />
-
-              <View
-                style={{
-                  position: 'absolute',
-                  zIndex: 1,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}>
-                <AppText title="PERCENTAGE" titleSize={1.5} />
-                <AppText title="24,854.43%" titleSize={1.5} />
-              </View>
-            </View>
           </View>
         </View>
       </ScrollView>
