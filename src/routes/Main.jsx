@@ -84,11 +84,14 @@ const Main = () => {
         component={ShowUnapprovedDetails}
       />
 
-    {/* old app */}
+      {/* old app */}
       {/* <Stack.Screen name="OtherApp" component={OtherApp} /> */}
-       <Stack.Screen name="Home" component={Home} />
+      <Stack.Screen name="Home" component={Home} />
       <Stack.Screen name="AddNewCustomer" component={AddNewCustomer} />
-      <Stack.Screen name="InsertNewCustomerDetail" component={InsertNewCustomerDetail} />
+      <Stack.Screen
+        name="InsertNewCustomerDetail"
+        component={InsertNewCustomerDetail}
+      />
       <Stack.Screen name="Incentive" component={Incentive} />
       <Stack.Screen name="AddItems" component={AddItems} />
       <Stack.Screen name="ItemList" component={ItemList} />
@@ -105,21 +108,21 @@ const Main = () => {
       <Stack.Screen name="AsmDimension" component={AsmDimension} />
       <Stack.Screen name="TodayOrderDetails" component={TodayOrderDetails} />
       <Stack.Screen name="SupplierHome" component={SupplierHome} />
-
-
-      
-      
     </Stack.Navigator>
   );
 };
 
 const OtherApp = () => {
-
-   return (
-    <Stack.Navigator initialRouteName='Home' screenOptions={{ headerShown: false }}>
+  return (
+    <Stack.Navigator
+      initialRouteName="Home"
+      screenOptions={{headerShown: false}}>
       <Stack.Screen name="Home" component={Home} />
       <Stack.Screen name="AddNewCustomer" component={AddNewCustomer} />
-      <Stack.Screen name="InsertNewCustomerDetail" component={InsertNewCustomerDetail} />
+      <Stack.Screen
+        name="InsertNewCustomerDetail"
+        component={InsertNewCustomerDetail}
+      />
       <Stack.Screen name="Incentive" component={Incentive} />
       <Stack.Screen name="AddItems" component={AddItems} />
       <Stack.Screen name="ItemList" component={ItemList} />
@@ -136,12 +139,8 @@ const OtherApp = () => {
       <Stack.Screen name="AsmDimension" component={AsmDimension} />
       <Stack.Screen name="TodayOrderDetails" component={TodayOrderDetails} />
       <Stack.Screen name="SupplierHome" component={SupplierHome} />
-
-
-      
     </Stack.Navigator>
-
-  )
+  );
 };
 
 export default Main;

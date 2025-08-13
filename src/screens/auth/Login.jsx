@@ -6,6 +6,7 @@ import {
   ActivityIndicator,
   ScrollView,
   StyleSheet,
+  Image,
 } from 'react-native';
 import React, {useState} from 'react';
 import LinearGradient from 'react-native-linear-gradient';
@@ -56,24 +57,39 @@ const Login = ({navigation}) => {
         <ScrollView
           style={{marginTop: 60}}
           contentContainerStyle={{flexGrow: 1, paddingBottom: 50}}>
-          
           {/* Company Name instead of Logo */}
-          <Text
+          <Image
+            source={require('../../assets/images/Rider.png')}
             style={{
+              height: 160,
+              width: 160,
+              borderRadius: 80,
+              marginBottom: 15,
               alignSelf: 'center',
-              fontSize: 22,
-              fontWeight: 'bold',
-              color: APPCOLORS.WHITE,
-              textAlign: 'center',
-              marginBottom: 30,
-              backgroundColor: 'rgba(255,255,255,0.1)',
-              paddingHorizontal: 15,
-              paddingVertical: 8,
-              borderRadius: 8,
-              letterSpacing: 1,
-            }}>
-            ERCON INDUSTRIES PVT Limited
-          </Text>
+            }}
+          />
+          {/* Company Name */}
+          <View style={{alignItems: 'center', marginBottom: 35}}>
+            <Text
+              style={{
+                fontSize: 20,
+                fontWeight: 'bold',
+                color: APPCOLORS.WHITE,
+                textAlign: 'center',
+              }}>
+              ERCON INDUSTRIES
+            </Text>
+            <Text
+              style={{
+                fontSize: 16,
+                fontWeight: '500',
+                color: APPCOLORS.WHITE,
+                textAlign: 'center',
+                opacity: 0.8,
+              }}>
+              PVT Limited
+            </Text>
+          </View>
 
           {/* Login Card */}
           <View
@@ -91,7 +107,6 @@ const Login = ({navigation}) => {
               borderWidth: 1,
               borderColor: 'rgba(255,255,255,0.2)',
             }}>
-         
             {/* Username Input */}
             <TextInput
               placeholder="Email or Username"
@@ -112,7 +127,10 @@ const Login = ({navigation}) => {
             />
 
             {/* Button with Loader */}
-            <TouchableOpacity style={styles.button} onPress={loginUser} disabled={Loading}>
+            <TouchableOpacity
+              style={styles.button}
+              onPress={loginUser}
+              disabled={Loading}>
               {Loading ? (
                 <ActivityIndicator color="#fff" />
               ) : (
@@ -150,7 +168,7 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   text: {
-    color: "#FFFFFF",
+    color: '#FFFFFF',
     fontSize: 16,
     fontWeight: 'bold',
   },
