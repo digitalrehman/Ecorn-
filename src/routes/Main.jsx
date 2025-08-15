@@ -42,6 +42,7 @@ import AsmSalesman from '../screens/otherappflow/main/asm/AsmSalesman';
 import AsmDimension from '../screens/otherappflow/main/asm/AsmDimension';
 import TodayOrderDetails from '../screens/otherappflow/main/TodayOrderDetails';
 import SupplierHome from '../screens/otherappflow/suppliers/SupplierHome';
+import SalesScreen from '../screens/main/stacks/Sales/SalesScreen';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -87,6 +88,7 @@ const Main = () => {
       {/* old app */}
       {/* <Stack.Screen name="OtherApp" component={OtherApp} /> */}
       <Stack.Screen name="Home" component={Home} />
+      <Stack.Screen name="SalesScreen" component={SalesScreen} />
       <Stack.Screen name="AddNewCustomer" component={AddNewCustomer} />
       <Stack.Screen
         name="InsertNewCustomerDetail"

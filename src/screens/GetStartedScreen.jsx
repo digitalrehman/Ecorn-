@@ -21,7 +21,7 @@ const GetStartedScreen = ({navigation}) => {
       <View style={styles.overlay}>
         <Text style={styles.title}>ERCON INDUSTRIES PVT Limited</Text>
         <Text style={styles.subtitle}>
-          Get started with us for a great gare swicth
+          Get started with us for a great switch gare 
         </Text>
         <TouchableOpacity
           style={styles.button}

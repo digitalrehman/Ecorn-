@@ -41,7 +41,7 @@ const AppHeader = ({ title, onPress }: props) => {
           marginTop: 30,
         }}>
         
-        <AppText title='DeSolutions' titleColor={APPCOLORS.WHITE} titleSize={3} titleWeight />
+        <AppText title='Ecorn Industry' titleColor={APPCOLORS.WHITE} titleSize={3} titleWeight />
 
         <View style={{ flexDirection: 'row', gap: 10 }}>
 

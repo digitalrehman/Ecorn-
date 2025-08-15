@@ -25,12 +25,8 @@ const RevenueCards = ({
   gradientBottomColor,
   gradientTopColor,
   title,
-  type,
   IsUp,
   onPress,
-  prev_amount,
-  prev_title,
-  prev_type,
   accessData,
 }: props) => {
   console.log('accessData', accessData);

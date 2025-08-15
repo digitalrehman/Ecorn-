@@ -3,6 +3,8 @@ import {
   FlatList,
   ScrollView,
   ActivityIndicator,
+  StyleSheet,
+  Text,
 } from 'react-native';
 import React, {useEffect, useState} from 'react';
 import SimpleHeader from '../../../../components/SimpleHeader';
@@ -21,40 +23,17 @@ const Detail = ({navigation}) => {
   const [AllData, setAllData] = useState();
 
   const [loader, setLoader] = useState(false);
+  const incomeData = [
+    {id: '1', title: 'Total Income', amount: slider_data?.cur_m_income},
+  ];
+  const expenseData = [
+    {id: '501', title: 'Cost of Goods Sold', amount: 200000},
+    {id: '502', title: 'Payroll Expenses', amount: 120000},
+    {id: '504', title: 'Administrative Expenses', amount: 30000},
+    {id: '505', title: 'Selling & Marketing', amount: 15000},
+    {id: '503', title: 'Finanace Coast', amount: 40000},
+  ];
   const revData = [
-    {
-      id: 1,
-      title: 'Income',
-      accessKey: 'income', // add this
-      Amount: slider_data?.cur_m_income,
-      Prev_title: 'Previous Month',
-      Prev_Amount: slider_data?.pre_m_income,
-      topColor: '#88C365',
-      bottomColor: '#719D44',
-      isUp: slider_data?.cur_m_income > slider_data?.pre_m_income,
-    },
-    {
-      id: 2,
-      title: 'Expense',
-      accessKey: 'expense',
-      Amount: slider_data?.cur_m_expense,
-      Prev_title: 'Previous Month',
-      Prev_Amount: slider_data?.pre_m_expense,
-      topColor: '#F7587C',
-      bottomColor: '#B12037',
-      isUp: slider_data?.cur_m_expense > slider_data?.pre_m_expense,
-    },
-    {
-      id: 3,
-      title: 'Revenue',
-      accessKey: 'revenu',
-      Amount: slider_data?.cur_m_revenue,
-      Prev_title: 'Previous Month',
-      Prev_Amount: slider_data?.pre_m_revenue,
-      topColor: '#EBE383',
-      bottomColor: '#D5C026',
-      isUp: slider_data?.cur_m_revenue > slider_data?.pre_m_revenue,
-    },
     {
       id: 6,
       title: 'Cash',
@@ -62,8 +41,6 @@ const Detail = ({navigation}) => {
       Amount: slider_data?.cur_m_cash,
       Prev_title: 'Previous Month',
       Prev_Amount: slider_data?.pre_m_cash,
-      topColor: '#88C365',
-      bottomColor: '#88C365',
       isUp: slider_data?.cur_m_cash > slider_data?.pre_m_cash,
     },
     {
@@ -73,8 +50,6 @@ const Detail = ({navigation}) => {
       Amount: slider_data?.cur_m_bank,
       Prev_title: 'Previous Month',
       Prev_Amount: slider_data?.pre_m_bank,
-      topColor: '#8ED5E6',
-      bottomColor: '#6CB9A7',
       isUp: slider_data?.cur_m_bank > slider_data?.pre_m_bank,
     },
     {
@@ -84,8 +59,6 @@ const Detail = ({navigation}) => {
       Amount: slider_data?.cur_m_receivable,
       Prev_title: 'Previous Month',
       Prev_Amount: slider_data?.pre_m_receivable,
-      topColor: '#E68E8E',
-      bottomColor: '#B96C6C',
       isUp: slider_data?.cur_m_receivable > slider_data?.pre_m_receivable,
     },
     {
@@ -95,13 +68,9 @@ const Detail = ({navigation}) => {
       Amount: slider_data?.cur_m_payable,
       Prev_title: 'Previous Month',
       Prev_Amount: slider_data?.pre_m_payable,
-      topColor: '#EBE383',
-      bottomColor: '#D5C026',
       isUp: slider_data?.cur_m_payable > slider_data?.pre_m_payable,
     },
   ];
-
-
 
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
@@ -138,6 +107,13 @@ const Detail = ({navigation}) => {
     }
   };
 
+  const renderRow = ({item}) => (
+    <View style={styles.row}>
+      <Text style={styles.rowTitle}>{item.title}</Text>
+      <Text style={styles.rowAmount}>{item.amount}</Text>
+    </View>
+  );
+
   return (
     <View style={{flex: 1, backgroundColor: APPCOLORS.WHITE}}>
       <SimpleHeader title="Detail" />
@@ -159,6 +135,22 @@ const Detail = ({navigation}) => {
       ) : null}
 
       <ScrollView contentContainerStyle={{flexGrow: 1, paddingBottom: 100}}>
+        {/* Income Section */}
+        <Text style={styles.sectionHeader}>Income</Text>
+        <FlatList
+          data={incomeData}
+          keyExtractor={item => item.id}
+          renderItem={renderRow}
+        />
+
+        {/* Expense Section */}
+        <Text style={styles.sectionHeader}>Expense</Text>
+        <FlatList
+          data={expenseData}
+          keyExtractor={item => item.id}
+          renderItem={renderRow}
+        />
+
         <FlatList
           data={revData.filter(
             item =>
@@ -180,7 +172,10 @@ const Detail = ({navigation}) => {
                 gradientBottomColor={APPCOLORS.Secondary}
                 IsUp={item?.isUp}
                 onPress={() =>
-                  navigation.navigate('MoreDetail', {slider_data: AllData})
+                  navigation.navigate('MoreDetail', {
+                    slider_data: AllData,
+                    type: item.accessKey,
+                  })
                 }
                 accessData={accessData}
               />
@@ -190,7 +185,7 @@ const Detail = ({navigation}) => {
 
         <View style={{padding: 20, marginTop: 20}}>
           <View style={{gap: 10, marginTop: 10}}>
-            {accessData[0]?.profit_loss_d == '1' && (
+            {accessData?.[0]?.profit_loss_d == '1' && (
               <TopTen
                 onPress={() => navigation.navigate('ProfitAndLossScreen')}
                 title="Profit and Loss"
@@ -213,3 +208,33 @@ const Detail = ({navigation}) => {
 };
 
 export default Detail;
+
+let styles = StyleSheet.create({
+  container: {flex: 1, backgroundColor: '#fff'},
+  sectionHeader: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginTop: 15,
+    marginBottom: 5,
+    paddingHorizontal: 10,
+  },
+  row: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    padding: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#ddd',
+  },
+  rowTitle: {fontSize: 16},
+  rowAmount: {fontSize: 16, fontWeight: 'bold'},
+  cardContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-around',
+    marginVertical: 20,
+  },
+  card: {backgroundColor: '#000', padding: 15, borderRadius: 8, margin: 5},
+  cardText: {color: '#fff', fontSize: 16},
+  profitLossContainer: {marginTop: 20, padding: 10},
+  profitLossText: {fontSize: 16},
+});

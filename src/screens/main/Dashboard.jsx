@@ -56,7 +56,7 @@ const Dashboard = ({navigation}) => {
       id: 3,
       name: 'Sales',
       icon: 'shopping-cart',
-      onPress: () => navigation.navigate('Home', {type: 'customer'}),
+      onPress: () => navigation.navigate('SalesScreen'),
     },
     {
       id: 4,
