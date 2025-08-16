@@ -27,7 +27,7 @@ const NameBalanceContainer = ({
   const navigation = useNavigation();
   return (
     <LinearGradient
-      colors={['#E6E6E6', '#ACD7E5']}
+      colors={[APPCOLORS.BLACK, APPCOLORS.Secondary]}
       style={{padding: 20, borderRadius: 20}}>
       <TouchableOpacity >
         <View style={{flexDirection: 'row', justifyContent: 'space-between'}}>
@@ -35,7 +35,7 @@ const NameBalanceContainer = ({
             title="Name"
             titleSize={1.6}
             titleWeight
-            titleColor={APPCOLORS.BLACK}
+            titleColor={APPCOLORS.WHITE}
           />
 
           <View style={{flexDirection: 'row', gap: 50}}>
@@ -43,13 +43,13 @@ const NameBalanceContainer = ({
               title="Balance"
               titleSize={1.6}
               titleWeight
-              titleColor={APPCOLORS.BLACK}
+              titleColor={APPCOLORS.WHITE}
             />
             <AppText
               title="%"
               titleSize={1.6}
               titleWeight
-              titleColor={APPCOLORS.BLACK}
+              titleColor={APPCOLORS.WHITE}
             />
           </View>
         </View>
@@ -59,7 +59,7 @@ const NameBalanceContainer = ({
             <AppText
               title={Name}
               titleSize={1.8}
-              titleColor={APPCOLORS.BLACK}
+              titleColor={APPCOLORS.WHITE}
             />
           </View>
 
@@ -67,9 +67,9 @@ const NameBalanceContainer = ({
             <AppText
               title={Math.round(balance).toLocaleString()}
               titleSize={1.8}
-              titleColor={APPCOLORS.BLACK}
+              titleColor={APPCOLORS.WHITE}
             />
-            <AppText title="0" titleSize={1.8} titleColor={APPCOLORS.BLACK} />
+            <AppText title="0" titleSize={1.8} titleColor={APPCOLORS.WHITE} />
           </View>
         </View>
       </TouchableOpacity>

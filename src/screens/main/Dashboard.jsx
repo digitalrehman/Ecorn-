@@ -62,37 +62,37 @@ const Dashboard = ({navigation}) => {
       id: 4,
       name: 'Purchase',
       icon: 'shopping-bag',
-      onPress: () => navigation.navigate('Home', {type: 'customer'}),
+      onPress: () => navigation.navigate('PurchaseScreen'),
     },
     {
       id: 5,
       name: 'HR & Payroll',
       icon: 'users',
-      onPress: () => navigation.navigate('Home', {type: 'supplier'}),
+      onPress: () => navigation.navigate('PayrollScreen'),
     },
     {
       id: 6,
       name: 'Inventory',
       icon: 'box',
-      onPress: () => navigation.navigate('Home'),
+      onPress: () => navigation.navigate('InventoryScreen'),
     },
     {
       id: 7,
       name: 'Accounts',
       icon: 'dollar-sign',
-      onPress: () => navigation.navigate('Home'),
+      onPress: () => navigation.navigate('FinanceScreen'),
     },
     {
       id: 8,
       name: 'Manufactur..',
       icon: 'settings',
-      onPress: () => navigation.navigate('Home'),
+      onPress: () => navigation.navigate('ManufacturingScreen'),
     },
     {
       id: 9,
       name: 'CRM',
       icon: 'briefcase',
-      onPress: () => navigation.navigate('Home'),
+      onPress: () => navigation.navigate('CrmScreen'),
     },
   ];
 

@@ -36,7 +36,7 @@ const AlertCards = ({ HeadingOne, HeadingThree, HeadingTwo, ValueOne, ValueThree
 
     return (
         <View style={{ backgroundColor: APPCOLORS.WHITE, borderBottomRightRadius: 20, borderBottomLeftRadius: 20, shadowRadius: 2, elevation: 2 }}>
-            <LinearGradient colors={["#0784B5", "#033A4F"]} style={{ padding: 20, alignItems: 'center', justifyContent: 'center' }}>
+            <LinearGradient colors={[APPCOLORS.BLACK, APPCOLORS.Secondary]} style={{ padding: 20, alignItems: 'center', justifyContent: 'center' }}>
                 <AppText title={AlertHeading} titleColor={APPCOLORS.WHITE} titleSize={2} titleWeight />
             </LinearGradient>
 

@@ -7,16 +7,14 @@ import {APPCOLORS} from '../../../../utils/APPCOLORS';
 import * as Animatable from 'react-native-animatable';
 
 const buttons = [
-  {name: 'Add Customer', icon: 'account-plus'},
-  {name: 'Delivery', icon: 'truck-delivery'},
-  {name: 'Sales Approval', icon: 'clipboard-check'},
-  {name: 'View and Downloads', icon: 'file-download'},
-  {name: 'Upload Technical Data', icon: 'upload'},
-  {name: 'Track Order Status', icon: 'map-marker-path'},
-  {name: 'Receivable List', icon: 'format-list-bulleted'},
+  {name: 'View Ledger', icon: 'book-open-page-variant'},
+  {name: 'Finance Approval', icon: 'check-decagram'},
+  {name: 'Upload Payment Document', icon: 'file-upload'},
+  {name: 'View Cash Summary', icon: 'cash-multiple'},
+  {name: 'Expense Claim Submission', icon: 'file-document-edit'},
 ];
 
-export default function SalesScreen({navigation}) {
+export default function FinanceScreen({navigation}) {
   const renderButton = ({item, index}) => (
     <Animatable.View
       animation="fadeInUp"
@@ -46,7 +44,7 @@ export default function SalesScreen({navigation}) {
     <LinearGradient
       colors={[APPCOLORS.BLACK, '#1c1c1c', APPCOLORS.WHITE]}
       style={styles.container}>
-      <SimpleHeader title="Sales" />
+      <SimpleHeader title="Finance" />
       <FlatList
         data={buttons}
         renderItem={renderButton}

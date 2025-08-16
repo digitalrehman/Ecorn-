@@ -1,7 +1,6 @@
-import {View, Text} from 'react-native';
 import React from 'react';
-import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
-import {createStackNavigator} from '@react-navigation/stack';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { createStackNavigator } from '@react-navigation/stack';
 
 import Dashboard from '../screens/main/Dashboard';
 import Detail from '../screens/main/stacks/DetailScreens/Detail';
@@ -31,7 +30,6 @@ import AddItems from '../screens/otherappflow/main/AddItems';
 import ItemList from '../screens/otherappflow/main/ItemList';
 import PaymentScreen from '../screens/otherappflow/main/PaymentScreen';
 import Profile from '../screens/otherappflow/main/Profile';
-import Maps from '../screens/otherappflow/main/Maps';
 import NewOrders from '../screens/otherappflow/main/NewOrders';
 import RecoveryOrder from '../screens/otherappflow/main/RecoveryOrder';
 import Visit from '../screens/otherappflow/main/Visit';
@@ -43,12 +41,18 @@ import AsmDimension from '../screens/otherappflow/main/asm/AsmDimension';
 import TodayOrderDetails from '../screens/otherappflow/main/TodayOrderDetails';
 import SupplierHome from '../screens/otherappflow/suppliers/SupplierHome';
 import SalesScreen from '../screens/main/stacks/Sales/SalesScreen';
+import PurchaseScreen from '../screens/main/stacks/purchase/PurchaseScreen';
+import InventoryScreen from '../screens/main/stacks/Inventory/InventoryScreen';
+import FinanceScreen from '../screens/main/stacks/Finance/FinanceScreen';
+import ManufacturingScreen from '../screens/main/stacks/Manufacturing/ManufacturingScreen';
+import PayrollScreen from '../screens/main/stacks/Payroll/PayrollScreen';
+import CrmScreen from '../screens/main/stacks/Crm/CrmScreen';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
 const StackScreens = () => {
   return (
-    <Tab.Navigator screenOptions={{headerShown: false}}>
+    <Tab.Navigator screenOptions={{ headerShown: false }}>
       <Tab.Screen name="Dashboard" component={Dashboard} />
       <Tab.Screen name="Profile" component={Dashboard} />
     </Tab.Navigator>
@@ -59,7 +63,7 @@ const Main = () => {
   return (
     <Stack.Navigator
       initialRouteName="Dashboard"
-      screenOptions={{headerShown: false}}>
+      screenOptions={{ headerShown: false }}>
       <Stack.Screen name="Dashboard" component={Dashboard} />
       <Stack.Screen name="Detail" component={Detail} />
       <Stack.Screen name="MoreDetail" component={MoreDetail} />
@@ -86,9 +90,14 @@ const Main = () => {
       />
 
       {/* old app */}
-      {/* <Stack.Screen name="OtherApp" component={OtherApp} /> */}
       <Stack.Screen name="Home" component={Home} />
       <Stack.Screen name="SalesScreen" component={SalesScreen} />
+      <Stack.Screen name="PurchaseScreen" component={PurchaseScreen} />
+      <Stack.Screen name="InventoryScreen" component={InventoryScreen} />
+      <Stack.Screen name="ManufacturingScreen" component={ManufacturingScreen} />
+      <Stack.Screen name="FinanceScreen" component={FinanceScreen} />
+      <Stack.Screen name="PayrollScreen" component={PayrollScreen} />
+      <Stack.Screen name="CrmScreen" component={CrmScreen} />
       <Stack.Screen name="AddNewCustomer" component={AddNewCustomer} />
       <Stack.Screen
         name="InsertNewCustomerDetail"
@@ -118,7 +127,7 @@ const OtherApp = () => {
   return (
     <Stack.Navigator
       initialRouteName="Home"
-      screenOptions={{headerShown: false}}>
+      screenOptions={{ headerShown: false }}>
       <Stack.Screen name="Home" component={Home} />
       <Stack.Screen name="AddNewCustomer" component={AddNewCustomer} />
       <Stack.Screen

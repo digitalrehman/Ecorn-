@@ -7,16 +7,14 @@ import {APPCOLORS} from '../../../../utils/APPCOLORS';
 import * as Animatable from 'react-native-animatable';
 
 const buttons = [
-  {name: 'Add Customer', icon: 'account-plus'},
-  {name: 'Delivery', icon: 'truck-delivery'},
-  {name: 'Sales Approval', icon: 'clipboard-check'},
-  {name: 'View and Downloads', icon: 'file-download'},
-  {name: 'Upload Technical Data', icon: 'upload'},
-  {name: 'Track Order Status', icon: 'map-marker-path'},
-  {name: 'Receivable List', icon: 'format-list-bulleted'},
+  {name: 'Employee Dashboard', icon: 'view-dashboard'},
+  {name: 'Leave Request', icon: 'calendar-edit'},
+  {name: 'Employee Summary', icon: 'account-group'},
+  {name: 'Mark Attendance', icon: 'clipboard-check-outline'},
+  {name: 'Employee Admin Approval', icon: 'account-check'},
 ];
 
-export default function SalesScreen({navigation}) {
+export default function PayrollScreen({navigation}) {
   const renderButton = ({item, index}) => (
     <Animatable.View
       animation="fadeInUp"
@@ -46,7 +44,7 @@ export default function SalesScreen({navigation}) {
     <LinearGradient
       colors={[APPCOLORS.BLACK, '#1c1c1c', APPCOLORS.WHITE]}
       style={styles.container}>
-      <SimpleHeader title="Sales" />
+      <SimpleHeader title="HR & Payroll" />
       <FlatList
         data={buttons}
         renderItem={renderButton}
