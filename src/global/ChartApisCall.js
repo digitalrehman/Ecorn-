@@ -1,6 +1,5 @@
 import axios from 'axios';
 import BaseUrl from '../utils/BaseUrl';
-import { Alert } from 'react-native';
 
 
 export const GetBankBalance = async () => {
@@ -13,6 +12,8 @@ export const GetBankBalance = async () => {
   };
 
  const res = await axios.request(config)
+ console.log("res", res);
+ 
  return res.data
 
 };

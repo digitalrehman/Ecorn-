@@ -69,7 +69,7 @@ const NameBalanceContainer = ({
               titleSize={1.8}
               titleColor={APPCOLORS.WHITE}
             />
-            <AppText title="0" titleSize={1.8} titleColor={APPCOLORS.WHITE} />
+            <AppText title={`${percent ?? 0}%`} titleSize={1.8} titleColor={APPCOLORS.WHITE} />
           </View>
         </View>
       </TouchableOpacity>

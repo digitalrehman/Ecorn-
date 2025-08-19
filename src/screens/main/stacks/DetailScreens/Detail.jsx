@@ -31,7 +31,7 @@ const Detail = ({navigation}) => {
     {id: '502', title: 'Payroll Expenses', amount: 120000},
     {id: '504', title: 'Administrative Expenses', amount: 30000},
     {id: '505', title: 'Selling & Marketing', amount: 15000},
-    {id: '503', title: 'Finanace Coast', amount: 40000},
+    {id: '503', title: 'Finanace Cost', amount: 40000},
   ];
   const revData = [
     {
@@ -136,20 +136,24 @@ const Detail = ({navigation}) => {
 
       <ScrollView contentContainerStyle={{flexGrow: 1, paddingBottom: 100}}>
         {/* Income Section */}
-        <Text style={styles.sectionHeader}>Income</Text>
-        <FlatList
-          data={incomeData}
-          keyExtractor={item => item.id}
-          renderItem={renderRow}
-        />
+        <View style={styles.box}>
+          <Text style={styles.boxHeader}>Income</Text>
+          <FlatList
+            data={incomeData}
+            keyExtractor={item => item.id}
+            renderItem={renderRow}
+          />
+        </View>
 
         {/* Expense Section */}
-        <Text style={styles.sectionHeader}>Expense</Text>
-        <FlatList
-          data={expenseData}
-          keyExtractor={item => item.id}
-          renderItem={renderRow}
-        />
+        <View style={styles.box}>
+          <Text style={styles.boxHeader}>Expense</Text>
+          <FlatList
+            data={expenseData}
+            keyExtractor={item => item.id}
+            renderItem={renderRow}
+          />
+        </View>
 
         <FlatList
           data={revData.filter(
@@ -208,33 +212,35 @@ const Detail = ({navigation}) => {
 };
 
 export default Detail;
-
 let styles = StyleSheet.create({
   container: {flex: 1, backgroundColor: '#fff'},
-  sectionHeader: {
-    fontSize: 20,
-    fontWeight: 'bold',
+
+  box: {
+    backgroundColor: '#fff',
+    marginHorizontal: 15,
     marginTop: 15,
-    marginBottom: 5,
-    paddingHorizontal: 10,
+    borderRadius: 12,
+    padding: 15,
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowOffset: {width: 0, height: 3},
+    shadowRadius: 6,
+    elevation: 4,
   },
+  boxHeader: {
+    fontSize: 18,
+    fontWeight: '700',
+    marginBottom: 10,
+    color: APPCOLORS.Primary,
+  },
+
   row: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    padding: 12,
+    paddingVertical: 10,
     borderBottomWidth: 1,
-    borderBottomColor: '#ddd',
+    borderBottomColor: '#eee',
   },
-  rowTitle: {fontSize: 16},
-  rowAmount: {fontSize: 16, fontWeight: 'bold'},
-  cardContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-around',
-    marginVertical: 20,
-  },
-  card: {backgroundColor: '#000', padding: 15, borderRadius: 8, margin: 5},
-  cardText: {color: '#fff', fontSize: 16},
-  profitLossContainer: {marginTop: 20, padding: 10},
-  profitLossText: {fontSize: 16},
+  rowTitle: {fontSize: 16, color: '#444'},
+  rowAmount: {fontSize: 16, fontWeight: 'bold', color: '#000'},
 });

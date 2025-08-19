@@ -83,6 +83,8 @@ const MoreDetail = ({navigation, route}) => {
 
       case 'cash': // Agar cash ka API alag hai to yahan call karein
         apiResponse = await GetBankBalance(); // Placeholder
+        console.log('apirespnse', apiResponse);
+
         if (apiResponse?.data_bank_bal) {
           circleBar = apiResponse.data_bank_bal.map((item, index) => ({
             value:
@@ -174,15 +176,15 @@ const MoreDetail = ({navigation, route}) => {
             <ViewAll
               onPress={() =>
                 navigation.navigate('NormalViewAll', {
-                  AllData:
+                  AllData: getListData(),
+                  dataname:
                     type === 'bank'
-                      ? dataState?.data_bank_bal_view_all
+                      ? 'Bank'
                       : type === 'payable'
-                      ? dataState?.data_supp_bal_view_all
+                      ? 'Payable'
                       : type === 'receivable'
-                      ? dataState?.data_view_cust_bal
-                      : [],
-                  dataname: type,
+                      ? 'Customer'
+                      : 'Supplier',
                 })
               }
             />
@@ -193,28 +195,48 @@ const MoreDetail = ({navigation, route}) => {
             <FlatList
               data={getListData()}
               contentContainerStyle={{gap: 10}}
-              renderItem={({item}) => (
-                <NameBalanceContainer
-                  Name={
-                    type === 'bank'
-                      ? item?.bank_name
+              renderItem={({item}) => {
+                const balance =
+                  type === 'bank' || type === 'cash'
+                    ? parseFloat(item?.bank_balance) || 0
+                    : type === 'payable'
+                    ? parseFloat(item?.Balance) || 0
+                    : type === 'receivable'
+                    ? parseFloat(item?.Balance) || 0
+                    : 0;
+
+                const total = getListData().reduce(
+                  (sum, i) =>
+                    sum +
+                    (type === 'bank' || type === 'cash'
+                      ? parseFloat(i?.bank_balance) || 0
                       : type === 'payable'
-                      ? item?.supp_name
+                      ? parseFloat(i?.Balance) || 0
                       : type === 'receivable'
-                      ? item?.name
-                      : ''
-                  }
-                  balance={
-                    type === 'bank'
-                      ? item?.bank_balance
-                      : type === 'payable'
-                      ? item?.Balance
-                      : type === 'receivable'
-                      ? item?.Balance
-                      : ''
-                  }
-                />
-              )}
+                      ? parseFloat(i?.Balance) || 0
+                      : 0),
+                  0,
+                );
+
+                const perc =
+                  total > 0 ? ((balance / total) * 100).toFixed(2) : 0;
+
+                return (
+                  <NameBalanceContainer
+                    Name={
+                      type === 'bank' || type === 'cash'
+                        ? item?.bank_name
+                        : type === 'payable'
+                        ? item?.supp_name
+                        : type === 'receivable'
+                        ? item?.name
+                        : ''
+                    }
+                    balance={balance}
+                    perc={perc}
+                  />
+                );
+              }}
             />
           </View>
         </View>
