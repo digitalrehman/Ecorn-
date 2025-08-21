@@ -9,12 +9,12 @@ import {
   ScrollView,
   PermissionsAndroid,
   Platform,
-  Alert,
   Animated,
 } from 'react-native';
 import {Picker} from '@react-native-picker/picker';
 import {launchCamera, launchImageLibrary} from 'react-native-image-picker';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import Toast from 'react-native-toast-message';
 
 const UploadScreen = () => {
   const [transaction, setTransaction] = useState('');
@@ -78,7 +78,11 @@ const UploadScreen = () => {
   const openCamera = async () => {
     const hasPermission = await requestCameraPermission();
     if (!hasPermission) {
-      Alert.alert('Permission Required', 'Camera permission is needed.');
+      Toast.show({
+        type: 'error',
+        text1: 'Permission Required',
+        text2: 'Camera permission is needed.',
+      });
       return;
     }
     launchCamera({mediaType: 'photo'}, response => {
@@ -92,7 +96,11 @@ const UploadScreen = () => {
   const openGallery = async () => {
     const hasPermission = await requestGalleryPermission();
     if (!hasPermission) {
-      Alert.alert('Permission Required', 'Gallery permission is needed.');
+      Toast.show({
+        type: 'error',
+        text1: 'Permission Required',
+        text2: 'Gallery permission is needed.',
+      });
       return;
     }
     launchImageLibrary({mediaType: 'photo'}, response => {
@@ -105,10 +113,19 @@ const UploadScreen = () => {
   // ✅ Submit form
   const handleSubmit = () => {
     if (!transaction || !description) {
-      Alert.alert('Error', 'Please fill all fields');
+      Toast.show({
+        type: 'error',
+        text1: 'Error',
+        text2: 'Please fill all fields',
+      });
       return;
     }
-    Alert.alert('Success', 'New Transaction Added!');
+
+    Toast.show({
+      type: 'success',
+      text1: 'Success',
+      text2: 'New Transaction Added!',
+    });
   };
 
   return (
@@ -172,6 +189,9 @@ const UploadScreen = () => {
           <Text style={styles.submitText}>Add New</Text>
         </TouchableOpacity>
       </ScrollView>
+
+      {/* Toast must be inside root */}
+      <Toast />
     </Animated.View>
   );
 };
