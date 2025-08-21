@@ -1,175 +1,253 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import {
   View,
   Text,
   TextInput,
   TouchableOpacity,
+  Image,
   StyleSheet,
+  ScrollView,
+  PermissionsAndroid,
+  Platform,
   Alert,
+  Animated,
 } from 'react-native';
-import {launchCamera, launchImageLibrary} from 'react-native-image-picker';
 import {Picker} from '@react-native-picker/picker';
+import {launchCamera, launchImageLibrary} from 'react-native-image-picker';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
-export default function UploadScreen() {
-  const [type, setType] = useState('invoice');
+const UploadScreen = () => {
   const [transaction, setTransaction] = useState('');
   const [description, setDescription] = useState('');
-  const [file, setFile] = useState(null);
+  const [imageUri, setImageUri] = useState(null);
 
-  const pickFromGallery = async () => {
-    const result = await launchImageLibrary({mediaType: 'photo', quality: 1});
-    if (!result.didCancel && result.assets?.length > 0) {
-      setFile(result.assets[0]);
+  // 🎨 Gradient Animation
+  const animatedValue = new Animated.Value(0);
+  useEffect(() => {
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(animatedValue, {
+          toValue: 1,
+          duration: 5000,
+          useNativeDriver: false,
+        }),
+        Animated.timing(animatedValue, {
+          toValue: 0,
+          duration: 5000,
+          useNativeDriver: false,
+        }),
+      ]),
+    ).start();
+  }, []);
+
+  const bgColor = animatedValue.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['#1a1a1a', '#333333'],
+  });
+
+  // ✅ Gallery Permission
+  const requestGalleryPermission = async () => {
+    if (Platform.OS === 'android') {
+      if (Platform.Version >= 33) {
+        const granted = await PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.READ_MEDIA_IMAGES,
+        );
+        return granted === PermissionsAndroid.RESULTS.GRANTED;
+      } else {
+        const granted = await PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
+        );
+        return granted === PermissionsAndroid.RESULTS.GRANTED;
+      }
     }
+    return true;
   };
 
-  const pickFromCamera = async () => {
-    const result = await launchCamera({mediaType: 'photo', quality: 1});
-    if (!result.didCancel && result.assets?.length > 0) {
-      setFile(result.assets[0]);
+  // ✅ Camera Permission
+  const requestCameraPermission = async () => {
+    if (Platform.OS === 'android') {
+      const granted = await PermissionsAndroid.request(
+        PermissionsAndroid.PERMISSIONS.CAMERA,
+      );
+      return granted === PermissionsAndroid.RESULTS.GRANTED;
     }
+    return true;
   };
 
-  const handleSubmit = () => {
-    if (!transaction || !description || !file) {
-      Alert.alert('Error', 'Please fill all fields and attach a file');
+  // ✅ Open Camera
+  const openCamera = async () => {
+    const hasPermission = await requestCameraPermission();
+    if (!hasPermission) {
+      Alert.alert('Permission Required', 'Camera permission is needed.');
       return;
     }
-
-    // ✅ FormData for API upload
-    const formData = new FormData();
-    formData.append('type', type);
-    formData.append('transaction', transaction);
-    formData.append('description', description);
-    formData.append('file', {
-      uri: file.uri,
-      name: file.fileName || 'upload.jpg',
-      type: file.type || 'image/jpeg',
+    launchCamera({mediaType: 'photo'}, response => {
+      if (!response.didCancel && !response.errorCode) {
+        setImageUri(response.assets[0].uri);
+      }
     });
+  };
 
-    // Example fetch
-    fetch('http://your-api-url/upload', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-      body: formData,
-    })
-      .then(res => res.json())
-      .then(data => {
-        Alert.alert('Success', 'File uploaded successfully!');
-      })
-      .catch(err => {
-        Alert.alert('Error', 'Upload failed: ' + err.message);
-      });
+  // ✅ Open Gallery
+  const openGallery = async () => {
+    const hasPermission = await requestGalleryPermission();
+    if (!hasPermission) {
+      Alert.alert('Permission Required', 'Gallery permission is needed.');
+      return;
+    }
+    launchImageLibrary({mediaType: 'photo'}, response => {
+      if (!response.didCancel && !response.errorCode) {
+        setImageUri(response.assets[0].uri);
+      }
+    });
+  };
+
+  // ✅ Submit form
+  const handleSubmit = () => {
+    if (!transaction || !description) {
+      Alert.alert('Error', 'Please fill all fields');
+      return;
+    }
+    Alert.alert('Success', 'New Transaction Added!');
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.heading}>Add Document</Text>
+    <Animated.View style={[styles.container, {backgroundColor: bgColor}]}>
+      <ScrollView contentContainerStyle={styles.scroll}>
+        <Text style={styles.heading}>Add New Transaction</Text>
 
-      {/* Type */}
-      <Text style={styles.label}>Type</Text>
-      <View style={styles.dropdown}>
-        <Picker selectedValue={type} onValueChange={val => setType(val)}>
-          <Picker.Item label="Supplier Invoice" value="invoice" />
-          <Picker.Item label="Purchase Order" value="po" />
-          <Picker.Item label="Receipt" value="receipt" />
-        </Picker>
-      </View>
+        {/* Transaction Picker */}
+        <Text style={styles.label}>Transaction Type</Text>
+        <View style={styles.glassBox}>
+          <Picker
+            selectedValue={transaction}
+            onValueChange={setTransaction}
+            style={styles.picker}>
+            <Picker.Item label="Select Transaction" value="" />
+            <Picker.Item label="Supplier Invoice" value="invoice" />
+            <Picker.Item label="Expense" value="expense" />
+          </Picker>
+        </View>
 
-      {/* Transaction */}
-      <Text style={styles.label}>Transaction #</Text>
-      <TextInput
-        style={styles.input}
-        value={transaction}
-        onChangeText={setTransaction}
-        placeholder="Enter transaction number"
-      />
+        {/* Transaction # */}
+        <Text style={styles.label}>Transaction #</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="Enter Transaction Number..."
+          placeholderTextColor="#aaa"
+        />
 
-      {/* Description */}
-      <Text style={styles.label}>Description</Text>
-      <TextInput
-        style={styles.input}
-        value={description}
-        onChangeText={setDescription}
-        placeholder="Enter description"
-      />
+        {/* Description */}
+        <Text style={styles.label}>Description</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="Enter description..."
+          placeholderTextColor="#aaa"
+          value={description}
+          onChangeText={setDescription}
+          multiline
+        />
 
-      {/* Attach File */}
-      <Text style={styles.label}>Attach File</Text>
-      <View style={styles.row}>
-        <TouchableOpacity style={styles.button} onPress={pickFromCamera}>
-          <Text style={styles.btnText}>📷 Camera</Text>
+        {/* Attach File */}
+        <Text style={styles.label}>Attachment</Text>
+        <View style={styles.row}>
+          <TouchableOpacity style={styles.button} onPress={openCamera}>
+            <Icon name="camera" size={20} color="#fff" />
+            <Text style={styles.buttonText}>Camera</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.button} onPress={openGallery}>
+            <Icon name="image-multiple" size={20} color="#fff" />
+            <Text style={styles.buttonText}>Gallery</Text>
+          </TouchableOpacity>
+        </View>
+
+        {imageUri && (
+          <Image source={{uri: imageUri}} style={styles.imagePreview} />
+        )}
+
+        {/* Submit */}
+        <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
+          <Icon name="plus-circle-outline" size={20} color="#00ff99" />
+          <Text style={styles.submitText}>Add New</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.button} onPress={pickFromGallery}>
-          <Text style={styles.btnText}>📂 Gallery</Text>
-        </TouchableOpacity>
-      </View>
-      {file && (
-        <Text style={styles.fileText}>
-          Selected: {file.fileName || file.uri.split('/').pop()}
-        </Text>
-      )}
-
-      {/* Add New */}
-      <TouchableOpacity style={styles.addButton} onPress={handleSubmit}>
-        <Text style={styles.addBtnText}>➕ Add New</Text>
-      </TouchableOpacity>
-    </View>
+      </ScrollView>
+    </Animated.View>
   );
-}
+};
 
 const styles = StyleSheet.create({
-  container: {flex: 1, padding: 20, backgroundColor: '#f8f9fa'},
+  container: {flex: 1},
+  scroll: {padding: 20, flexGrow: 1},
   heading: {
     fontSize: 22,
-    fontWeight: 'bold',
+    fontWeight: '700',
+    color: '#fff',
     marginBottom: 20,
     textAlign: 'center',
-    color: '#333',
   },
-  label: {fontSize: 14, fontWeight: '500', marginBottom: 5, color: '#444'},
+  label: {
+    fontSize: 16,
+    fontWeight: '500',
+    marginBottom: 8,
+    marginTop: 10,
+    color: '#eee',
+  },
+  glassBox: {
+    borderRadius: 15,
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.3)',
+    marginBottom: 15,
+  },
+  picker: {height: 50, width: '100%', color: '#fff'},
   input: {
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 10,
+    borderRadius: 15,
     padding: 12,
-    marginBottom: 15,
-    backgroundColor: '#fff',
-  },
-  dropdown: {
+    backgroundColor: 'rgba(255,255,255,0.1)',
     borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 10,
+    borderColor: 'rgba(255,255,255,0.3)',
+    color: '#fff',
     marginBottom: 15,
-    backgroundColor: '#fff',
+    textAlignVertical: 'top',
   },
-  row: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 15,
-  },
+  row: {flexDirection: 'row', justifyContent: 'space-between'},
   button: {
     flex: 1,
-    backgroundColor: '#007bff',
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255,255,255,0.1)',
     padding: 12,
+    borderRadius: 15,
     marginHorizontal: 5,
-    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.3)',
+  },
+  buttonText: {color: '#fff', fontWeight: '600', marginLeft: 6},
+  imagePreview: {
+    width: '100%',
+    height: 200,
+    borderRadius: 15,
+    marginTop: 15,
+  },
+  submitButton: {
+    flexDirection: 'row',
+    justifyContent: 'center',
     alignItems: 'center',
-  },
-  btnText: {color: '#fff', fontWeight: '600'},
-  fileText: {
-    fontSize: 13,
-    color: '#555',
-    marginBottom: 15,
-    textAlign: 'center',
-  },
-  addButton: {
-    backgroundColor: '#28a745',
+    backgroundColor: 'rgba(0,255,150,0.2)',
     padding: 15,
-    borderRadius: 12,
-    alignItems: 'center',
+    borderRadius: 15,
+    marginTop: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(0,255,150,0.4)',
   },
-  addBtnText: {color: '#fff', fontSize: 16, fontWeight: 'bold'},
+  submitText: {
+    color: '#00ff99',
+    fontSize: 16,
+    fontWeight: '700',
+    marginLeft: 8,
+  },
 });
+
+export default UploadScreen;

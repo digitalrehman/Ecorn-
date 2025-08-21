@@ -1,43 +1,44 @@
 // AlertScreen.tsx
-import { View, Text, ActivityIndicator, ScrollView } from 'react-native'
-import React, { useEffect, useState } from 'react'
-import SimpleHeader from '../../../../components/SimpleHeader'
-import AlertCards from '../../../../components/AlertCards'
-import axios from 'axios'
-import { APPCOLORS } from '../../../../utils/Colors'
+import {View, Text, ActivityIndicator, ScrollView} from 'react-native';
+import React, {useEffect, useState} from 'react';
+import SimpleHeader from '../../../../components/SimpleHeader';
+import axios from 'axios';
+import {APPCOLORS} from '../../../../utils/APPCOLORS';
+import AlertCards from '../../../../components/AlertCards';
 
-const AlertScreen = ({ navigation }: any) => {
-  const [AllData, setAllData] = useState<any>()
-  const [Loading, setLoading] = useState(false)
+const AlertScreen = ({navigation}) => {
+  const [AllData, setAllData] = useState();
+  const [Loading, setLoading] = useState(false);
 
   useEffect(() => {
-    getAllData()
-  }, [])
+    getAllData();
+  }, []);
 
   const getAllData = async () => {
-    setLoading(true)
+    setLoading(true);
     try {
-      const res = await axios.get('https://erp.speridian.pk/api/v1/dashboard/approval')
-      setAllData(res.data)
+      const res = await axios.get(
+        'https://erp.speridian.pk/api/v1/dashboard/approval',
+      );
+      setAllData(res.data);
     } catch (err) {
-      console.log(err)
+      console.log(err);
     }
-    setLoading(false)
-  }
+    setLoading(false);
+  };
 
   if (Loading) {
     return (
-      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+      <View style={{flex: 1, alignItems: 'center', justifyContent: 'center'}}>
         <ActivityIndicator size="large" color={APPCOLORS.Primary} />
       </View>
-    )
+    );
   }
 
   return (
-    <View style={{ flex: 1 }}>
+    <View style={{flex: 1}}>
       <SimpleHeader title="Alerts" />
-      <ScrollView contentContainerStyle={{ padding: 15 }}>
-        
+      <ScrollView contentContainerStyle={{padding: 15}}>
         {/* Sales Alert */}
         <AlertCards
           AlertHeading="Sales Alert"
@@ -45,12 +46,10 @@ const AlertScreen = ({ navigation }: any) => {
           ValueOne={AllData?.approval_data?.quotation_approval}
           IconOne="file-text"
           onValuePressOne={() => navigation.navigate('SaleQuotationScreen')}
-
           HeadingTwo="Sale Order"
           ValueTwo={AllData?.approval_data?.so_approval}
           IconTwo="shopping-cart"
           onValuePressTwo={() => navigation.navigate('SaleOrderScreen')}
-
           HeadingThree="Sale Delivery"
           ValueThree={AllData?.approval_data?.delivery_approval}
           IconThree="truck"
@@ -64,7 +63,6 @@ const AlertScreen = ({ navigation }: any) => {
           ValueOne={AllData?.approval_data?.po_approval}
           IconOne="clipboard-list"
           onValuePressOne={() => navigation.navigate('PurchaseOrderScreen')}
-
           HeadingTwo="GRN Approval"
           ValueTwo={AllData?.approval_data?.grn_approval}
           IconTwo="check-square"
@@ -88,10 +86,9 @@ const AlertScreen = ({ navigation }: any) => {
           IconOne="file-invoice-dollar"
           onValuePressOne={() => navigation.navigate('VoucherApprovalScreen')}
         />
-
       </ScrollView>
     </View>
-  )
-}
+  );
+};
 
-export default AlertScreen
+export default AlertScreen;

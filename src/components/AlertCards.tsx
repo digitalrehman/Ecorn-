@@ -4,7 +4,7 @@ import React from 'react'
 import LinearGradient from 'react-native-linear-gradient'
 import Icon from 'react-native-vector-icons/FontAwesome5'
 import AppText from './AppText'
-import { APPCOLORS } from '../utils/Colors'
+import { APPCOLORS } from '../utils/APPCOLORS'
 
 type props = {
   HeadingOne?: string,
