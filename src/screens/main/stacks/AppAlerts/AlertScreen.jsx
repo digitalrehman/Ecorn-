@@ -1,115 +1,97 @@
-import {View, Text, ActivityIndicator, ScrollView} from 'react-native';
-import React, {useEffect, useState} from 'react';
-import SimpleHeader from '../../../../components/SimpleHeader';
-import AlertCards from '../../../../components/AlertCards';
-import axios from 'axios';
-import BaseUrl from '../../../../utils/BaseUrl';
-import {APPCOLORS} from '../../../../utils/APPCOLORS';
+// AlertScreen.tsx
+import { View, Text, ActivityIndicator, ScrollView } from 'react-native'
+import React, { useEffect, useState } from 'react'
+import SimpleHeader from '../../../../components/SimpleHeader'
+import AlertCards from '../../../../components/AlertCards'
+import axios from 'axios'
+import { APPCOLORS } from '../../../../utils/Colors'
 
-const AlertScreen = ({navigation}) => {
-  const [AllData, setAllData] = useState();
-  const [loader, setLoader] = useState(false);
+const AlertScreen = ({ navigation }: any) => {
+  const [AllData, setAllData] = useState<any>()
+  const [Loading, setLoading] = useState(false)
 
   useEffect(() => {
-    const unsubscribe = navigation.addListener('focus', () => {
-      getMoneyData();
-    });
-    return unsubscribe;
-  }, [navigation]);
+    getAllData()
+  }, [])
 
-  const getMoneyData = async () => {
-    setLoader(true);
+  const getAllData = async () => {
+    setLoading(true)
     try {
-      const {data} = await axios.get(`${BaseUrl}dash_approval.php`);
-      setAllData(data);
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setLoader(false);
+      const res = await axios.get('https://erp.speridian.pk/api/v1/dashboard/approval')
+      setAllData(res.data)
+    } catch (err) {
+      console.log(err)
     }
-  };
+    setLoading(false)
+  }
+
+  if (Loading) {
+    return (
+      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+        <ActivityIndicator size="large" color={APPCOLORS.Primary} />
+      </View>
+    )
+  }
 
   return (
-    <View style={{flex: 1, backgroundColor: '#fff'}}>
+    <View style={{ flex: 1 }}>
       <SimpleHeader title="Alerts" />
-      {loader && (
-        <ActivityIndicator
-          size={'large'}
-          color={APPCOLORS.BLACK}
-          style={{marginTop: 20}}
-        />
-      )}
-
-      <ScrollView
-        contentContainerStyle={{padding: 20, gap: 30}}
-        showsVerticalScrollIndicator={false}>
+      <ScrollView contentContainerStyle={{ padding: 15 }}>
+        
+        {/* Sales Alert */}
         <AlertCards
-          AlertHeading={'Sales Alert'}
-          HeadingOne={'Sale auotation'}
+          AlertHeading="Sales Alert"
+          HeadingOne="Sale Quotation"
           ValueOne={AllData?.approval_data?.quotation_approval}
-          onValuePressOne={() =>
-            navigation.navigate('ShowUnapprovedDetails', {
-              dataDetail: AllData?.data_unapprove_quote,
-              type: 'Quotation',
-            })
-          }
-          HeadingTwo={'Sale approval'}
+          IconOne="file-text"
+          onValuePressOne={() => navigation.navigate('SaleQuotationScreen')}
+
+          HeadingTwo="Sale Order"
           ValueTwo={AllData?.approval_data?.so_approval}
-          onValuePressTwo={() => {
-            navigation.navigate('ShowUnapprovedDetails', {
-              dataDetail: AllData?.data_unapprove_order,
-              type: 'So',
-            });
-          }}
-          HeadingThree={'Sale delivery'}
+          IconTwo="shopping-cart"
+          onValuePressTwo={() => navigation.navigate('SaleOrderScreen')}
+
+          HeadingThree="Sale Delivery"
           ValueThree={AllData?.approval_data?.delivery_approval}
-          onValuePressThree={() => {
-            navigation.navigate('ShowUnapprovedDetails', {
-              dataDetail: AllData?.data_unapprove_deliveries,
-              type: 'Delivery',
-            });
-          }}
+          IconThree="truck"
+          onValuePressThree={() => navigation.navigate('SaleDeliveryScreen')}
         />
 
+        {/* Purchase Alert */}
         <AlertCards
-          data={AllData}
-          AlertHeading={'Purchase Alert'}
-          HeadingOne={'Grn approval'}
-          ValueOne={AllData?.approval_data?.grn_approval}
-          HeadingTwo={'Invoice approval'}
-          HeadingThree={'Purchase approval'}
-          ValueThree={AllData?.approval_data?.po_approval}
-          onValuePressThree={() =>
-            navigation.navigate('ShowUnapprovedDetails', {
-              dataDetail: AllData?.data_unapprove_po_order,
-              type: 'Po',
-            })
-          }
+          AlertHeading="Purchase Alert"
+          HeadingOne="Purchase Order"
+          ValueOne={AllData?.approval_data?.po_approval}
+          IconOne="clipboard-list"
+          onValuePressOne={() => navigation.navigate('PurchaseOrderScreen')}
+
+          HeadingTwo="GRN Approval"
+          ValueTwo={AllData?.approval_data?.grn_approval}
+          IconTwo="check-square"
+          onValuePressTwo={() => navigation.navigate('GrnApprovalScreen')}
         />
 
+        {/* Inventory Alert */}
         <AlertCards
-          data={AllData}
-          AlertHeading={'Inventory Alert'}
-          HeadingTwo={'Location transfer'}
-          ValueTwo={AllData?.approval_data?.invoice_approval}
+          AlertHeading="Inventory Alert"
+          HeadingOne="Location Transfer"
+          ValueOne={AllData?.approval_data?.location_transfer}
+          IconOne="exchange-alt"
+          onValuePressOne={() => navigation.navigate('LocationTransferScreen')}
         />
 
+        {/* Account Approval */}
         <AlertCards
-          data={AllData}
-          AlertHeading={'Account Approval'}
-          ValueTwo={AllData?.approval_data?.po_invoice_approval}
-          HeadingThree={'Voucher approval'}
-          ValueThree={AllData?.approval_data?.voucher_approval}
-          onValuePressThree={() =>
-            navigation.navigate('ShowUnapprovedDetails', {
-              dataDetail: AllData?.data_unapprove_voucher,
-              type: 'Voucher',
-            })
-          }
+          AlertHeading="Account Approval"
+          HeadingOne="Voucher Approval"
+          ValueOne={AllData?.approval_data?.voucher_approval}
+          IconOne="file-invoice-dollar"
+          onValuePressOne={() => navigation.navigate('VoucherApprovalScreen')}
         />
+
       </ScrollView>
     </View>
-  );
-};
+  )
+}
 
-export default AlertScreen;
+export default AlertScreen

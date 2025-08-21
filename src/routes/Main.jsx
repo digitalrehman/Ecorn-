@@ -47,6 +47,8 @@ import FinanceScreen from '../screens/main/stacks/Finance/FinanceScreen';
 import ManufacturingScreen from '../screens/main/stacks/Manufacturing/ManufacturingScreen';
 import PayrollScreen from '../screens/main/stacks/Payroll/PayrollScreen';
 import CrmScreen from '../screens/main/stacks/Crm/CrmScreen';
+import ReceivableScreen from '../screens/main/stacks/Sales/ReceivableScreen';
+import UploadScreen from '../screens/main/stacks/Sales/UploadScreen';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -119,6 +121,8 @@ const Main = () => {
       <Stack.Screen name="AsmDimension" component={AsmDimension} />
       <Stack.Screen name="TodayOrderDetails" component={TodayOrderDetails} />
       <Stack.Screen name="SupplierHome" component={SupplierHome} />
+      <Stack.Screen name="ReceivableScreen" component={ReceivableScreen} />
+      <Stack.Screen name="UploadScreen" component={UploadScreen} />
     </Stack.Navigator>
   );
 };
@@ -139,7 +143,6 @@ const OtherApp = () => {
       <Stack.Screen name="ItemList" component={ItemList} />
       <Stack.Screen name="PaymentScreen" component={PaymentScreen} />
       <Stack.Screen name="Profile" component={Profile} />
-      {/* <Stack.Screen name="Maps" component={Maps} /> */}
       <Stack.Screen name="NewOrders" component={NewOrders} />
       <Stack.Screen name="RecoveryOrder" component={RecoveryOrder} />
       <Stack.Screen name="Visit" component={Visit} />

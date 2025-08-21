@@ -95,7 +95,7 @@ const AppHeader = ({ title, onPress }: props) => {
         <View style={{ gap: 10 }}>
           <View style={{ flexDirection: 'row', alignItems: 'flex-end', gap: 5 }}>
             <AppText title='Rs' titleColor={APPCOLORS.WHITE} />
-            <AppText title='2,10,000' titleColor={APPCOLORS.WHITE} titleSize={4} />
+            <AppText title='000,000' titleColor={APPCOLORS.WHITE} titleSize={4} />
           </View>
 
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>

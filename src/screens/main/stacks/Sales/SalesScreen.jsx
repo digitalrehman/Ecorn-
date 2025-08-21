@@ -1,23 +1,22 @@
 import React from 'react';
-import {View, Text, StyleSheet, TouchableOpacity, FlatList} from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, FlatList } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import SimpleHeader from '../../../../components/SimpleHeader';
-import {APPCOLORS} from '../../../../utils/APPCOLORS';
+import { APPCOLORS } from '../../../../utils/APPCOLORS';
 import * as Animatable from 'react-native-animatable';
 
 const buttons = [
-  {name: 'Add Customer', icon: 'account-plus'},
-  {name: 'Delivery', icon: 'truck-delivery'},
-  {name: 'Sales Approval', icon: 'clipboard-check'},
-  {name: 'View and Downloads', icon: 'file-download'},
-  {name: 'Upload Technical Data', icon: 'upload'},
-  {name: 'Track Order Status', icon: 'map-marker-path'},
-  {name: 'Receivable List', icon: 'format-list-bulleted'},
+  { name: 'Add Customer', icon: 'account-plus', navigate: "AddNewCustomer" },
+  { name: 'Delivery', icon: 'truck-delivery', navigate: "Dashboard" },
+  { name: 'View and Downloads', icon: 'file-download', navigate: "AddNewCustomer" },
+  { name: 'Upload Technical Data', icon: 'upload', navigate: "UploadScreen" },
+  { name: 'Track Order Status', icon: 'map-marker-path', navigate: "AddNewCustomer" },
+  { name: 'Receivable', icon: 'format-list-bulleted', navigate: "ReceivableScreen" },
 ];
 
-export default function SalesScreen({navigation}) {
-  const renderButton = ({item, index}) => (
+export default function SalesScreen({ navigation }) {
+  const renderButton = ({ item, index}) => (
     <Animatable.View
       animation="fadeInUp"
       delay={index * 120}
@@ -25,7 +24,7 @@ export default function SalesScreen({navigation}) {
       style={styles.buttonWrapper}>
       <TouchableOpacity
         activeOpacity={0.85}
-        onPress={() => navigation.navigate('Dashboard')}>
+        onPress={() => navigation.navigate(item.navigate)}>
         <LinearGradient
           colors={['rgba(255,255,255,0.08)', 'rgba(255,255,255,0.02)']}
           style={styles.buttonContainer}>
@@ -51,7 +50,7 @@ export default function SalesScreen({navigation}) {
         data={buttons}
         renderItem={renderButton}
         keyExtractor={(item, index) => index.toString()}
-        contentContainerStyle={{paddingVertical: 20}}
+        contentContainerStyle={{ paddingVertical: 20 }}
       />
     </LinearGradient>
   );
