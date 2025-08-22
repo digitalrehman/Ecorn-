@@ -39,62 +39,81 @@ const Dashboard = ({navigation}) => {
 
   const [loader, setLoader] = useState(false);
   const dispatch = useDispatch();
-  const companyData = [
-    {
-      id: 1,
-      name: 'Dashboard',
-      icon: 'grid',
-      onPress: () => navigation.navigate('Detail'),
-    },
-    {
-      id: 2,
-      name: 'Approval',
-      icon: 'check-circle',
-      onPress: () => navigation.navigate('AlertScreen', {type: 'customer'}),
-    },
-    {
-      id: 3,
-      name: 'Sales',
-      icon: 'shopping-cart',
-      onPress: () => navigation.navigate('SalesScreen'),
-    },
-    {
-      id: 4,
-      name: 'Purchase',
-      icon: 'shopping-bag',
-      onPress: () => navigation.navigate('PurchaseScreen'),
-    },
-    {
-      id: 5,
-      name: 'HR & Payroll',
-      icon: 'users',
-      onPress: () => navigation.navigate('PayrollScreen'),
-    },
-    {
-      id: 6,
-      name: 'Inventory',
-      icon: 'box',
-      onPress: () => navigation.navigate('InventoryScreen'),
-    },
-    {
-      id: 7,
-      name: 'Accounts',
-      icon: 'dollar-sign',
-      onPress: () => navigation.navigate('FinanceScreen'),
-    },
-    {
-      id: 8,
-      name: 'Manufactur..',
-      icon: 'settings',
-      onPress: () => navigation.navigate('ManufacturingScreen'),
-    },
-    {
-      id: 9,
-      name: 'CRM',
-      icon: 'briefcase',
-      onPress: () => navigation.navigate('CrmScreen'),
-    },
-  ];
+ const companyData = [
+  {
+    id: 1,
+    name: 'Dashboard',
+    icon: 'grid',
+    onPress: () => navigation.navigate('Detail'),
+  },
+  {
+    id: 2,
+    name: 'Approval',
+    icon: 'check-circle',
+    onPress: () => navigation.navigate('AlertScreen', { type: 'customer' }),
+  },
+  {
+    id: 3,
+    name: 'Sales',
+    icon: 'shopping-cart',
+    onPress: () => navigation.navigate('SalesScreen'),
+  },
+  {
+    id: 4,
+    name: 'Purchase',
+    icon: 'shopping-bag',
+    onPress: () => navigation.navigate('PurchaseScreen'),
+  },
+  {
+    id: 5,
+    name: 'HR & Payroll',
+    icon: 'users',
+    onPress: () => navigation.navigate('PayrollScreen'),
+  },
+  {
+    id: 6,
+    name: 'Inventory',
+    icon: 'box',
+    onPress: () => navigation.navigate('InventoryScreen'),
+  },
+  {
+    id: 7,
+    name: 'Accounts',
+    icon: 'dollar-sign',
+    onPress: () => navigation.navigate('FinanceScreen'),
+  },
+  {
+    id: 8,
+    name: 'Manufactur..',
+    icon: 'settings',
+    onPress: () => navigation.navigate('ManufacturingScreen'),
+  },
+  {
+    id: 9,
+    name: 'CRM',
+    icon: 'briefcase',
+    onPress: () => navigation.navigate('CrmScreen'),
+  },
+  {
+    id: 10,
+    name: 'Attach Docs',
+    icon: 'file-plus', 
+    onPress: () => navigation.navigate('AttachDocumentScreen'),
+  },
+  {
+    id: 10,
+    name: 'Download',
+    icon: 'download', 
+    onPress: () => navigation.navigate('AttachDocumentScreen'),
+  },
+  {
+    id: 10,
+    name: 'More',
+    icon: 'more-horizontal', 
+    onPress: () => navigation.navigate('AttachDocumentScreen'),
+  },
+];
+
 
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {

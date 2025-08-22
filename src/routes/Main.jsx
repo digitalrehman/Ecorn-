@@ -49,6 +49,7 @@ import PayrollScreen from '../screens/main/stacks/Payroll/PayrollScreen';
 import CrmScreen from '../screens/main/stacks/Crm/CrmScreen';
 import ReceivableScreen from '../screens/main/stacks/Sales/ReceivableScreen';
 import UploadScreen from '../screens/main/stacks/Sales/UploadScreen';
+import AttachDocumentScreen from '../screens/main/stacks/attachDocument/AttachDocumentScreen';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -101,16 +102,12 @@ const Main = () => {
       <Stack.Screen name="PayrollScreen" component={PayrollScreen} />
       <Stack.Screen name="CrmScreen" component={CrmScreen} />
       <Stack.Screen name="AddNewCustomer" component={AddNewCustomer} />
-      <Stack.Screen
-        name="InsertNewCustomerDetail"
-        component={InsertNewCustomerDetail}
-      />
+      <Stack.Screen name="InsertNewCustomerDetail" component={InsertNewCustomerDetail} />
       <Stack.Screen name="Incentive" component={Incentive} />
       <Stack.Screen name="AddItems" component={AddItems} />
       <Stack.Screen name="ItemList" component={ItemList} />
       <Stack.Screen name="PaymentScreen" component={PaymentScreen} />
       <Stack.Screen name="Profile" component={Profile} />
-      {/* <Stack.Screen name="Maps" component={Maps} /> */}
       <Stack.Screen name="NewOrders" component={NewOrders} />
       <Stack.Screen name="RecoveryOrder" component={RecoveryOrder} />
       <Stack.Screen name="Visit" component={Visit} />
@@ -123,6 +120,7 @@ const Main = () => {
       <Stack.Screen name="SupplierHome" component={SupplierHome} />
       <Stack.Screen name="ReceivableScreen" component={ReceivableScreen} />
       <Stack.Screen name="UploadScreen" component={UploadScreen} />
+      <Stack.Screen name="AttachDocumentScreen" component={AttachDocumentScreen} />
     </Stack.Navigator>
   );
 };

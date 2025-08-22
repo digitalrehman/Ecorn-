@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState} from 'react';
 import {
   View,
   Text,
@@ -9,41 +9,17 @@ import {
   ScrollView,
   PermissionsAndroid,
   Platform,
-  Animated,
 } from 'react-native';
 import {Picker} from '@react-native-picker/picker';
 import {launchCamera, launchImageLibrary} from 'react-native-image-picker';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import Toast from 'react-native-toast-message';
+import SimpleHeader from '../../../../components/SimpleHeader';
 
 const UploadScreen = () => {
   const [transaction, setTransaction] = useState('');
   const [description, setDescription] = useState('');
   const [imageUri, setImageUri] = useState(null);
-
-  // 🎨 Gradient Animation
-  const animatedValue = new Animated.Value(0);
-  useEffect(() => {
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(animatedValue, {
-          toValue: 1,
-          duration: 5000,
-          useNativeDriver: false,
-        }),
-        Animated.timing(animatedValue, {
-          toValue: 0,
-          duration: 5000,
-          useNativeDriver: false,
-        }),
-      ]),
-    ).start();
-  }, []);
-
-  const bgColor = animatedValue.interpolate({
-    inputRange: [0, 1],
-    outputRange: ['#1a1a1a', '#333333'],
-  });
 
   // ✅ Gallery Permission
   const requestGalleryPermission = async () => {
@@ -129,10 +105,9 @@ const UploadScreen = () => {
   };
 
   return (
-    <Animated.View style={[styles.container, {backgroundColor: bgColor}]}>
+    <View style={[styles.container, {backgroundColor: '#1a1a1a'}]}>
+      <SimpleHeader title="Add New Transaction" />
       <ScrollView contentContainerStyle={styles.scroll}>
-        <Text style={styles.heading}>Add New Transaction</Text>
-
         {/* Transaction Picker */}
         <Text style={styles.label}>Transaction Type</Text>
         <View style={styles.glassBox}>
@@ -192,20 +167,13 @@ const UploadScreen = () => {
 
       {/* Toast must be inside root */}
       <Toast />
-    </Animated.View>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {flex: 1},
   scroll: {padding: 20, flexGrow: 1},
-  heading: {
-    fontSize: 22,
-    fontWeight: '700',
-    color: '#fff',
-    marginBottom: 20,
-    textAlign: 'center',
-  },
   label: {
     fontSize: 16,
     fontWeight: '500',

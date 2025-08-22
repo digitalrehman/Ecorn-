@@ -7,31 +7,30 @@ import { APPCOLORS } from '../../../../utils/APPCOLORS';
 import * as Animatable from 'react-native-animatable';
 
 const buttons = [
-  { name: 'Add Customer', icon: 'account-plus', navigate: "AddNewCustomer" },
-  { name: 'Delivery', icon: 'truck-delivery', navigate: "Dashboard" },
-  { name: 'View and Downloads', icon: 'file-download', navigate: "AddNewCustomer" },
-  { name: 'Track Order Status', icon: 'map-marker-path', navigate: "AddNewCustomer" },
-  { name: 'Receivable', icon: 'format-list-bulleted', navigate: "ReceivableScreen" },
+  { name: 'Sale Order', icon: 'cart-outline', navigate: 'UploadScreen' },
+  { name: 'Purchase Order', icon: 'cart-arrow-down', navigate: 'UploadScreen' },
+  { name: 'Voucher', icon: 'file-document-outline', navigate: 'UploadScreen' },
 ];
 
-export default function SalesScreen({ navigation }) {
-  const renderButton = ({ item, index}) => (
+export default function AttachDocumentScreen({ navigation }) {
+  const renderButton = ({ item, index }) => (
     <Animatable.View
       animation="fadeInUp"
       delay={index * 120}
       useNativeDriver
-      style={styles.buttonWrapper}>
-      <TouchableOpacity
-        activeOpacity={0.85}
-        onPress={() => navigation.navigate(item.navigate)}>
+      style={styles.buttonWrapper}
+    >
+      <TouchableOpacity activeOpacity={0.85} onPress={() => navigation.navigate(item.navigate)}>
         <LinearGradient
           colors={['rgba(255,255,255,0.08)', 'rgba(255,255,255,0.02)']}
-          style={styles.buttonContainer}>
+          style={styles.buttonContainer}
+        >
           <Animatable.View
             animation="pulse"
             iterationCount="infinite"
             iterationDelay={4000}
-            style={styles.iconContainer}>
+            style={styles.iconContainer}
+          >
             <Icon name={item.icon} size={22} color="#fff" />
           </Animatable.View>
           <Text style={styles.buttonText}>{item.name}</Text>
@@ -43,8 +42,9 @@ export default function SalesScreen({ navigation }) {
   return (
     <LinearGradient
       colors={[APPCOLORS.BLACK, '#1c1c1c', APPCOLORS.WHITE]}
-      style={styles.container}>
-      <SimpleHeader title="Sales" />
+      style={styles.container}
+    >
+      <SimpleHeader title="Attach Document" />
       <FlatList
         data={buttons}
         renderItem={renderButton}

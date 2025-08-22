@@ -27,7 +27,7 @@ const AppHeader = ({ title, onPress }: props) => {
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 0 }}
       style={{
-        height: responsiveHeight(33),
+        height: responsiveHeight(23),
         borderBottomRightRadius: 20,
         padding: 20,
       }}>
@@ -92,16 +92,7 @@ const AppHeader = ({ title, onPress }: props) => {
           </View>
         </View>
 
-        <View style={{ gap: 10 }}>
-          <View style={{ flexDirection: 'row', alignItems: 'flex-end', gap: 5 }}>
-            <AppText title='Rs' titleColor={APPCOLORS.WHITE} />
-            <AppText title='000,000' titleColor={APPCOLORS.WHITE} titleSize={4} />
-          </View>
-
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
-            <AppText title='Currect Balance' titleColor={APPCOLORS.WHITE} />
-          </View>
-        </View>
+      
       </View>
     </LinearGradient>
   );

@@ -44,13 +44,13 @@ const AlertScreen = ({navigation}) => {
           AlertHeading="Sales Alert"
           HeadingOne="Sale Quotation"
           ValueOne={AllData?.approval_data?.quotation_approval}
-          IconOne="file-text"
+          IconOne="file-alt"
           onValuePressOne={() => navigation.navigate('SaleQuotationScreen')}
           HeadingTwo="Sale Order"
           ValueTwo={AllData?.approval_data?.so_approval}
           IconTwo="shopping-cart"
           onValuePressTwo={() => navigation.navigate('SaleOrderScreen')}
-          HeadingThree="Sale Delivery"
+          HeadingThree="Delivery Note"
           ValueThree={AllData?.approval_data?.delivery_approval}
           IconThree="truck"
           onValuePressThree={() => navigation.navigate('SaleDeliveryScreen')}
@@ -85,6 +85,23 @@ const AlertScreen = ({navigation}) => {
           ValueOne={AllData?.approval_data?.voucher_approval}
           IconOne="file-invoice-dollar"
           onValuePressOne={() => navigation.navigate('VoucherApprovalScreen')}
+        />
+
+        {/* Job Card Approval */}
+        <AlertCards
+          AlertHeading="Job Card Approval"
+          HeadingOne="Electrical Approval"
+          ValueOne={AllData?.approval_data?.electrical_approval}
+          IconOne="bolt"
+          onValuePressOne={() =>
+            navigation.navigate('ElectricalApprovalScreen')
+          }
+          HeadingTwo="Mechanical Approval"
+          ValueTwo={AllData?.approval_data?.mechanical_approval}
+          IconTwo="cogs"
+          onValuePressTwo={() =>
+            navigation.navigate('MechanicalApprovalScreen')
+          }
         />
       </ScrollView>
     </View>
