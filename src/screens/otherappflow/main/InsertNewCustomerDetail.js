@@ -3,6 +3,7 @@ import {
   Text,
   TouchableOpacity,
   TextInput,
+  ActivityIndicator,
   StyleSheet,
   ScrollView,
   Animated,
@@ -11,11 +12,8 @@ import React, {useEffect, useRef, useState} from 'react';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import {Dropdown} from 'react-native-element-dropdown';
 import {APPCOLORS} from '../../../utils/APPCOLORS';
-import {BlurView} from 'expo-blur';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const InsertNewCustomerDetail = ({navigation}) => {
-  // Customer Info
   const [CustomerName, setCustomerName] = useState('');
   const [TradeName, setTradeName] = useState('');
   const [ContactNo, setContactNo] = useState('');
@@ -26,17 +24,12 @@ const InsertNewCustomerDetail = ({navigation}) => {
   const [SalesPerson, setSalesPerson] = useState('');
   const [Province, setProvince] = useState('');
 
-  // POC Detail
   const [POCName, setPOCName] = useState('');
   const [POCContact, setPOCContact] = useState('');
   const [POCEmail, setPOCEmail] = useState('');
 
-  // Dropdown values
-  const [customerType, setCustomerType] = useState('');
-  const [areaValue, setAreaValue] = useState('');
-
-  // Offline Area Data
-  const [areaData, setAreaData] = useState([]);
+  const [value, setValue] = useState('');
+  const [areavalue, setAreaValue] = useState('');
 
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
@@ -46,8 +39,6 @@ const InsertNewCustomerDetail = ({navigation}) => {
       duration: 700,
       useNativeDriver: true,
     }).start();
-
-    getOfflineArea(); // load offline data at start
   }, []);
 
   const dropdowndata = [
@@ -56,27 +47,14 @@ const InsertNewCustomerDetail = ({navigation}) => {
     {label: 'Whole Sale', value: '3'},
   ];
 
-  // 🟢 Get Offline Area Function
-  const getOfflineArea = async () => {
-    try {
-      const offlineData = await AsyncStorage.getItem('areaList');
-      if (offlineData !== null) {
-        setAreaData(JSON.parse(offlineData));
-      } else {
-        // agar offline nhi hai to fallback dummy
-        setAreaData([
-          {label: 'Punjab', value: '1'},
-          {label: 'Sindh', value: '2'},
-          {label: 'KPK', value: '3'},
-        ]);
-      }
-    } catch (err) {
-      console.log('Offline Area Error:', err);
-    }
-  };
+  const areaDropdowndata = [
+    {label: 'Punjab', value: '1'},
+    {label: 'Sindh', value: '2'},
+    {label: 'KPK', value: '3'},
+  ];
 
   const renderInput = (placeholder, value, setValue) => (
-    <BlurView intensity={50} tint="dark" style={styles.glassInput}>
+    <View style={styles.glassInput}>
       <TextInput
         style={styles.textInput}
         placeholder={placeholder}
@@ -84,7 +62,7 @@ const InsertNewCustomerDetail = ({navigation}) => {
         value={value}
         onChangeText={txt => setValue(txt)}
       />
-    </BlurView>
+    </View>
   );
 
   return (
@@ -122,34 +100,27 @@ const InsertNewCustomerDetail = ({navigation}) => {
           </View>
 
           {/* Dropdowns */}
-          <BlurView intensity={50} tint="dark" style={styles.dropdownBlur}>
-            <Dropdown
-              style={styles.dropdown}
-              data={dropdowndata}
-              labelField="label"
-              valueField="value"
-              placeholder="Select Type"
-              search={false}
-              placeholderStyle={{color: '#aaa'}}
-              value={customerType}
-              onChange={item => setCustomerType(item.value)}
-            />
-          </BlurView>
+          <Dropdown
+            style={styles.dropdown}
+            data={dropdowndata}
+            labelField="label"
+            valueField="value"
+            placeholder="Select Type"
+            placeholderStyle={{color: '#aaa'}}
+            value={value}
+            onChange={item => setValue(item.value)}
+          />
 
-          <BlurView intensity={50} tint="dark" style={styles.dropdownBlur}>
-            <Dropdown
-              style={styles.dropdown}
-              data={areaData}
-              labelField="label"
-              valueField="value"
-              placeholder="Select Area"
-              search={true} // 🔍 enable search
-              searchPlaceholder="Search area..."
-              placeholderStyle={{color: '#aaa'}}
-              value={areaValue}
-              onChange={item => setAreaValue(item.value)}
-            />
-          </BlurView>
+          <Dropdown
+            style={styles.dropdown}
+            data={areaDropdowndata}
+            labelField="label"
+            valueField="value"
+            placeholder="Select Area"
+            placeholderStyle={{color: '#aaa'}}
+            value={areavalue}
+            onChange={item => setAreaValue(item.value)}
+          />
 
           {/* Submit Button */}
           <TouchableOpacity style={styles.submitBtn}>
@@ -189,22 +160,24 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   glassInput: {
+    backgroundColor: 'rgba(255,255,255,0.1)',
     borderRadius: 15,
     paddingHorizontal: 15,
-    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.2)',
   },
   textInput: {
     height: 50,
     color: APPCOLORS.WHITE,
     fontSize: 16,
   },
-  dropdownBlur: {
-    borderRadius: 15,
-    overflow: 'hidden',
-  },
   dropdown: {
     height: 50,
+    borderRadius: 12,
     paddingHorizontal: 12,
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.2)',
   },
   submitBtn: {
     height: 55,
