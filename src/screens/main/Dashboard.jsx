@@ -32,88 +32,87 @@ import {setUserAccess} from '../../redux/AuthSlice';
 const Dashboard = ({navigation}) => {
   const [visible, setVisible] = useState(false);
   const userData = useSelector(state => state.Data.currentData);
-
+  const [showAll, setShowAll] = useState(false);
   const [slider_data, setslider_data] = useState();
   const [AllData, setAllData] = useState();
   const [Type, setType] = useState();
 
   const [loader, setLoader] = useState(false);
   const dispatch = useDispatch();
- const companyData = [
-  {
-    id: 1,
-    name: 'Dashboard',
-    icon: 'grid',
-    onPress: () => navigation.navigate('Detail'),
-  },
-  {
-    id: 2,
-    name: 'Approval',
-    icon: 'check-circle',
-    onPress: () => navigation.navigate('AlertScreen', { type: 'customer' }),
-  },
-  {
-    id: 3,
-    name: 'Sales',
-    icon: 'shopping-cart',
-    onPress: () => navigation.navigate('SalesScreen'),
-  },
-  {
-    id: 4,
-    name: 'Purchase',
-    icon: 'shopping-bag',
-    onPress: () => navigation.navigate('PurchaseScreen'),
-  },
-  {
-    id: 5,
-    name: 'HR & Payroll',
-    icon: 'users',
-    onPress: () => navigation.navigate('PayrollScreen'),
-  },
-  {
-    id: 6,
-    name: 'Inventory',
-    icon: 'box',
-    onPress: () => navigation.navigate('InventoryScreen'),
-  },
-  {
-    id: 7,
-    name: 'Accounts',
-    icon: 'dollar-sign',
-    onPress: () => navigation.navigate('FinanceScreen'),
-  },
-  {
-    id: 8,
-    name: 'Manufactur..',
-    icon: 'settings',
-    onPress: () => navigation.navigate('ManufacturingScreen'),
-  },
-  {
-    id: 9,
-    name: 'CRM',
-    icon: 'briefcase',
-    onPress: () => navigation.navigate('CrmScreen'),
-  },
-  {
-    id: 10,
-    name: 'Attach Docs',
-    icon: 'file-plus', 
-    onPress: () => navigation.navigate('AttachDocumentScreen'),
-  },
-  {
-    id: 10,
-    name: 'Download',
-    icon: 'download', 
-    onPress: () => navigation.navigate('AttachDocumentScreen'),
-  },
-  {
-    id: 10,
-    name: 'More',
-    icon: 'more-horizontal', 
-    onPress: () => navigation.navigate('AttachDocumentScreen'),
-  },
-];
-
+  const companyData = [
+    {
+      id: 1,
+      name: 'Dashboard',
+      icon: 'grid',
+      onPress: () => navigation.navigate('Detail'),
+    },
+    {
+      id: 2,
+      name: 'Approval',
+      icon: 'check-circle',
+      onPress: () => navigation.navigate('AlertScreen', {type: 'customer'}),
+    },
+    {
+      id: 3,
+      name: 'Sales',
+      icon: 'shopping-cart',
+      onPress: () => navigation.navigate('SalesScreen'),
+    },
+    {
+      id: 4,
+      name: 'Purchase',
+      icon: 'shopping-bag',
+      onPress: () => navigation.navigate('PurchaseScreen'),
+    },
+    {
+      id: 5,
+      name: 'HR & Payroll',
+      icon: 'users',
+      onPress: () => navigation.navigate('PayrollScreen'),
+    },
+    {
+      id: 6,
+      name: 'Inventory',
+      icon: 'box',
+      onPress: () => navigation.navigate('InventoryScreen'),
+    },
+    {
+      id: 7,
+      name: 'Accounts',
+      icon: 'dollar-sign',
+      onPress: () => navigation.navigate('FinanceScreen'),
+    },
+    {
+      id: 8,
+      name: 'Manufactur..',
+      icon: 'settings',
+      onPress: () => navigation.navigate('ManufacturingScreen'),
+    },
+    {
+      id: 9,
+      name: 'CRM',
+      icon: 'briefcase',
+      onPress: () => navigation.navigate('CrmScreen'),
+    },
+    {
+      id: 10,
+      name: 'Attach Docs',
+      icon: 'file-plus',
+      onPress: () => navigation.navigate('AttachDocumentScreen'),
+    },
+    {
+      id: 10,
+      name: 'Download',
+      icon: 'download',
+      onPress: () => navigation.navigate('AttachDocumentScreen'),
+    },
+    {
+      id: 10,
+      name: 'More',
+      icon: 'more-horizontal',
+      onPress: () => navigation.navigate('AttachDocumentScreen'),
+    },
+  ];
 
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
@@ -291,7 +290,7 @@ const Dashboard = ({navigation}) => {
             justifyContent: 'center',
             marginTop: 20,
           }}>
-          {companyData.map(item => (
+          {(showAll ? companyData : companyData.slice(0, 8)).map(item => (
             <DashboardTabs
               key={item.id}
               icon={item.icon}
@@ -299,6 +298,14 @@ const Dashboard = ({navigation}) => {
               onPress={item.onPress}
             />
           ))}
+
+          {!showAll && companyData.length > 6 && (
+            <DashboardTabs
+              icon="more-horizontal"
+              name="More"
+              onPress={() => setShowAll(true)}
+            />
+          )}
         </View>
 
         <View

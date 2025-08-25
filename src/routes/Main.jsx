@@ -50,6 +50,7 @@ import CrmScreen from '../screens/main/stacks/Crm/CrmScreen';
 import ReceivableScreen from '../screens/main/stacks/Sales/ReceivableScreen';
 import UploadScreen from '../screens/main/stacks/Sales/UploadScreen';
 import AttachDocumentScreen from '../screens/main/stacks/attachDocument/AttachDocumentScreen';
+import VoucherScreen from '../screens/main/stacks/attachDocument/VoucherScreen';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -121,6 +122,7 @@ const Main = () => {
       <Stack.Screen name="ReceivableScreen" component={ReceivableScreen} />
       <Stack.Screen name="UploadScreen" component={UploadScreen} />
       <Stack.Screen name="AttachDocumentScreen" component={AttachDocumentScreen} />
+      <Stack.Screen name="VoucherScreen" component={VoucherScreen} />
     </Stack.Navigator>
   );
 };

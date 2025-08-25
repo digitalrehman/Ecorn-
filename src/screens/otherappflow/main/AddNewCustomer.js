@@ -22,10 +22,10 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import {addEventListener} from '@react-native-community/netinfo';
 import {useSelector} from 'react-redux';
 import moment from 'moment';
-import { BASE_URL_1 } from '../../../utils/BaseUrl';
+import {BASE_URL_1} from '../../../utils/BaseUrl';
 import Toast from 'react-native-toast-message';
-import { APPCOLORS } from '../../../utils/APPCOLORS';
-import { responsiveWidth } from '../../../utils/Responsive';
+import {APPCOLORS} from '../../../utils/APPCOLORS';
+import {responsiveWidth} from '../../../utils/Responsive';
 const AddNewCustomer = ({navigation}) => {
   const CurrentUser = useSelector(state => state.Data.currentData);
   const day = moment().format('dddd');
@@ -33,19 +33,6 @@ const AddNewCustomer = ({navigation}) => {
   const [loadermore, setLoadMore] = useState(false);
 
   const [offlineSyncLoader, setOfflineSyncLoader] = useState(false);
-
-
-  const arr = [
-    {id: 1},
-    {id: 2},
-    {id: 3},
-    {id: 4},
-    {id: 5},
-    {id: 6},
-    {id: 7},
-    {id: 8},
-    {id: 1},
-  ];
 
   const [AllOrders, setAllOrders] = useState([]);
 
@@ -82,7 +69,6 @@ const AddNewCustomer = ({navigation}) => {
 
   // Filter orders based on search input
   const filteredOrders = AllOrders?.filter(val => {
-    console.log('val.name', val);
     const itemNameLowerCase = val.debtor_ref.toLowerCase();
     if (Search === '') {
       return val;
@@ -118,16 +104,17 @@ const AddNewCustomer = ({navigation}) => {
       .request(configs)
       .then(async response => {
         // setAllOrders(response?.data?.data);
-        console.log("first", response.data.data)
+        console.log('first', response.data.data);
         // setAllOrders(prevData => [...prevData, ...response.data.data]);
         setAllOrders(prevData => {
           const allOrders = [...prevData, ...response.data.data];
           const uniqueOrders = allOrders.filter(
-            (order, index, self) => index === self.findIndex(o => o.debtor_ref === order.debtor_ref)
+            (order, index, self) =>
+              index === self.findIndex(o => o.debtor_ref === order.debtor_ref),
           );
           return uniqueOrders;
         });
-        
+
         setLoadMore(false);
         setPage(prevPage => prevPage + 1);
         console.log('response: ' + response.data.data);
@@ -157,8 +144,7 @@ const AddNewCustomer = ({navigation}) => {
     datas.append('customer_status', num);
     datas.append('page', page);
 
-    
-    console.log("datasdatasdatasdatasdatasdatas",datas)
+    console.log('datasdatasdatasdatasdatasdatas', datas);
     let configs = {
       method: 'post',
       maxBodyLength: Infinity,
@@ -177,11 +163,12 @@ const AddNewCustomer = ({navigation}) => {
         setAllOrders(prevData => {
           const allOrders = [...prevData, ...response.data.data];
           const uniqueOrders = allOrders.filter(
-            (order, index, self) => index === self.findIndex(o => o.debtor_ref === order.debtor_ref)
+            (order, index, self) =>
+              index === self.findIndex(o => o.debtor_ref === order.debtor_ref),
           );
           return uniqueOrders;
         });
-        
+
         setLoadMore(false);
         setPage(prevPage => prevPage + 1);
         console.log('response: ' + response.data.data);
@@ -255,9 +242,8 @@ const AddNewCustomer = ({navigation}) => {
   };
 
   return (
-    <View style={{flex: 1, backgroundColor: APPCOLORS.CLOSETOWHITE}}>
-      <View style={{backgroundColor: APPCOLORS.BTN_COLOR}}>
-
+    <View style={{flex: 1, backgroundColor: APPCOLORS.BLACK}}>
+      <View style={{backgroundColor: APPCOLORS.BLACK}}>
         <View
           style={{
             backgroundColor: APPCOLORS.BTN_COLOR,
@@ -318,7 +304,6 @@ const AddNewCustomer = ({navigation}) => {
                 position: 'absolute',
                 zIndex: 100,
                 alignSelf: 'center',
-                backgroundColor: 'black',
                 borderRadius: 2000,
               }}>
               <ActivityIndicator
@@ -336,104 +321,123 @@ const AddNewCustomer = ({navigation}) => {
                 onEndReached={() => {
                   loaderMoreData(selectedType);
                 }}
-                onEndReachedThreshold={1} // Trigger when 50% close to the end
+                onEndReachedThreshold={1}
                 renderItem={({item, index}) => {
-                  console.log("item", item.name)
+                  console.log(item);
                   return (
-                    <View
-                      key={index}
+                    <LinearGradient
+                      colors={[
+                        APPCOLORS.Primary,
+                        APPCOLORS.Secondary,
+                        APPCOLORS.BLACK,
+                      ]}
                       style={{
-                        borderRadius: 20,
-                        elevation: 10,
-                        backgroundColor: APPCOLORS.CLOSETOWHITE,
-                        marginTop: 10,
+                        borderRadius: 15,
+                        marginVertical: 8,
+                        padding: 15,
                         width: responsiveWidth(90),
                         alignSelf: 'center',
-                        padding: 10,
                       }}>
                       <View
                         style={{
                           flexDirection: 'row',
                           justifyContent: 'space-between',
+                          marginBottom: 8,
                         }}>
-                        <View style={{flexDirection: 'row'}}>
-                          <Octicons
-                            name={'person'}
-                            color={APPCOLORS.BLACK}
-                            size={20}
-                          />
-                          <Text
-                            style={{color: APPCOLORS.BLACK, marginLeft: 10}}>
-                            {item?.name}
-                          </Text>
-                        </View>
-
-                        <TouchableOpacity
-                          onPress={() =>
-                            Linking.openURL(`tel:${item?.debtor_ref}`)
-                          }
-                          style={{flexDirection: 'row'}}>
-                          <AntDesign
-                            name={'phone'}
-                            color={APPCOLORS.BLACK}
-                            size={20}
-                          />
-                          <Text
-                            style={{color: APPCOLORS.BLACK, marginLeft: 10}}>
-                            {item?.debtor_ref}
-                          </Text>
-                        </TouchableOpacity>
-                      </View>
-
-                      <TouchableOpacity
-                        onPress={() => openGoogleMaps(item.address)}
-                        style={{
-                          flexDirection: 'row',
-                          alignItems: 'center',
-                          marginTop: 10,
-                        }}>
-                        <EvilIcons
-                          name={'location'}
-                          color={APPCOLORS.BLACK}
-                          size={22}
-                        />
                         <Text
-                          style={{color: APPCOLORS.BLACK}}
-                          numberOfLines={1}>
-                          {item.address}
+                          style={{color: APPCOLORS.WHITE, fontWeight: 'bold'}}>
+                          1. Business Name
                         </Text>
-                      </TouchableOpacity>
+                        <Text style={{color: APPCOLORS.WHITE}}>
+                          {item?.name}
+                        </Text>
+                      </View>
 
                       <View
                         style={{
                           flexDirection: 'row',
-                          // width: '90%',
                           justifyContent: 'space-between',
-                          marginTop: 20,
+                          marginBottom: 8,
+                        }}>
+                        <Text
+                          style={{color: APPCOLORS.WHITE, fontWeight: 'bold'}}>
+                          2. Address
+                        </Text>
+                        <Text
+                          style={{color: APPCOLORS.WHITE}}
+                          numberOfLines={1}>
+                          {item?.address}
+                        </Text>
+                      </View>
+
+                      <View
+                        style={{
+                          flexDirection: 'row',
+                          justifyContent: 'space-between',
+                          marginBottom: 8,
+                        }}>
+                        <Text
+                          style={{color: APPCOLORS.WHITE, fontWeight: 'bold'}}>
+                          3. NTN
+                        </Text>
+                        <Text style={{color: APPCOLORS.WHITE}}>
+                          {item?.ntn_id || 'N/A'}
+                        </Text>
+                      </View>
+
+                      <View
+                        style={{
+                          flexDirection: 'row',
+                          justifyContent: 'space-between',
+                          marginBottom: 8,
+                        }}>
+                        <Text
+                          style={{color: APPCOLORS.WHITE, fontWeight: 'bold'}}>
+                          4. POC Name
+                        </Text>
+                        <Text style={{color: APPCOLORS.WHITE}}>John Doe</Text>
+                        {/* Placeholder, API se aa jayega baad mein */}
+                      </View>
+
+                      <View
+                        style={{
+                          flexDirection: 'row',
+                          justifyContent: 'space-between',
+                          marginBottom: 8,
+                        }}>
+                        <Text
+                          style={{color: APPCOLORS.WHITE, fontWeight: 'bold'}}>
+                          5. Contact No
+                        </Text>
+                        <Text style={{color: APPCOLORS.WHITE}}>
+                          {item?.debtor_ref}
+                        </Text>
+                      </View>
+
+                      {/* ===== Future Buttons (Commented for now) ===== */}
+
+                      {/* <View
+                        style={{
+                          flexDirection: 'row',
+                          justifyContent: 'space-between',
+                          marginTop: 15,
                         }}>
                         <TouchableOpacity
                           onPress={() =>
-                            navigation.navigate('AddItems', {data: item,})
+                            navigation.navigate('AddItems', {data: item})
                           }
                           style={{width: '47%'}}>
                           <LinearGradient
-                            colors={[
-                              '#9BC8E2',
-                              APPCOLORS.BTN_COLOR,
-                              APPCOLORS.BTN_COLOR,
-                            ]}
+                            colors={[APPCOLORS.Secondary, APPCOLORS.Primary]}
                             style={{
                               height: 40,
                               borderRadius: 100,
                               alignItems: 'center',
                               justifyContent: 'center',
-                              padding: 10,
-                              width: '100%',
                             }}>
                             <Text
                               style={{
                                 color: APPCOLORS.WHITE,
-                                fontSize: 12,
                                 fontWeight: 'bold',
                               }}>
                               Take Order
@@ -450,114 +454,24 @@ const AddNewCustomer = ({navigation}) => {
                           }
                           style={{width: '47%'}}>
                           <LinearGradient
-                            colors={[
-                              '#9BC8E2',
-                              APPCOLORS.BTN_COLOR,
-                              APPCOLORS.BTN_COLOR,
-                            ]}
+                            colors={[APPCOLORS.Secondary, APPCOLORS.Primary]}
                             style={{
                               height: 40,
                               borderRadius: 100,
                               alignItems: 'center',
                               justifyContent: 'center',
-                              padding: 10,
-                              width: '100%',
                             }}>
                             <Text
                               style={{
                                 color: APPCOLORS.WHITE,
-                                fontSize: 12,
                                 fontWeight: 'bold',
                               }}>
                               Return
                             </Text>
                           </LinearGradient>
                         </TouchableOpacity>
-                      </View>
-                      <View
-                        style={{
-                          flexDirection: 'row',
-                          alignItems: 'center',
-                          marginTop: 10,
-                        }}>
-                        <TouchableOpacity
-                          onPress={() =>
-                            navigation.navigate('PaymentScreen', {data: item})
-                          }>
-                          <LinearGradient
-                            colors={[
-                              '#9BC8E2',
-                              APPCOLORS.BTN_COLOR,
-                              APPCOLORS.BTN_COLOR,
-                            ]}
-                            style={{
-                              height: 40,
-                              borderRadius: 100,
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              padding: 10,
-                            }}>
-                            <Text
-                              style={{
-                                color: APPCOLORS.WHITE,
-                                fontSize: 12,
-                                fontWeight: 'bold',
-                              }}>
-                              Payment
-                            </Text>
-                          </LinearGradient>
-                        </TouchableOpacity>
-
-                        <View
-                          style={{
-                            flexDirection: 'row',
-                            width: '80%',
-                            justifyContent: 'space-around',
-                          }}>
-                          <View>
-                            <Text
-                              style={{
-                                color: APPCOLORS.BLACK,
-                                fontWeight: 'bold',
-                              }}>
-                              Last Order
-                            </Text>
-                            <Text>{item?.last_order_date}</Text>
-                          </View>
-
-                          <View>
-                            <Text
-                              style={{
-                                color: APPCOLORS.BLACK,
-                                fontWeight: 'bold',
-                              }}>
-                              Total Order
-                            </Text>
-                            <Text>
-                              {typeof item.last_order_total == 'string'
-                                ? JSON.parse(item.last_order_total).toFixed(2)
-                                : item.last_order_total}
-                            </Text>
-                          </View>
-
-                          <View>
-                            <Text
-                              style={{
-                                color: APPCOLORS.BLACK,
-                                fontWeight: 'bold',
-                              }}>
-                              Total Pay
-                            </Text>
-                            <Text>
-                              Rs{' '}
-                              {Number(JSON.parse(item.current_balance)).toFixed(
-                                2,
-                              )}
-                            </Text>
-                          </View>
-                        </View>
-                      </View>
-                    </View>
+                      </View> */}
+                    </LinearGradient>
                   );
                 }}
               />
@@ -567,7 +481,6 @@ const AddNewCustomer = ({navigation}) => {
               </Text>
             )}
           </>
-          
         </View>
       )}
 
@@ -586,7 +499,7 @@ const AddNewCustomer = ({navigation}) => {
           justifyContent: 'center',
         }}>
         <LinearGradient
-          colors={['#9BC8E2', APPCOLORS.BTN_COLOR, APPCOLORS.BTN_COLOR]}
+          colors={[APPCOLORS.BLACK, APPCOLORS.Secondary, APPCOLORS.BLACK]}
           style={{
             height: 50,
             width: '100%',

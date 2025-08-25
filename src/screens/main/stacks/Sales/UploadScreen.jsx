@@ -16,8 +16,14 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import Toast from 'react-native-toast-message';
 import SimpleHeader from '../../../../components/SimpleHeader';
 
+import {useRoute} from '@react-navigation/native';
+
 const UploadScreen = () => {
-  const [transaction, setTransaction] = useState('');
+  const route = useRoute();
+  const {transactionType, transactionNo} = route.params || {}; // 👈 params milenge
+
+  const [transaction, setTransaction] = useState(transactionType || '');
+  const [transNo, setTransNo] = useState(transactionNo || '');
   const [description, setDescription] = useState('');
   const [imageUri, setImageUri] = useState(null);
 
@@ -121,12 +127,13 @@ const UploadScreen = () => {
           </Picker>
         </View>
 
-        {/* Transaction # */}
         <Text style={styles.label}>Transaction #</Text>
         <TextInput
           style={styles.input}
           placeholder="Enter Transaction Number..."
           placeholderTextColor="#aaa"
+          value={transNo}
+          onChangeText={setTransNo}
         />
 
         {/* Description */}
