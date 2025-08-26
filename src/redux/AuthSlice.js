@@ -3,7 +3,6 @@ import axios from 'axios';
 import Toast from 'react-native-toast-message';
 import CryptoJS from 'crypto-js';
 
-import moment from 'moment';
 
 export const CurrentLogin = createAsyncThunk(
   'user',
@@ -11,7 +10,6 @@ export const CurrentLogin = createAsyncThunk(
     return axios(config)
       .then(data => {
         console.log('first.>>>>>>>>>>>>>', config, username, password);
-        // console.log("data", data.data.data)
         const user = data?.data?.data?.find(user => user.user_id === username);
         if (user) {
           const hashedPassword = CryptoJS.MD5(password).toString();

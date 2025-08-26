@@ -10,20 +10,22 @@ import {
   PermissionsAndroid,
   Platform,
 } from 'react-native';
-import {Picker} from '@react-native-picker/picker';
 import {launchCamera, launchImageLibrary} from 'react-native-image-picker';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import Toast from 'react-native-toast-message';
 import SimpleHeader from '../../../../components/SimpleHeader';
-
 import {useRoute} from '@react-navigation/native';
+import axios from 'axios';
 
 const UploadScreen = () => {
   const route = useRoute();
-  const {transactionType, transactionNo} = route.params || {}; // 👈 params milenge
+  const {transactionType, transactionNo} = route.params || {}; // 👈 row click से मिल रहा है
 
+  // hidden states (UI पर show नहीं होंगे लेकिन API में जाएंगे)
   const [transaction, setTransaction] = useState(transactionType || '');
   const [transNo, setTransNo] = useState(transactionNo || '');
+
+  // visible fields
   const [description, setDescription] = useState('');
   const [imageUri, setImageUri] = useState(null);
 
@@ -92,54 +94,62 @@ const UploadScreen = () => {
     });
   };
 
-  // ✅ Submit form
-  const handleSubmit = () => {
-    if (!transaction || !description) {
+  // ✅ Submit Form
+  const handleSubmit = async () => {
+    if (!transaction || !transNo || !description) {
       Toast.show({
         type: 'error',
         text1: 'Error',
-        text2: 'Please fill all fields',
+        text2: 'Missing required fields',
       });
       return;
     }
 
-    Toast.show({
-      type: 'success',
-      text1: 'Success',
-      text2: 'New Transaction Added!',
-    });
+    try {
+      const formData = new FormData();
+      formData.append('transactionType', transaction); // 👈 hidden value
+      formData.append('transactionNo', transNo);       // 👈 hidden value
+      formData.append('description', description);
+
+      if (imageUri) {
+        formData.append('file', {
+          uri: imageUri,
+          type: 'image/jpeg',
+          name: 'attachment.jpg',
+        });
+      }
+
+      const response = await axios.post(
+        'https://e.de2solutions.com/company/0/attachments',
+        formData,
+        {headers: {'Content-Type': 'multipart/form-data'}},
+      );
+
+      Toast.show({
+        type: 'success',
+        text1: 'Uploaded',
+        text2: 'Attachment sent successfully!',
+      });
+
+      console.log('API Response:', response.data);
+    } catch (error) {
+      console.error(error);
+      Toast.show({
+        type: 'error',
+        text1: 'Upload Failed',
+        text2: 'Something went wrong!',
+      });
+    }
   };
 
   return (
     <View style={[styles.container, {backgroundColor: '#1a1a1a'}]}>
-      <SimpleHeader title="Add New Transaction" />
+      <SimpleHeader title="Attach Document" />
       <ScrollView contentContainerStyle={styles.scroll}>
-        {/* Transaction Picker */}
-        <Text style={styles.label}>Transaction Type</Text>
-        <View style={styles.glassBox}>
-          <Picker
-            selectedValue={transaction}
-            onValueChange={setTransaction}
-            style={styles.picker}>
-            <Picker.Item label="Select Transaction" value="" />
-            <Picker.Item label="Supplier Invoice" value="invoice" />
-            <Picker.Item label="Expense" value="expense" />
-          </Picker>
-        </View>
-
-        <Text style={styles.label}>Transaction #</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="Enter Transaction Number..."
-          placeholderTextColor="#aaa"
-          value={transNo}
-          onChangeText={setTransNo}
-        />
-
         {/* Description */}
         <Text style={styles.label}>Description</Text>
         <TextInput
-          style={styles.input}
+          style={styles.bigInput}
           placeholder="Enter description..."
           placeholderTextColor="#aaa"
           value={description}
@@ -168,11 +178,9 @@ const UploadScreen = () => {
         {/* Submit */}
         <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
           <Icon name="plus-circle-outline" size={20} color="#00ff99" />
-          <Text style={styles.submitText}>Add New</Text>
+          <Text style={styles.submitText}>Upload Attachment</Text>
         </TouchableOpacity>
       </ScrollView>
-
-      {/* Toast must be inside root */}
       <Toast />
     </View>
   );
@@ -188,23 +196,17 @@ const styles = StyleSheet.create({
     marginTop: 10,
     color: '#eee',
   },
-  glassBox: {
+  bigInput: {
     borderRadius: 15,
-    backgroundColor: 'rgba(255,255,255,0.1)',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.3)',
-    marginBottom: 15,
-  },
-  picker: {height: 50, width: '100%', color: '#fff'},
-  input: {
-    borderRadius: 15,
-    padding: 12,
+    padding: 16,
+    minHeight: 100,
     backgroundColor: 'rgba(255,255,255,0.1)',
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.3)',
     color: '#fff',
-    marginBottom: 15,
+    marginBottom: 20,
     textAlignVertical: 'top',
+    fontSize: 16,
   },
   row: {flexDirection: 'row', justifyContent: 'space-between'},
   button: {
@@ -233,7 +235,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,255,150,0.2)',
     padding: 15,
     borderRadius: 15,
-    marginTop: 20,
+    marginTop: 25,
     borderWidth: 1,
     borderColor: 'rgba(0,255,150,0.4)',
   },
