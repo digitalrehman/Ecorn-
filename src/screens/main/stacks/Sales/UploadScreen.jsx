@@ -19,9 +19,8 @@ import axios from 'axios';
 
 const UploadScreen = () => {
   const route = useRoute();
-  const {transactionType, transactionNo} = route.params || {}; // 👈 row click से मिल रहा है
+  const {transactionType, transactionNo} = route.params || {}
 
-  // hidden states (UI पर show नहीं होंगे लेकिन API में जाएंगे)
   const [transaction, setTransaction] = useState(transactionType || '');
   const [transNo, setTransNo] = useState(transactionNo || '');
 

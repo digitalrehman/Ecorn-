@@ -29,19 +29,31 @@ export default function VoucherScreen({navigation}) {
   }, []);
 
   const fetchData = async () => {
-    setLoading(true);
-    try {
-      const res = await axios.get(
-        'https://e.de2solutions.com/mobile_dash/dash_upload.php',
-      );
-      let result = res.data?.data_cust_age || [];
-      setAllData(result);
-      setData(result);
-    } catch (error) {
-      console.log('Error fetching data:', error);
-    }
-    setLoading(false);
-  };
+  setLoading(true);
+  try {
+    const res = await axios.get(
+      'https://e.de2solutions.com/mobile_dash/dash_upload.php',
+    );
+    let result = res.data?.data_cust_age || [];
+    setAllData(result);
+
+    // 🟢 Last month ka data nikalna
+    const today = new Date();
+    const lastMonth = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+    const thisMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+
+    const filtered = result.filter(item => {
+      const apiDate = new Date(item.tran_date?.split(' ')[0]); // "YYYY-MM-DD"
+      return apiDate >= lastMonth && apiDate < thisMonth;
+    });
+
+    setData(filtered); 
+  } catch (error) {
+    console.log('Error fetching data:', error);
+  }
+  setLoading(false);
+};
+
 
   // date ko YYYY-MM-DD me normalize
   const normalizeDate = date => {
