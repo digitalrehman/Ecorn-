@@ -106,12 +106,12 @@ const UploadScreen = () => {
 
     try {
       const formData = new FormData();
-      formData.append('transactionType', transaction); // 👈 hidden value
-      formData.append('transactionNo', transNo);       // 👈 hidden value
+      formData.append('type', transaction); 
+      formData.append('trans_no', transNo);    
       formData.append('description', description);
 
       if (imageUri) {
-        formData.append('file', {
+        formData.append('filename', {
           uri: imageUri,
           type: 'image/jpeg',
           name: 'attachment.jpg',
@@ -119,7 +119,7 @@ const UploadScreen = () => {
       }
 
       const response = await axios.post(
-        'https://e.de2solutions.com/company/0/attachments',
+        'https://e.de2solutions.com/mobile_dash/dattachment_post.php',
         formData,
         {headers: {'Content-Type': 'multipart/form-data'}},
       );
