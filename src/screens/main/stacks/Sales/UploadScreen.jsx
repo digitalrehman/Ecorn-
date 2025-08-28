@@ -16,17 +16,17 @@ import Toast from 'react-native-toast-message';
 import SimpleHeader from '../../../../components/SimpleHeader';
 import {useRoute} from '@react-navigation/native';
 import axios from 'axios';
+// ✅ correct import
+import FilePickerManager from 'react-native-file-picker';
 
 const UploadScreen = () => {
   const route = useRoute();
-  const {transactionType, transactionNo} = route.params || {}
+  const {transactionType, transactionNo} = route.params || {};
 
   const [transaction, setTransaction] = useState(transactionType || '');
   const [transNo, setTransNo] = useState(transactionNo || '');
-
-  // visible fields
   const [description, setDescription] = useState('');
-  const [imageUri, setImageUri] = useState(null);
+  const [file, setFile] = useState(null);
 
   // ✅ Gallery Permission
   const requestGalleryPermission = async () => {
@@ -70,7 +70,12 @@ const UploadScreen = () => {
     }
     launchCamera({mediaType: 'photo'}, response => {
       if (!response.didCancel && !response.errorCode) {
-        setImageUri(response.assets[0].uri);
+        const asset = response.assets[0];
+        setFile({
+          uri: asset.uri,
+          type: asset.type,
+          name: asset.fileName,
+        });
       }
     });
   };
@@ -88,35 +93,82 @@ const UploadScreen = () => {
     }
     launchImageLibrary({mediaType: 'photo'}, response => {
       if (!response.didCancel && !response.errorCode) {
-        setImageUri(response.assets[0].uri);
+        const asset = response.assets[0];
+        setFile({
+          uri: asset.uri,
+          type: asset.type,
+          name: asset.fileName,
+        });
       }
     });
   };
 
-  // ✅ Submit Form
-  const handleSubmit = async () => {
-    if (!transaction || !transNo || !description) {
+  // ✅ Open Documents (react-native-file-picker)
+  const openDocuments = async () => {
+    try {
+      if (Platform.OS === 'android' && Platform.Version < 33) {
+        const granted = await PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
+        );
+        if (granted !== PermissionsAndroid.RESULTS.GRANTED) {
+          Toast.show({
+            type: 'error',
+            text1: 'Permission Required',
+            text2: 'Storage permission is needed.',
+          });
+          return;
+        }
+      }
+
+      FilePickerManager.showFilePicker(null, response => {
+        if (response.didCancel) {
+          console.log('User cancelled file picker');
+        } else if (response.error) {
+          console.log('FilePicker Error: ', response.error);
+          Toast.show({
+            type: 'error',
+            text1: 'Error',
+            text2: 'Failed to open file picker.',
+          });
+        } else {
+          setFile({
+            uri: response.uri || response.path, // kuch devices pe path aata hai
+            type: response.type,
+            name: response.fileName,
+          });
+        }
+      });
+    } catch (err) {
+      console.warn(err);
       Toast.show({
         type: 'error',
         text1: 'Error',
-        text2: 'Missing required fields',
+        text2: 'Failed to handle document selection.',
+      });
+    }
+  };
+
+  // ✅ Submit Form
+  const handleSubmit = async () => {
+    if (!transaction || !transNo || !description || !file) {
+      Toast.show({
+        type: 'error',
+        text1: 'Error',
+        text2: 'Missing required fields or attachment',
       });
       return;
     }
 
     try {
       const formData = new FormData();
-      formData.append('type', transaction); 
-      formData.append('trans_no', transNo);    
+      formData.append('type', transaction);
+      formData.append('trans_no', transNo);
       formData.append('description', description);
-
-      if (imageUri) {
-        formData.append('filename', {
-          uri: imageUri,
-          type: 'image/jpeg',
-          name: 'attachment.jpg',
-        });
-      }
+      formData.append('filename', {
+        uri: file.uri,
+        type: file.type || 'application/octet-stream',
+        name: file.name,
+      });
 
       const response = await axios.post(
         'https://e.de2solutions.com/mobile_dash/dattachment_post.php',
@@ -168,10 +220,25 @@ const UploadScreen = () => {
             <Icon name="image-multiple" size={20} color="#fff" />
             <Text style={styles.buttonText}>Gallery</Text>
           </TouchableOpacity>
+
+          <TouchableOpacity style={styles.button} onPress={openDocuments}>
+            <Icon name="file-document" size={20} color="#fff" />
+            <Text style={styles.buttonText}>Docs</Text>
+          </TouchableOpacity>
         </View>
 
-        {imageUri && (
-          <Image source={{uri: imageUri}} style={styles.imagePreview} />
+        {/* File Preview */}
+        {file && (
+          <View style={styles.filePreview}>
+            {file.type && file.type.startsWith('image/') ? (
+              <Image source={{uri: file.uri}} style={styles.imagePreview} />
+            ) : (
+              <View style={styles.documentPreview}>
+                <Icon name="file-check" size={50} color="#00ff99" />
+                <Text style={styles.fileName}>{file.name}</Text>
+              </View>
+            )}
+          </View>
         )}
 
         {/* Submit */}
@@ -226,6 +293,26 @@ const styles = StyleSheet.create({
     height: 200,
     borderRadius: 15,
     marginTop: 15,
+  },
+  filePreview: {
+    marginTop: 15,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  documentPreview: {
+    width: '100%',
+    height: 200,
+    borderRadius: 15,
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  fileName: {
+    color: '#fff',
+    marginTop: 10,
+    fontWeight: '500',
+    textAlign: 'center',
+    paddingHorizontal: 10,
   },
   submitButton: {
     flexDirection: 'row',
