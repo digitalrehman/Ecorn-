@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -10,18 +10,19 @@ import {
   PermissionsAndroid,
   Platform,
 } from 'react-native';
-import {launchCamera, launchImageLibrary} from 'react-native-image-picker';
+import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import Toast from 'react-native-toast-message';
 import SimpleHeader from '../../../../components/SimpleHeader';
-import {useRoute} from '@react-navigation/native';
+import { useRoute } from '@react-navigation/native';
 import axios from 'axios';
-// ✅ correct import
-import FilePickerManager from 'react-native-file-picker';
+
+// ✅ Correct import for new package
+import { pick, types } from '@react-native-documents/picker';
 
 const UploadScreen = () => {
   const route = useRoute();
-  const {transactionType, transactionNo} = route.params || {};
+  const { transactionType, transactionNo } = route.params || {};
 
   const [transaction, setTransaction] = useState(transactionType || '');
   const [transNo, setTransNo] = useState(transactionNo || '');
@@ -68,7 +69,7 @@ const UploadScreen = () => {
       });
       return;
     }
-    launchCamera({mediaType: 'photo'}, response => {
+    launchCamera({ mediaType: 'photo' }, response => {
       if (!response.didCancel && !response.errorCode) {
         const asset = response.assets[0];
         setFile({
@@ -91,7 +92,7 @@ const UploadScreen = () => {
       });
       return;
     }
-    launchImageLibrary({mediaType: 'photo'}, response => {
+    launchImageLibrary({ mediaType: 'photo' }, response => {
       if (!response.didCancel && !response.errorCode) {
         const asset = response.assets[0];
         setFile({
@@ -103,48 +104,29 @@ const UploadScreen = () => {
     });
   };
 
-  // ✅ Open Documents (react-native-file-picker)
+  // ✅ Open Documents (now using @react-native-documents/picker)
   const openDocuments = async () => {
     try {
-      if (Platform.OS === 'android' && Platform.Version < 33) {
-        const granted = await PermissionsAndroid.request(
-          PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
-        );
-        if (granted !== PermissionsAndroid.RESULTS.GRANTED) {
-          Toast.show({
-            type: 'error',
-            text1: 'Permission Required',
-            text2: 'Storage permission is needed.',
-          });
-          return;
-        }
-      }
+      const [res] = await pick({
+        type: [types.allFiles], // you can restrict to types.images, types.pdf etc.
+      });
 
-      FilePickerManager.showFilePicker(null, response => {
-        if (response.didCancel) {
-          console.log('User cancelled file picker');
-        } else if (response.error) {
-          console.log('FilePicker Error: ', response.error);
-          Toast.show({
-            type: 'error',
-            text1: 'Error',
-            text2: 'Failed to open file picker.',
-          });
-        } else {
-          setFile({
-            uri: response.uri || response.path, // kuch devices pe path aata hai
-            type: response.type,
-            name: response.fileName,
-          });
-        }
+      setFile({
+        uri: res.uri,
+        type: res.type,
+        name: res.name,
       });
     } catch (err) {
-      console.warn(err);
-      Toast.show({
-        type: 'error',
-        text1: 'Error',
-        text2: 'Failed to handle document selection.',
-      });
+      if (err?.code === 'DOCUMENT_PICKER_CANCELED') {
+        console.log('User cancelled document picker');
+      } else {
+        console.error('Document Picker Error: ', err);
+        Toast.show({
+          type: 'error',
+          text1: 'Error',
+          text2: 'Failed to open file picker.',
+        });
+      }
     }
   };
 
@@ -173,7 +155,7 @@ const UploadScreen = () => {
       const response = await axios.post(
         'https://e.de2solutions.com/mobile_dash/dattachment_post.php',
         formData,
-        {headers: {'Content-Type': 'multipart/form-data'}},
+        { headers: { 'Content-Type': 'multipart/form-data' } },
       );
 
       Toast.show({
@@ -194,7 +176,7 @@ const UploadScreen = () => {
   };
 
   return (
-    <View style={[styles.container, {backgroundColor: '#1a1a1a'}]}>
+    <View style={[styles.container, { backgroundColor: '#1a1a1a' }]}>
       <SimpleHeader title="Attach Document" />
       <ScrollView contentContainerStyle={styles.scroll}>
         {/* Description */}
@@ -231,7 +213,7 @@ const UploadScreen = () => {
         {file && (
           <View style={styles.filePreview}>
             {file.type && file.type.startsWith('image/') ? (
-              <Image source={{uri: file.uri}} style={styles.imagePreview} />
+              <Image source={{ uri: file.uri }} style={styles.imagePreview} />
             ) : (
               <View style={styles.documentPreview}>
                 <Icon name="file-check" size={50} color="#00ff99" />
@@ -253,8 +235,8 @@ const UploadScreen = () => {
 };
 
 const styles = StyleSheet.create({
-  container: {flex: 1},
-  scroll: {padding: 20, flexGrow: 1},
+  container: { flex: 1 },
+  scroll: { padding: 20, flexGrow: 1 },
   label: {
     fontSize: 16,
     fontWeight: '500',
@@ -274,7 +256,7 @@ const styles = StyleSheet.create({
     textAlignVertical: 'top',
     fontSize: 16,
   },
-  row: {flexDirection: 'row', justifyContent: 'space-between'},
+  row: { flexDirection: 'row', justifyContent: 'space-between' },
   button: {
     flex: 1,
     flexDirection: 'row',
@@ -287,7 +269,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.3)',
   },
-  buttonText: {color: '#fff', fontWeight: '600', marginLeft: 6},
+  buttonText: { color: '#fff', fontWeight: '600', marginLeft: 6 },
   imagePreview: {
     width: '100%',
     height: 200,
@@ -334,3 +316,6 @@ const styles = StyleSheet.create({
 });
 
 export default UploadScreen;
+
+
+
