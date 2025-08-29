@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useState, useRef} from 'react';
 import {
   View,
   Text,
@@ -19,13 +19,17 @@ export default function VoucherScreen({navigation}) {
   const [data, setData] = useState([]); // filtered data
   const [loading, setLoading] = useState(false);
 
+  const apiCalled = useRef(false);
   const [fromDate, setFromDate] = useState(null);
   const [toDate, setToDate] = useState(null);
 
   const [showPicker, setShowPicker] = useState({visible: false, type: null});
 
   useEffect(() => {
-    fetchData();
+    if (!apiCalled.current) {
+      fetchData();
+      apiCalled.current = true;
+    }
   }, []);
 
   const fetchData = async () => {
@@ -218,7 +222,7 @@ export default function VoucherScreen({navigation}) {
                     justifyContent: 'space-around',
                   },
                 ]}>
-                {/* Paperclip existing action */}
+                {/* 📎 UploadScreen */}
                 <TouchableOpacity
                   onPress={() =>
                     navigation.navigate('UploadScreen', {
@@ -229,7 +233,13 @@ export default function VoucherScreen({navigation}) {
                   <Icon name="paperclip" size={20} color="#00ff99" />
                 </TouchableOpacity>
 
-                <TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() =>
+                    navigation.navigate('PDFViewerScreen', {
+                      type: item.type,
+                      trans_no: item.trans_no,
+                    })
+                  }>
                   <Icon name="eye" size={20} color="#00aced" />
                 </TouchableOpacity>
 
