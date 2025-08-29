@@ -103,9 +103,6 @@ const AddNewCustomer = ({navigation}) => {
     axios
       .request(configs)
       .then(async response => {
-        // setAllOrders(response?.data?.data);
-        console.log('first', response.data.data);
-        // setAllOrders(prevData => [...prevData, ...response.data.data]);
         setAllOrders(prevData => {
           const allOrders = [...prevData, ...response.data.data];
           const uniqueOrders = allOrders.filter(
@@ -117,7 +114,6 @@ const AddNewCustomer = ({navigation}) => {
 
         setLoadMore(false);
         setPage(prevPage => prevPage + 1);
-        console.log('response: ' + response.data.data);
 
         await AsyncStorage.setItem(
           'GetAllCustomers',
@@ -323,7 +319,6 @@ const AddNewCustomer = ({navigation}) => {
                 }}
                 onEndReachedThreshold={1}
                 renderItem={({item, index}) => {
-                  console.log(item);
                   return (
                     <LinearGradient
                       colors={[

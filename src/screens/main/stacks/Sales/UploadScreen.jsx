@@ -9,6 +9,7 @@ import {
   ScrollView,
   PermissionsAndroid,
   Platform,
+  ActivityIndicator,
 } from 'react-native';
 import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -28,6 +29,7 @@ const UploadScreen = () => {
   const [transNo, setTransNo] = useState(transactionNo || '');
   const [description, setDescription] = useState('');
   const [file, setFile] = useState(null);
+  const [loading, setLoading] = useState(false); // ✅ loader state
 
   // ✅ Gallery Permission
   const requestGalleryPermission = async () => {
@@ -104,11 +106,11 @@ const UploadScreen = () => {
     });
   };
 
-  // ✅ Open Documents (now using @react-native-documents/picker)
+  // ✅ Open Documents
   const openDocuments = async () => {
     try {
       const [res] = await pick({
-        type: [types.allFiles], // you can restrict to types.images, types.pdf etc.
+        type: [types.allFiles],
       });
 
       setFile({
@@ -141,6 +143,8 @@ const UploadScreen = () => {
       return;
     }
 
+    setLoading(true); // ✅ start loader
+
     try {
       const formData = new FormData();
       formData.append('type', transaction);
@@ -165,6 +169,12 @@ const UploadScreen = () => {
       });
 
       console.log('API Response:', response.data);
+
+      // ✅ Reset form
+      setTransaction('');
+      setTransNo('');
+      setDescription('');
+      setFile(null);
     } catch (error) {
       console.error(error);
       Toast.show({
@@ -172,6 +182,8 @@ const UploadScreen = () => {
         text1: 'Upload Failed',
         text2: 'Something went wrong!',
       });
+    } finally {
+      setLoading(false); // ✅ stop loader
     }
   };
 
@@ -224,9 +236,19 @@ const UploadScreen = () => {
         )}
 
         {/* Submit */}
-        <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
-          <Icon name="plus-circle-outline" size={20} color="#00ff99" />
-          <Text style={styles.submitText}>Upload Attachment</Text>
+        <TouchableOpacity
+          style={styles.submitButton}
+          onPress={handleSubmit}
+          disabled={loading} // ✅ disable while loading
+        >
+          {loading ? (
+            <ActivityIndicator color="#00ff99" />
+          ) : (
+            <>
+              <Icon name="plus-circle-outline" size={20} color="#00ff99" />
+              <Text style={styles.submitText}>Upload Attachment</Text>
+            </>
+          )}
         </TouchableOpacity>
       </ScrollView>
       <Toast />
@@ -316,6 +338,3 @@ const styles = StyleSheet.create({
 });
 
 export default UploadScreen;
-
-
-

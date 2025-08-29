@@ -8,7 +8,7 @@ import * as Animatable from 'react-native-animatable';
 
 const buttons = [
   { name: 'Sale Order', icon: 'cart-outline', navigate: 'UploadScreen' },
-  { name: 'Purchase Order', icon: 'cart-arrow-down', navigate: 'UploadScreen' },
+  { name: 'Purchase Order', icon: 'cart-arrow-down', navigate: 'PurchaseOrder' },
   { name: 'Voucher', icon: 'file-document-outline', navigate: 'VoucherScreen' },
 ];
 

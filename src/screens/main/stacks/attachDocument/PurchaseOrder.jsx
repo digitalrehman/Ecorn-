@@ -14,7 +14,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import SimpleHeader from '../../../../components/SimpleHeader';
 import {APPCOLORS} from '../../../../utils/APPCOLORS';
 
-export default function VoucherScreen({navigation}) {
+export default function PurchaseOrder({navigation}) {
   const [allData, setAllData] = useState([]); // original data
   const [data, setData] = useState([]); // filtered data
   const [loading, setLoading] = useState(false);
@@ -29,30 +29,31 @@ export default function VoucherScreen({navigation}) {
   }, []);
 
   const fetchData = async () => {
-    setLoading(true);
-    try {
-      const res = await axios.get(
-        'https://e.de2solutions.com/mobile_dash/dash_upload.php',
-      );
-      let result = res.data?.data_cust_age || [];
-      setAllData(result);
+  setLoading(true);
+  try {
+    const res = await axios.get(
+      'https://e.de2solutions.com/mobile_dash/dash_upload.php',
+    );
+    let result = res.data?.data_cust_age || [];
+    setAllData(result);
 
-      // 🟢 Last month ka data nikalna
-      const today = new Date();
-      const lastMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-      const thisMonth = new Date(today.getFullYear(), today.getMonth() + 1, 1);
+    // 🟢 Last month ka data nikalna
+    const today = new Date();
+    const lastMonth = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+    const thisMonth = new Date(today.getFullYear(), today.getMonth(), 1);
 
-      const filtered = result.filter(item => {
-        const apiDate = new Date(item.tran_date?.split(' ')[0]); // "YYYY-MM-DD"
-        return apiDate >= lastMonth && apiDate < thisMonth;
-      });
+    const filtered = result.filter(item => {
+      const apiDate = new Date(item.tran_date?.split(' ')[0]); // "YYYY-MM-DD"
+      return apiDate >= lastMonth && apiDate < thisMonth;
+    });
 
-      setData(filtered);
-    } catch (error) {
-      console.log('Error fetching data:', error);
-    }
-    setLoading(false);
-  };
+    setData(filtered); 
+  } catch (error) {
+    console.log('Error fetching data:', error);
+  }
+  setLoading(false);
+};
+
 
   // date ko YYYY-MM-DD me normalize
   const normalizeDate = date => {
@@ -100,7 +101,7 @@ export default function VoucherScreen({navigation}) {
 
   return (
     <View style={styles.container}>
-      <SimpleHeader title="Transactions" />
+      <SimpleHeader title="Purchase Order" />
 
       {/* Date Filters */}
       <View style={styles.filterContainer}>
@@ -209,34 +210,16 @@ export default function VoucherScreen({navigation}) {
               <Text style={[styles.cell, {flex: 1.5}]}>
                 {formatAmount(item.amount)}
               </Text>
-              <View
-                style={[
-                  styles.cell,
-                  {
-                    flex: 1,
-                    flexDirection: 'row',
-                    justifyContent: 'space-around',
-                  },
-                ]}>
-                {/* Paperclip existing action */}
-                <TouchableOpacity
-                  onPress={() =>
-                    navigation.navigate('UploadScreen', {
-                      transactionType: item.type,
-                      transactionNo: item.trans_no,
-                    })
-                  }>
-                  <Icon name="paperclip" size={20} color="#00ff99" />
-                </TouchableOpacity>
-
-                <TouchableOpacity>
-                  <Icon name="eye" size={20} color="#00aced" />
-                </TouchableOpacity>
-
-                <TouchableOpacity>
-                  <Icon name="download" size={20} color="#ffcc00" />
-                </TouchableOpacity>
-              </View>
+              <TouchableOpacity
+                style={[styles.cell, {flex: 1}]}
+                onPress={() =>
+                  navigation.navigate('UploadScreen', {
+                    transactionType: item.type,
+                    transactionNo: item.trans_no,
+                  })
+                }>
+                <Icon name="paperclip" size={20} color="#00ff99" />
+              </TouchableOpacity>
             </View>
           )}
           contentContainerStyle={{paddingBottom: 50}}

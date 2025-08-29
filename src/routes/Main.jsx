@@ -51,6 +51,7 @@ import ReceivableScreen from '../screens/main/stacks/Sales/ReceivableScreen';
 import UploadScreen from '../screens/main/stacks/Sales/UploadScreen';
 import AttachDocumentScreen from '../screens/main/stacks/attachDocument/AttachDocumentScreen';
 import VoucherScreen from '../screens/main/stacks/attachDocument/VoucherScreen';
+import PurchaseOrder from '../screens/main/stacks/attachDocument/PurchaseOrder';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -123,6 +124,7 @@ const Main = () => {
       <Stack.Screen name="UploadScreen" component={UploadScreen} />
       <Stack.Screen name="AttachDocumentScreen" component={AttachDocumentScreen} />
       <Stack.Screen name="VoucherScreen" component={VoucherScreen} />
+      <Stack.Screen name="PurchaseOrder" component={PurchaseOrder} />
     </Stack.Navigator>
   );
 };
