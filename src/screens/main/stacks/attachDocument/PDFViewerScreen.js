@@ -1,11 +1,14 @@
 import React, {useEffect, useState} from 'react';
-import {View, ActivityIndicator} from 'react-native';
+import {View, ActivityIndicator, Text} from 'react-native';
 import axios from 'axios';
 import {WebView} from 'react-native-webview';
 
 export default function PDFViewerScreen({route}) {
   const {type, trans_no} = route.params;
+
   const [pdfBase64, setPdfBase64] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     fetchPdf();
@@ -13,32 +16,33 @@ export default function PDFViewerScreen({route}) {
 
   const fetchPdf = async () => {
     try {
+      setLoading(true);
+      setError(null);
+
       const res = await axios.post(
         'https://e.de2solutions.com/mobile_dash/dattachment_view.php',
-        {type: 1, trans_no: 23784},
+        {type, trans_no},
         {responseType: 'arraybuffer'},
       );
 
-      // ArrayBuffer → Base64 convert
-      const base64 = arrayBufferToBase64(res.data);
-      setPdfBase64(`data:application/pdf;base64,${base64}`);
-    } catch (error) {
-      console.log('Error fetching PDF:', error);
+      const base64 = btoa(
+        new Uint8Array(res.data).reduce(
+          (data, byte) => data + String.fromCharCode(byte),
+          '',
+        ),
+      );
+      
+      setPdfBase64(base64);
+
+    } catch (err) {
+      console.log('Error fetching PDF:', err);
+      setError('Failed to load PDF. Please check your network.');
+    } finally {
+      setLoading(false);
     }
   };
 
-  // helper function
-  const arrayBufferToBase64 = buffer => {
-    let binary = '';
-    const bytes = new Uint8Array(buffer);
-    const len = bytes.byteLength;
-    for (let i = 0; i < len; i++) {
-      binary += String.fromCharCode(bytes[i]);
-    }
-    return global.btoa(binary);
-  };
-
-  if (!pdfBase64) {
+  if (loading) {
     return (
       <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
         <ActivityIndicator size="large" color="#00aced" />
@@ -46,10 +50,45 @@ export default function PDFViewerScreen({route}) {
     );
   }
 
+  if (error) {
+    return (
+      <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
+        <Text style={{color: 'red'}}>{error}</Text>
+      </View>
+    );
+  }
+
+  if (!pdfBase64) {
+    return (
+      <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
+        <Text>PDF could not be displayed.</Text>
+      </View>
+    );
+  }
+  
+  // HTML content with an embedded PDF viewer
+  const htmlContent = `
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      </head>
+      <body style="margin: 0; padding: 0; overflow: hidden;">
+        <embed
+          src="data:application/pdf;base64,${pdfBase64}"
+          type="application/pdf"
+          width="100%"
+          height="100%"
+          style="border: none;"
+        >
+      </body>
+    </html>
+  `;
+
   return (
     <WebView
       originWhitelist={['*']}
-      source={{uri: pdfBase64}}
+      source={{html: htmlContent}}
       style={{flex: 1}}
     />
   );

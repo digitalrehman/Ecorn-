@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   FlatList,
   ActivityIndicator,
+  Alert,
 } from 'react-native';
 import axios from 'axios';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -13,10 +14,11 @@ import LinearGradient from 'react-native-linear-gradient';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import SimpleHeader from '../../../../components/SimpleHeader';
 import {APPCOLORS} from '../../../../utils/APPCOLORS';
+import RNFS from 'react-native-fs';
 
 export default function VoucherScreen({navigation}) {
-  const [allData, setAllData] = useState([]); // original data
-  const [data, setData] = useState([]); // filtered data
+  const [allData, setAllData] = useState([]);
+  const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
 
   const apiCalled = useRef(false);
@@ -41,13 +43,12 @@ export default function VoucherScreen({navigation}) {
       let result = res.data?.data_cust_age || [];
       setAllData(result);
 
-      // 🟢 Last month ka data nikalna
       const today = new Date();
       const lastMonth = new Date(today.getFullYear(), today.getMonth(), 1);
       const thisMonth = new Date(today.getFullYear(), today.getMonth() + 1, 1);
 
       const filtered = result.filter(item => {
-        const apiDate = new Date(item.tran_date?.split(' ')[0]); // "YYYY-MM-DD"
+        const apiDate = new Date(item.tran_date?.split(' ')[0]);
         return apiDate >= lastMonth && apiDate < thisMonth;
       });
 
@@ -58,7 +59,40 @@ export default function VoucherScreen({navigation}) {
     setLoading(false);
   };
 
-  // date ko YYYY-MM-DD me normalize
+  const downloadFile = async (trans_no, type) => {
+    setLoading(true);
+    try {
+      const res = await axios.post(
+        'https://e.de2solutions.com/mobile_dash/dattachment_download.php',
+        {type, trans_no},
+        {responseType: 'arraybuffer'},
+      );
+
+      const base64 = btoa(
+        new Uint8Array(res.data).reduce(
+          (data, byte) => data + String.fromCharCode(byte),
+          '',
+        ),
+      );
+
+      // Save file to app's private Document Directory, which requires no permission
+      const path = `${RNFS.DocumentDirectoryPath}/${trans_no}.pdf`;
+
+      await RNFS.writeFile(path, base64, 'base64');
+      
+      Alert.alert(
+        'Download Successful',
+        `File saved to: ${path}. File can only be accessed by this app.`
+      );
+
+    } catch (err) {
+      console.log('Download Error:', err);
+      Alert.alert('Download Failed', 'Could not download the file.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const normalizeDate = date => {
     if (!date) return null;
     return new Date(date).toISOString().split('T')[0];
@@ -71,7 +105,7 @@ export default function VoucherScreen({navigation}) {
     }
 
     let filtered = allData.filter(item => {
-      const apiDate = item.tran_date?.split(' ')[0]; // "2025-03-01"
+      const apiDate = item.tran_date?.split(' ')[0];
 
       let afterFrom = true;
       let beforeTo = true;
@@ -106,7 +140,6 @@ export default function VoucherScreen({navigation}) {
     <View style={styles.container}>
       <SimpleHeader title="Transactions" />
 
-      {/* Date Filters */}
       <View style={styles.filterContainer}>
         <TouchableOpacity
           style={[styles.filterButton, styles.primaryButton]}
@@ -127,13 +160,12 @@ export default function VoucherScreen({navigation}) {
         </TouchableOpacity>
       </View>
 
-      {/* Action Buttons */}
       <View style={styles.actionContainer}>
         <TouchableOpacity
           onPress={applyFilter}
           style={{flex: 1, marginRight: 6}}>
           <LinearGradient
-            colors={['#28a745', '#218838']} // green shades
+            colors={['#28a745', '#218838']}
             start={{x: 0, y: 0}}
             end={{x: 1, y: 1}}
             style={styles.gradientButton}>
@@ -146,7 +178,7 @@ export default function VoucherScreen({navigation}) {
           onPress={clearFilter}
           style={{flex: 1, marginLeft: 6}}>
           <LinearGradient
-            colors={['#dc3545', '#a71d2a']} // red shades
+            colors={['#dc3545', '#a71d2a']}
             start={{x: 0, y: 0}}
             end={{x: 1, y: 1}}
             style={styles.gradientButton}>
@@ -156,7 +188,6 @@ export default function VoucherScreen({navigation}) {
         </TouchableOpacity>
       </View>
 
-      {/* Date Picker */}
       {showPicker.visible && (
         <DateTimePicker
           value={new Date()}
@@ -172,7 +203,6 @@ export default function VoucherScreen({navigation}) {
         />
       )}
 
-      {/* Table */}
       {loading ? (
         <ActivityIndicator
           size="large"
@@ -222,7 +252,6 @@ export default function VoucherScreen({navigation}) {
                     justifyContent: 'space-around',
                   },
                 ]}>
-                {/* 📎 UploadScreen */}
                 <TouchableOpacity
                   onPress={() =>
                     navigation.navigate('UploadScreen', {
@@ -234,17 +263,30 @@ export default function VoucherScreen({navigation}) {
                 </TouchableOpacity>
 
                 <TouchableOpacity
+                  disabled={!item.upload_status}
                   onPress={() =>
                     navigation.navigate('PDFViewerScreen', {
                       type: item.type,
                       trans_no: item.trans_no,
                     })
                   }>
-                  <Icon name="eye" size={20} color="#00aced" />
+                  <Icon
+                    name="eye"
+                    size={20}
+                    color={item.upload_status ? '#00aced' : 'gray'}
+                  />
                 </TouchableOpacity>
 
-                <TouchableOpacity>
-                  <Icon name="download" size={20} color="#ffcc00" />
+                <TouchableOpacity
+                  disabled={!item.upload_status}
+                  onPress={() =>
+                    downloadFile(item.trans_no, item.type)
+                  }>
+                  <Icon
+                    name="download"
+                    size={20}
+                    color={item.upload_status ? '#ffcc00' : 'gray'}
+                  />
                 </TouchableOpacity>
               </View>
             </View>
