@@ -35,29 +35,31 @@ export default function VoucherScreen({navigation}) {
   }, []);
 
   const fetchData = async () => {
-    setLoading(true);
-    try {
-      const res = await axios.get(
-        'https://e.de2solutions.com/mobile_dash/dash_upload.php',
-      );
-      let result = res.data?.data_cust_age || [];
-      setAllData(result);
+  setLoading(true);
+  try {
+    const res = await axios.get(
+      'https://e.de2solutions.com/mobile_dash/dash_upload.php',
+    );
+    let result = res.data?.data_cust_age || [];
+    setAllData(result);
 
-      const today = new Date();
-      const lastMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-      const thisMonth = new Date(today.getFullYear(), today.getMonth() + 1, 1);
+    // 🟢 Last month ka data nikalna
+    const today = new Date();
+    const lastMonth = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+    const thisMonth = new Date(today.getFullYear(), today.getMonth(), 1);
 
-      const filtered = result.filter(item => {
-        const apiDate = new Date(item.tran_date?.split(' ')[0]);
-        return apiDate >= lastMonth && apiDate < thisMonth;
-      });
+    const filtered = result.filter(item => {
+      const apiDate = new Date(item.tran_date?.split(' ')[0]);
+      return apiDate >= lastMonth && apiDate < thisMonth;
+    });
 
-      setData(filtered);
-    } catch (error) {
-      console.log('Error fetching data:', error);
-    }
-    setLoading(false);
-  };
+    setData(filtered); 
+  } catch (error) { 
+    console.log('Error fetching data:', error);
+  }
+  setLoading(false);
+};
+
 
   const downloadFile = async (trans_no, type) => {
     setLoading(true);
