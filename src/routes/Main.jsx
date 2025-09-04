@@ -53,6 +53,7 @@ import AttachDocumentScreen from '../screens/main/stacks/attachDocument/AttachDo
 import VoucherScreen from '../screens/main/stacks/attachDocument/VoucherScreen';
 import PurchaseOrder from '../screens/main/stacks/attachDocument/PurchaseOrder';
 import PDFViewerScreen from '../screens/main/stacks/attachDocument/PDFViewerScreen';
+import DeliveryScreen from '../screens/main/stacks/Sales/Delivery/DeliveryScreen';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -127,6 +128,7 @@ const Main = () => {
       <Stack.Screen name="VoucherScreen" component={VoucherScreen} />
       <Stack.Screen name="PurchaseOrder" component={PurchaseOrder} />
       <Stack.Screen name="PDFViewerScreen" component={PDFViewerScreen} />
+      <Stack.Screen name="DeliveryScreen" component={DeliveryScreen} />
     </Stack.Navigator>
   );
 };

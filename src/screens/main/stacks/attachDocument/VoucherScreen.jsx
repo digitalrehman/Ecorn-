@@ -114,48 +114,83 @@ export default function VoucherScreen({navigation}) {
     return true;
   };
 
-  const downloadFile = async (trans_no, type) => {
-    const hasPermission = await requestStoragePermission();
-    if (!hasPermission) {
-      Alert.alert('Permission Denied', 'Storage permission is required.');
-      return;
+ const downloadFile = async (trans_no, type) => {
+  const hasPermission = await requestStoragePermission();
+  if (!hasPermission) {
+    Alert.alert('Permission Denied', 'Storage permission is required.');
+    return;
+  }
+
+  try {
+    // 🔹 File download with RNFetchBlob
+    const res = await RNFetchBlob.config({
+      fileCache: true,
+      appendExt: 'tmp', // temporary extension
+    }).fetch(
+      'POST',
+      'https://e.de2solutions.com/mobile_dash/dattachment_download.php',
+      {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      `type=${encodeURIComponent(type)}&trans_no=${encodeURIComponent(
+        trans_no,
+      )}`,
+    );
+
+    // 🔹 Get binary headers to detect mime
+    const info = await res.info();
+    let mime = info.respInfo.headers['Content-Type'] || 'application/octet-stream';
+
+    // 🔹 Decide extension by mime type
+    let ext = 'bin';
+    if (mime.includes('pdf')) ext = 'pdf';
+    else if (mime.includes('jpeg')) ext = 'jpg';
+    else if (mime.includes('png')) ext = 'png';
+    else if (mime.includes('gif')) ext = 'gif';
+    else if (
+      mime.includes('msword') ||
+      mime.includes('officedocument.wordprocessingml')
+    )
+      ext = 'docx';
+    else if (
+      mime.includes('spreadsheetml') ||
+      mime.includes('ms-excel')
+    )
+      ext = 'xlsx';
+    else if (
+      mime.includes('presentationml') ||
+      mime.includes('ms-powerpoint')
+    )
+      ext = 'pptx';
+    else if (mime.includes('zip')) ext = 'zip';
+
+    // 🔹 Final save path
+    const path =
+      Platform.OS === 'android'
+        ? `${RNFetchBlob.fs.dirs.DownloadDir}/${trans_no}.${ext}`
+        : `${RNFetchBlob.fs.dirs.DocumentDir}/${trans_no}.${ext}`;
+
+    // 🔹 Move temp file → final path
+    await RNFetchBlob.fs.mv(res.path(), path);
+
+    // 🔹 Android notification
+    if (Platform.OS === 'android') {
+      await RNFetchBlob.android.addCompleteDownload({
+        title: `${trans_no}.${ext}`,
+        description: 'File downloaded successfully',
+        mime,
+        path,
+        showNotification: true,
+      });
     }
 
-    try {
-      const path =
-        Platform.OS === 'android'
-          ? `${RNFetchBlob.fs.dirs.DownloadDir}/${trans_no}.pdf`
-          : `${RNFetchBlob.fs.dirs.DocumentDir}/${trans_no}.pdf`;
+    Alert.alert('Download Successful', `File saved to: ${path}`);
+  } catch (err) {
+    console.log('Download Error:', err);
+    Alert.alert('Download Failed', 'Could not download the file.');
+  }
+};
 
-      const res = await RNFetchBlob.config({
-        fileCache: true,
-        appendExt: 'pdf',
-        path: path,
-        addAndroidDownloads: {
-          useDownloadManager: true,
-          notification: true,
-          mediaScannable: true,
-          title: `${trans_no}.pdf`,
-          path: path,
-        },
-      }).fetch(
-        'POST',
-        'https://e.de2solutions.com/mobile_dash/dattachment_download.php',
-        {
-          'Content-Type': 'application/x-www-form-urlencoded',
-          Accept: 'application/pdf',
-        },
-        `type=${encodeURIComponent(type)}&trans_no=${encodeURIComponent(
-          trans_no,
-        )}`,
-      );
-
-      Alert.alert('Download Successful', `File saved to: ${res.path()}`);
-    } catch (err) {
-      console.log('Download Error:', err);
-      Alert.alert('Download Failed', 'Could not download the file.');
-    }
-  };
 
   const normalizeDate = date => {
     if (!date) return null;
