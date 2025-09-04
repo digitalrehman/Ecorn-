@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, {useState} from 'react';
 import {
   View,
   Text,
@@ -11,25 +11,28 @@ import {
   Platform,
   ActivityIndicator,
 } from 'react-native';
-import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
+import {launchCamera, launchImageLibrary} from 'react-native-image-picker';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import Toast from 'react-native-toast-message';
 import SimpleHeader from '../../../../components/SimpleHeader';
-import { useRoute } from '@react-navigation/native';
+import {useRoute, useNavigation} from '@react-navigation/native';
+
 import axios from 'axios';
 
 // ✅ Correct import for new package
-import { pick, types } from '@react-native-documents/picker';
+import {pick, types} from '@react-native-documents/picker';
 
 const UploadScreen = () => {
   const route = useRoute();
-  const { transactionType, transactionNo } = route.params || {};
+  const {transactionType, transactionNo} = route.params || {};
 
   const [transaction, setTransaction] = useState(transactionType || '');
   const [transNo, setTransNo] = useState(transactionNo || '');
   const [description, setDescription] = useState('');
   const [file, setFile] = useState(null);
   const [loading, setLoading] = useState(false); // ✅ loader state
+
+  const navigation = useNavigation();
 
   // ✅ Gallery Permission
   const requestGalleryPermission = async () => {
@@ -71,7 +74,7 @@ const UploadScreen = () => {
       });
       return;
     }
-    launchCamera({ mediaType: 'photo' }, response => {
+    launchCamera({mediaType: 'photo'}, response => {
       if (!response.didCancel && !response.errorCode) {
         const asset = response.assets[0];
         setFile({
@@ -94,7 +97,7 @@ const UploadScreen = () => {
       });
       return;
     }
-    launchImageLibrary({ mediaType: 'photo' }, response => {
+    launchImageLibrary({mediaType: 'photo'}, response => {
       if (!response.didCancel && !response.errorCode) {
         const asset = response.assets[0];
         setFile({
@@ -132,7 +135,6 @@ const UploadScreen = () => {
     }
   };
 
-  // ✅ Submit Form
   const handleSubmit = async () => {
     if (!transaction || !transNo || !description || !file) {
       Toast.show({
@@ -143,7 +145,7 @@ const UploadScreen = () => {
       return;
     }
 
-    setLoading(true); // ✅ start loader
+    setLoading(true);
 
     try {
       const formData = new FormData();
@@ -159,7 +161,7 @@ const UploadScreen = () => {
       const response = await axios.post(
         'https://e.de2solutions.com/mobile_dash/dattachment_post.php',
         formData,
-        { headers: { 'Content-Type': 'multipart/form-data' } },
+        {headers: {'Content-Type': 'multipart/form-data'}},
       );
 
       Toast.show({
@@ -168,13 +170,7 @@ const UploadScreen = () => {
         text2: 'Attachment sent successfully!',
       });
 
-      console.log('API Response:', response.data);
-
-      // ✅ Reset form
-      setTransaction('');
-      setTransNo('');
-      setDescription('');
-      setFile(null);
+      navigation.navigate('VoucherScreen', {refresh: true});
     } catch (error) {
       console.error(error);
       Toast.show({
@@ -183,12 +179,12 @@ const UploadScreen = () => {
         text2: 'Something went wrong!',
       });
     } finally {
-      setLoading(false); // ✅ stop loader
+      setLoading(false);
     }
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: '#1a1a1a' }]}>
+    <View style={[styles.container, {backgroundColor: '#1a1a1a'}]}>
       <SimpleHeader title="Attach Document" />
       <ScrollView contentContainerStyle={styles.scroll}>
         {/* Description */}
@@ -225,7 +221,7 @@ const UploadScreen = () => {
         {file && (
           <View style={styles.filePreview}>
             {file.type && file.type.startsWith('image/') ? (
-              <Image source={{ uri: file.uri }} style={styles.imagePreview} />
+              <Image source={{uri: file.uri}} style={styles.imagePreview} />
             ) : (
               <View style={styles.documentPreview}>
                 <Icon name="file-check" size={50} color="#00ff99" />
@@ -257,8 +253,8 @@ const UploadScreen = () => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
-  scroll: { padding: 20, flexGrow: 1 },
+  container: {flex: 1},
+  scroll: {padding: 20, flexGrow: 1},
   label: {
     fontSize: 16,
     fontWeight: '500',
@@ -278,7 +274,7 @@ const styles = StyleSheet.create({
     textAlignVertical: 'top',
     fontSize: 16,
   },
-  row: { flexDirection: 'row', justifyContent: 'space-between' },
+  row: {flexDirection: 'row', justifyContent: 'space-between'},
   button: {
     flex: 1,
     flexDirection: 'row',
@@ -291,7 +287,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.3)',
   },
-  buttonText: { color: '#fff', fontWeight: '600', marginLeft: 6 },
+  buttonText: {color: '#fff', fontWeight: '600', marginLeft: 6},
   imagePreview: {
     width: '100%',
     height: 200,

@@ -1,4 +1,4 @@
-import React, {useEffect, useState, useRef} from 'react';
+import React, {useEffect, useState, useRef, useCallback} from 'react';
 import {
   View,
   Text,
@@ -6,6 +6,8 @@ import {
   TouchableOpacity,
   FlatList,
   ActivityIndicator,
+  Platform,
+  PermissionsAndroid,
   Alert,
 } from 'react-native';
 import axios from 'axios';
@@ -14,84 +16,144 @@ import LinearGradient from 'react-native-linear-gradient';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import SimpleHeader from '../../../../components/SimpleHeader';
 import {APPCOLORS} from '../../../../utils/APPCOLORS';
-import RNFS from 'react-native-fs';
+import RNFetchBlob from 'react-native-blob-util';
+import {useFocusEffect, useRoute} from '@react-navigation/native';
 
 export default function VoucherScreen({navigation}) {
   const [allData, setAllData] = useState([]);
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  const apiCalled = useRef(false);
   const [fromDate, setFromDate] = useState(null);
   const [toDate, setToDate] = useState(null);
 
   const [showPicker, setShowPicker] = useState({visible: false, type: null});
+  const route = useRoute();
 
   useEffect(() => {
-    if (!apiCalled.current) {
-      fetchData();
-      apiCalled.current = true;
-    }
+    fetchData();
   }, []);
 
+  // ✅ Sirf tabhi reload jab refresh param true aaye
+  useFocusEffect(
+    useCallback(() => {
+      if (route.params?.refresh) {
+        fetchData();
+        navigation.setParams({refresh: false}); // reset flag
+      }
+    }, [route.params?.refresh]),
+  );
+
   const fetchData = async () => {
-  setLoading(true);
-  try {
-    const res = await axios.get(
-      'https://e.de2solutions.com/mobile_dash/dash_upload.php',
-    );
-    let result = res.data?.data_cust_age || [];
-    setAllData(result);
-
-    // 🟢 Last month ka data nikalna
-    const today = new Date();
-    const lastMonth = new Date(today.getFullYear(), today.getMonth() - 1, 1);
-    const thisMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-
-    const filtered = result.filter(item => {
-      const apiDate = new Date(item.tran_date?.split(' ')[0]);
-      return apiDate >= lastMonth && apiDate < thisMonth;
-    });
-
-    setData(filtered); 
-  } catch (error) { 
-    console.log('Error fetching data:', error);
-  }
-  setLoading(false);
-};
-
-
-  const downloadFile = async (trans_no, type) => {
     setLoading(true);
     try {
-      const res = await axios.post(
+      const res = await axios.get(
+        'https://e.de2solutions.com/mobile_dash/dash_upload.php',
+      );
+      let result = res.data?.data_cust_age || [];
+      setAllData(result);
+
+      if (result.length === 0) {
+        setData([]);
+        setLoading(false);
+        return;
+      }
+
+      // date parsing & filtering ka code yahan rahega (same as before)...
+      const parsed = result.map(item => {
+        const dateStr = item.tran_date.split(' ')[0];
+        const [year, month, day] = dateStr.split('-').map(Number);
+        return {...item, jsDate: new Date(year, month - 1, day)};
+      });
+
+      const latestDate = new Date(
+        Math.max(...parsed.map(i => i.jsDate.getTime())),
+      );
+
+      const lastMonth = new Date(
+        latestDate.getFullYear(),
+        latestDate.getMonth() - 1,
+        1,
+      );
+      const thisMonth = new Date(
+        latestDate.getFullYear(),
+        latestDate.getMonth(),
+        1,
+      );
+
+      const filtered = parsed.filter(item => {
+        return item.jsDate >= lastMonth && item.jsDate < thisMonth;
+      });
+
+      setData(filtered);
+    } catch (error) {
+      console.log('Error fetching data:', error);
+    }
+    setLoading(false);
+  };
+
+  const requestStoragePermission = async () => {
+    if (Platform.OS === 'android' && Platform.Version < 30) {
+      try {
+        const granted = await PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
+          {
+            title: 'Storage Permission',
+            message: 'App needs access to your storage to download PDF',
+            buttonNeutral: 'Ask Me Later',
+            buttonNegative: 'Cancel',
+            buttonPositive: 'OK',
+          },
+        );
+        return granted === PermissionsAndroid.RESULTS.GRANTED;
+      } catch (err) {
+        console.warn(err);
+        return false;
+      }
+    }
+    return true;
+  };
+
+  const downloadFile = async (trans_no, type) => {
+    const hasPermission = await requestStoragePermission();
+    if (!hasPermission) {
+      Alert.alert('Permission Denied', 'Storage permission is required.');
+      return;
+    }
+
+    try {
+      const path =
+        Platform.OS === 'android'
+          ? `${RNFetchBlob.fs.dirs.DownloadDir}/${trans_no}.pdf`
+          : `${RNFetchBlob.fs.dirs.DocumentDir}/${trans_no}.pdf`;
+
+      const res = await RNFetchBlob.config({
+        fileCache: true,
+        appendExt: 'pdf',
+        path: path,
+        addAndroidDownloads: {
+          useDownloadManager: true,
+          notification: true,
+          mediaScannable: true,
+          title: `${trans_no}.pdf`,
+          path: path,
+        },
+      }).fetch(
+        'POST',
         'https://e.de2solutions.com/mobile_dash/dattachment_download.php',
-        {type, trans_no},
-        {responseType: 'arraybuffer'},
+        {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          Accept: 'application/pdf',
+        },
+        `type=${encodeURIComponent(type)}&trans_no=${encodeURIComponent(
+          trans_no,
+        )}`,
       );
 
-      const base64 = btoa(
-        new Uint8Array(res.data).reduce(
-          (data, byte) => data + String.fromCharCode(byte),
-          '',
-        ),
-      );
-
-      // Save file to app's private Document Directory, which requires no permission
-      const path = `${RNFS.DocumentDirectoryPath}/${trans_no}.pdf`;
-
-      await RNFS.writeFile(path, base64, 'base64');
-      
-      Alert.alert(
-        'Download Successful',
-        `File saved to: ${path}. File can only be accessed by this app.`
-      );
-
+      Alert.alert('Download Successful', `File saved to: ${res.path()}`);
     } catch (err) {
       console.log('Download Error:', err);
       Alert.alert('Download Failed', 'Could not download the file.');
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -281,9 +343,7 @@ export default function VoucherScreen({navigation}) {
 
                 <TouchableOpacity
                   disabled={!item.upload_status}
-                  onPress={() =>
-                    downloadFile(item.trans_no, item.type)
-                  }>
+                  onPress={() => downloadFile(item.trans_no, item.type)}>
                   <Icon
                     name="download"
                     size={20}
