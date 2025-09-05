@@ -71,45 +71,43 @@ const DeliveryScreen = ({navigation}) => {
   };
 
   const fetchTransactions = async () => {
-  try {
-    setLoading(true);
+    try {
+      setLoading(true);
 
-    const params = {};
-    if (selectedCustomer) params.customer = selectedCustomer;
-    if (selectedLocation) params.location = selectedLocation;
+      const params = {};
+      if (selectedCustomer) params.customer = selectedCustomer;
+      if (selectedLocation) params.location = selectedLocation;
 
-    const res = await axios.get(
-      'https://e.de2solutions.com/mobile_dash/dash_upload.php',
-      { params },
-    );
+      const res = await axios.get(
+        'https://e.de2solutions.com/mobile_dash/dash_upload.php',
+        {params},
+      );
 
-    if (res.data?.status_cust_age === 'true') {
-      let allData = res.data.data_cust_age || [];
+      if (res.data?.status_cust_age === 'true') {
+        let allData = res.data.data_cust_age || [];
 
-      // Get last month range
-      const now = new Date();
-      const firstDayLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-      const lastDayLastMonth = new Date(now.getFullYear(), now.getMonth(), 0);
+        let finalData = allData;
 
-      // Filter only last month data
-      const filtered = allData.filter(item => {
-        if (!item.tran_date) return false;
-        const d = new Date(item.tran_date);
-        return d >= firstDayLastMonth && d <= lastDayLastMonth;
-      });
+        // From & To filter apply karo agar select kiya hai
+        if (fromDate && toDate) {
+          finalData = finalData.filter(item => {
+            if (!item.tran_date) return false;
+            const d = new Date(item.tran_date);
+            return d >= fromDate && d <= toDate;
+          });
+        }
 
-      setTransactions(filtered);
-    } else {
+        setTransactions(finalData);
+      } else {
+        setTransactions([]);
+      }
+    } catch (err) {
+      console.log('Transactions API Error:', err);
       setTransactions([]);
+    } finally {
+      setLoading(false);
     }
-  } catch (err) {
-    console.log('Transactions API Error:', err);
-    setTransactions([]);
-  } finally {
-    setLoading(false);
-  }
-};
-
+  };
 
   const formatDate = dateStr => {
     if (!dateStr) return '';
@@ -128,12 +126,13 @@ const DeliveryScreen = ({navigation}) => {
       duration={600}
       delay={index * 100}
       style={styles.row}>
-      <Text style={styles.cell}>{item.ref || '-'}</Text>
-      <Text style={styles.cell}>{formatDate(item.date)}</Text>
-      <Text style={styles.cell}>{formatAmount(item.amount)}</Text>
+      <Text style={[styles.cell, {flex: 1}]}>{item.reference || '-'}</Text>
+      <Text style={[styles.cell, {flex: 1}]}>{formatDate(item.tran_date)}</Text>
+      <Text style={[styles.cell, {flex: 1}]}>{formatAmount(item.amount)}</Text>
       <TouchableOpacity
-        onPress={() => navigation.navigate('DeliveryDetail', {data: item})}>
-        <Icon name="truck-delivery" size={24} color="#1a1c22" />
+        style={{flex: 1, alignItems: 'center'}}
+        onPress={() => navigation.navigate('DeliveryNote', {data: item})}>
+        <Icon name="truck-delivery" size={22} color="#1a1c22" />
       </TouchableOpacity>
     </Animatable.View>
   );
@@ -142,48 +141,7 @@ const DeliveryScreen = ({navigation}) => {
     <View style={styles.container}>
       <SimpleHeader title="Delivery" />
 
-      {/* Filters */}
       <View style={styles.filterContainer}>
-        {/* From Date */}
-        <TouchableOpacity
-          style={styles.morphButton}
-          onPress={() => setShowFromPicker(true)}>
-          <Text style={styles.dateText}>
-            From: {fromDate ? fromDate.toLocaleDateString() : 'Select Date'}
-          </Text>
-        </TouchableOpacity>
-        {showFromPicker && (
-          <DateTimePicker
-            value={fromDate || new Date()} // ✅ fallback
-            mode="date"
-            display="default"
-            onChange={(e, date) => {
-              setShowFromPicker(false);
-              if (date) setFromDate(date);
-            }}
-          />
-        )}
-
-        {/* To Date */}
-        <TouchableOpacity
-          style={styles.morphButton}
-          onPress={() => setShowToPicker(true)}>
-          <Text style={styles.dateText}>
-            To: {toDate ? toDate.toLocaleDateString() : 'Select Date'}
-          </Text>
-        </TouchableOpacity>
-        {showToPicker && (
-          <DateTimePicker
-            value={toDate || new Date()} // ✅ fallback
-            mode="date"
-            display="default"
-            onChange={(e, date) => {
-              setShowToPicker(false);
-              if (date) setToDate(date);
-            }}
-          />
-        )}
-
         {/* Customer Dropdown */}
         <Dropdown
           style={styles.dropdown}
@@ -216,9 +174,63 @@ const DeliveryScreen = ({navigation}) => {
           onChange={item => setSelectedLocation(item.value)}
         />
 
-        <TouchableOpacity style={styles.applyBtn} onPress={fetchTransactions}>
-          <Text style={{color: '#fff', fontWeight: 'bold'}}>Apply Filters</Text>
-        </TouchableOpacity>
+        {/* From / To / Apply buttons */}
+        <View style={styles.dateRow}>
+          <TouchableOpacity
+            style={styles.morphButton}
+            onPress={() => setShowFromPicker(true)}>
+            <Text style={styles.dateText}>
+              From: {fromDate ? fromDate.toLocaleDateString() : 'Date'}
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.morphButton}
+            onPress={() => setShowToPicker(true)}>
+            <Text style={styles.dateText}>
+              To: {toDate ? toDate.toLocaleDateString() : 'Date'}
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.morphButton, {backgroundColor: '#1a1c22'}]}
+            onPress={fetchTransactions}>
+            <Text style={{color: '#fff', fontWeight: 'bold'}}>Apply</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Date Pickers */}
+        {showFromPicker && (
+          <DateTimePicker
+            value={fromDate || new Date()}
+            mode="date"
+            display="calendar"
+            onChange={(event, selectedDate) => {
+              setShowFromPicker(false);
+              if (selectedDate) setFromDate(selectedDate);
+            }}
+          />
+        )}
+
+        {showToPicker && (
+          <DateTimePicker
+            value={toDate || new Date()}
+            mode="date"
+            display="calendar"
+            onChange={(event, selectedDate) => {
+              setShowToPicker(false);
+              if (selectedDate) setToDate(selectedDate);
+            }}
+          />
+        )}
+      </View>
+
+      {/* Table Header */}
+      <View style={styles.tableHeader}>
+        <Text style={[styles.headerCell, {flex: 1}]}>Ref</Text>
+        <Text style={[styles.headerCell, {flex: 1}]}>Date</Text>
+        <Text style={[styles.headerCell, {flex: 1}]}>Amount</Text>
+        <Text style={[styles.headerCell, {flex: 1}]}>Action</Text>
       </View>
 
       {/* Transactions List */}
@@ -227,9 +239,7 @@ const DeliveryScreen = ({navigation}) => {
       ) : transactions.length === 0 ? (
         <View style={{alignItems: 'center', marginTop: 30}}>
           <Icon name="file-alert" size={40} color="#5a5c6a" />
-          <Text style={{marginTop: 10, color: '#5a5c6a'}}>
-            No Transactions Found
-          </Text>
+          <Text style={{marginTop: 10, color: '#5a5c6a'}}>No Data Found</Text>
         </View>
       ) : (
         <FlatList
@@ -257,18 +267,30 @@ const styles = StyleSheet.create({
     shadowRadius: 6,
     elevation: 5,
   },
-  morphButton: {
-    padding: 12,
-    marginBottom: 12,
-    borderRadius: 12,
-    backgroundColor: '#e0e0e0',
-    shadowColor: '#000',
-    shadowOffset: {width: 4, height: 4},
-    shadowOpacity: 0.2,
-    shadowRadius: 5,
-    elevation: 4,
+  dateRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
-  dateText: {color: '#000', fontWeight: '600'},
+  morphButton: {
+    flex: 1,
+    marginHorizontal: 3,
+    padding: 10,
+    borderRadius: 10,
+    backgroundColor: '#e0e0e0',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: {width: 2, height: 2},
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  dateText: {
+    color: '#000',
+    fontWeight: '600',
+    textAlign: 'center',
+  },
   dropdown: {
     height: 50,
     borderRadius: 12,
@@ -290,26 +312,35 @@ const styles = StyleSheet.create({
     color: '#000',
     fontWeight: '600',
   },
-  applyBtn: {
+  tableHeader: {
+    flexDirection: 'row',
     backgroundColor: '#1a1c22',
-    padding: 14,
-    borderRadius: 12,
-    alignItems: 'center',
-    marginTop: 10,
+    padding: 10,
+    marginHorizontal: 12,
+    borderRadius: 10,
+    marginBottom: 6,
+  },
+  headerCell: {
+    color: '#fff',
+    fontWeight: 'bold',
+    textAlign: 'center',
   },
   row: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    padding: 14,
+    padding: 12,
     marginHorizontal: 12,
-    marginVertical: 6,
-    borderRadius: 15,
-    backgroundColor: '#e0e0e0',
+    marginVertical: 4,
+    borderRadius: 12,
+    backgroundColor: '#f5f5f5',
     shadowColor: '#000',
-    shadowOffset: {width: 6, height: 6},
-    shadowOpacity: 0.2,
-    shadowRadius: 5,
-    elevation: 4,
+    shadowOffset: {width: 3, height: 3},
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+    elevation: 2,
   },
-  cell: {flex: 1, fontSize: 14, color: '#000'},
+  cell: {
+    fontSize: 14,
+    color: '#000',
+    textAlign: 'center',
+  },
 });
