@@ -19,7 +19,7 @@ import {APPCOLORS} from '../../../../utils/APPCOLORS';
 import RNFetchBlob from 'react-native-blob-util';
 import {useFocusEffect, useRoute} from '@react-navigation/native';
 
-export default function VoucherScreen({navigation}) {
+export default function SaleOrder({navigation}) {
   const [allData, setAllData] = useState([]);
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -34,7 +34,6 @@ export default function VoucherScreen({navigation}) {
     fetchData();
   }, []);
 
-  // ✅ Sirf tabhi reload jab refresh param true aaye
   useFocusEffect(
     useCallback(() => {
       if (route.params?.refresh) {
@@ -48,7 +47,7 @@ export default function VoucherScreen({navigation}) {
     setLoading(true);
     try {
       const res = await axios.get(
-        'https://e.de2solutions.com/mobile_dash/dash_upload.php',
+        'https://e.de2solutions.com/mobile_dash/dash_upload_sale.php',
       );
       let result = res.data?.data_cust_age || [];
       setAllData(result);
@@ -234,7 +233,7 @@ export default function VoucherScreen({navigation}) {
 
   return (
     <View style={styles.container}>
-      <SimpleHeader title="Voucher" />
+      <SimpleHeader title="Sale Order" />
 
       <View style={styles.filterContainer}>
         <TouchableOpacity
@@ -353,7 +352,7 @@ export default function VoucherScreen({navigation}) {
                     navigation.navigate('UploadScreen', {
                       transactionType: item.type,
                       transactionNo: item.trans_no,
-                      fromScreen: 'VoucherScreen', 
+                      fromScreen: 'SaleOrder',
                     })
                   }>
                   <Icon name="paperclip" size={20} color="#00ff99" />

@@ -79,12 +79,12 @@ const DeliveryScreen = ({navigation}) => {
       if (selectedLocation) params.location = selectedLocation;
 
       const res = await axios.get(
-        'https://e.de2solutions.com/mobile_dash/dash_upload.php',
+        'https://e.de2solutions.com/mobile_dash/pending_so.php',
         {params},
       );
 
-      if (res.data?.status_cust_age === 'true') {
-        let allData = res.data.data_cust_age || [];
+      if (res.data?.status === 'true') {
+        let allData = res.data.data || [];
 
         let finalData = allData;
 
@@ -126,12 +126,16 @@ const DeliveryScreen = ({navigation}) => {
       duration={600}
       delay={index * 100}
       style={styles.row}>
-      <Text style={[styles.cell, {flex: 1}]}>{item.reference || '-'}</Text>
-      <Text style={[styles.cell, {flex: 1}]}>{formatDate(item.tran_date)}</Text>
-      <Text style={[styles.cell, {flex: 1}]}>{formatAmount(item.amount)}</Text>
+      <Text style={[styles.cell, {flex: 1}]}>
+        {item.reference.slice(0, 6) + '..' || '-'}
+      </Text>
+      <Text style={[styles.cell, {flex: 1}]}>{formatDate(item.ord_date)}</Text>
+      <Text style={[styles.cell, {flex: 1}]}>{formatAmount(item.total)}</Text>
       <TouchableOpacity
         style={{flex: 1, alignItems: 'center'}}
-        onPress={() => navigation.navigate('DeliveryNote', {data: item})}>
+        onPress={() =>
+          navigation.navigate('DeliveryNote', {order_no: item.order_no})
+        }>
         <Icon name="truck-delivery" size={22} color="#1a1c22" />
       </TouchableOpacity>
     </Animatable.View>

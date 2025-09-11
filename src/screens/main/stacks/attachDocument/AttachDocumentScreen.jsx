@@ -7,7 +7,7 @@ import { APPCOLORS } from '../../../../utils/APPCOLORS';
 import * as Animatable from 'react-native-animatable';
 
 const buttons = [
-  { name: 'Sale Order', icon: 'cart-outline', navigate: 'UploadScreen' },
+  { name: 'Sale Order', icon: 'cart-outline', navigate: 'SaleOrder' },
   { name: 'Purchase Order', icon: 'cart-arrow-down', navigate: 'PurchaseOrder' },
   { name: 'Voucher', icon: 'file-document-outline', navigate: 'VoucherScreen' },
 ];

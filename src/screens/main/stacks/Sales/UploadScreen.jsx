@@ -24,7 +24,7 @@ import {pick, types} from '@react-native-documents/picker';
 
 const UploadScreen = () => {
   const route = useRoute();
-  const {transactionType, transactionNo} = route.params || {};
+  const {transactionType, transactionNo, fromScreen} = route.params || {};
 
   const [transaction, setTransaction] = useState(transactionType || '');
   const [transNo, setTransNo] = useState(transactionNo || '');
@@ -135,53 +135,55 @@ const UploadScreen = () => {
     }
   };
 
-  const handleSubmit = async () => {
-    if (!transaction || !transNo || !description || !file) {
-      Toast.show({
-        type: 'error',
-        text1: 'Error',
-        text2: 'Missing required fields or attachment',
-      });
-      return;
+ const handleSubmit = async () => {
+  if (!transaction || !transNo || !description || !file) {
+    Toast.show({
+      type: 'error',
+      text1: 'Error',
+      text2: 'Missing required fields or attachment',
+    });
+    return;
+  }
+
+  setLoading(true);
+
+  try {
+    const formData = new FormData();
+    formData.append('type', transaction);
+    formData.append('trans_no', transNo);
+    formData.append('description', description);
+    formData.append('filename', {
+      uri: file.uri,
+      type: file.type || 'application/octet-stream',
+      name: file.name,
+    });
+
+    const response = await axios.post(
+      'https://e.de2solutions.com/mobile_dash/dattachment_post.php',
+      formData,
+      {headers: {'Content-Type': 'multipart/form-data'}},
+    );
+
+    Toast.show({
+      type: 'success',
+      text1: 'Uploaded',
+      text2: 'Attachment sent successfully!',
+    });
+
+    if (fromScreen) {
+      navigation.navigate(fromScreen, {refresh: true});
     }
-
-    setLoading(true);
-
-    try {
-      const formData = new FormData();
-      formData.append('type', transaction);
-      formData.append('trans_no', transNo);
-      formData.append('description', description);
-      formData.append('filename', {
-        uri: file.uri,
-        type: file.type || 'application/octet-stream',
-        name: file.name,
-      });
-
-      const response = await axios.post(
-        'https://e.de2solutions.com/mobile_dash/dattachment_post.php',
-        formData,
-        {headers: {'Content-Type': 'multipart/form-data'}},
-      );
-
-      Toast.show({
-        type: 'success',
-        text1: 'Uploaded',
-        text2: 'Attachment sent successfully!',
-      });
-
-      navigation.navigate('VoucherScreen', {refresh: true});
-    } catch (error) {
-      console.error(error);
-      Toast.show({
-        type: 'error',
-        text1: 'Upload Failed',
-        text2: 'Something went wrong!',
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
+  } catch (error) {
+    console.error(error);
+    Toast.show({
+      type: 'error',
+      text1: 'Upload Failed',
+      text2: 'Something went wrong!',
+    });
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <View style={[styles.container, {backgroundColor: '#1a1a1a'}]}>

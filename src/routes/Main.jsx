@@ -1,6 +1,6 @@
 import React from 'react';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { createStackNavigator } from '@react-navigation/stack';
+import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
+import {createStackNavigator} from '@react-navigation/stack';
 
 import Dashboard from '../screens/main/Dashboard';
 import Detail from '../screens/main/stacks/DetailScreens/Detail';
@@ -55,12 +55,13 @@ import PurchaseOrder from '../screens/main/stacks/attachDocument/PurchaseOrder';
 import PDFViewerScreen from '../screens/main/stacks/attachDocument/PDFViewerScreen';
 import DeliveryScreen from '../screens/main/stacks/Sales/Delivery/DeliveryScreen';
 import DeliveryNote from '../screens/main/stacks/Sales/Delivery/DeliveryNote';
+import SaleOrder from '../screens/main/stacks/attachDocument/SaleOrder';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
 const StackScreens = () => {
   return (
-    <Tab.Navigator screenOptions={{ headerShown: false }}>
+    <Tab.Navigator screenOptions={{headerShown: false}}>
       <Tab.Screen name="Dashboard" component={Dashboard} />
       <Tab.Screen name="Profile" component={Dashboard} />
     </Tab.Navigator>
@@ -71,7 +72,7 @@ const Main = () => {
   return (
     <Stack.Navigator
       initialRouteName="Dashboard"
-      screenOptions={{ headerShown: false }}>
+      screenOptions={{headerShown: false}}>
       <Stack.Screen name="Dashboard" component={Dashboard} />
       <Stack.Screen name="Detail" component={Detail} />
       <Stack.Screen name="MoreDetail" component={MoreDetail} />
@@ -102,12 +103,18 @@ const Main = () => {
       <Stack.Screen name="SalesScreen" component={SalesScreen} />
       <Stack.Screen name="PurchaseScreen" component={PurchaseScreen} />
       <Stack.Screen name="InventoryScreen" component={InventoryScreen} />
-      <Stack.Screen name="ManufacturingScreen" component={ManufacturingScreen} />
+      <Stack.Screen
+        name="ManufacturingScreen"
+        component={ManufacturingScreen}
+      />
       <Stack.Screen name="FinanceScreen" component={FinanceScreen} />
       <Stack.Screen name="PayrollScreen" component={PayrollScreen} />
       <Stack.Screen name="CrmScreen" component={CrmScreen} />
       <Stack.Screen name="AddNewCustomer" component={AddNewCustomer} />
-      <Stack.Screen name="InsertNewCustomerDetail" component={InsertNewCustomerDetail} />
+      <Stack.Screen
+        name="InsertNewCustomerDetail"
+        component={InsertNewCustomerDetail}
+      />
       <Stack.Screen name="Incentive" component={Incentive} />
       <Stack.Screen name="AddItems" component={AddItems} />
       <Stack.Screen name="ItemList" component={ItemList} />
@@ -125,12 +132,16 @@ const Main = () => {
       <Stack.Screen name="SupplierHome" component={SupplierHome} />
       <Stack.Screen name="ReceivableScreen" component={ReceivableScreen} />
       <Stack.Screen name="UploadScreen" component={UploadScreen} />
-      <Stack.Screen name="AttachDocumentScreen" component={AttachDocumentScreen} />
+      <Stack.Screen
+        name="AttachDocumentScreen"
+        component={AttachDocumentScreen}
+      />
       <Stack.Screen name="VoucherScreen" component={VoucherScreen} />
       <Stack.Screen name="PurchaseOrder" component={PurchaseOrder} />
       <Stack.Screen name="PDFViewerScreen" component={PDFViewerScreen} />
       <Stack.Screen name="DeliveryScreen" component={DeliveryScreen} />
       <Stack.Screen name="DeliveryNote" component={DeliveryNote} />
+      <Stack.Screen name="SaleOrder" component={SaleOrder} />
     </Stack.Navigator>
   );
 };
@@ -139,7 +150,7 @@ const OtherApp = () => {
   return (
     <Stack.Navigator
       initialRouteName="Home"
-      screenOptions={{ headerShown: false }}>
+      screenOptions={{headerShown: false}}>
       <Stack.Screen name="Home" component={Home} />
       <Stack.Screen name="AddNewCustomer" component={AddNewCustomer} />
       <Stack.Screen

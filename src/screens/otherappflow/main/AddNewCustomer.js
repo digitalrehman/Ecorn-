@@ -8,15 +8,15 @@ import {
   ScrollView,
   ActivityIndicator,
   Linking,
+  StyleSheet,
 } from 'react-native';
 import React, {useEffect, useState} from 'react';
 
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import LinearGradient from 'react-native-linear-gradient';
 import AntDesign from 'react-native-vector-icons/AntDesign';
-import Octicons from 'react-native-vector-icons/Octicons';
-import EvilIcons from 'react-native-vector-icons/EvilIcons';
 import axios from 'axios';
+import Icon from 'react-native-vector-icons/Ionicons';
 import LottieView from 'lottie-react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {addEventListener} from '@react-native-community/netinfo';
@@ -31,7 +31,7 @@ const AddNewCustomer = ({navigation}) => {
   const day = moment().format('dddd');
   const [page, setPage] = useState(0);
   const [loadermore, setLoadMore] = useState(false);
-
+  const [shouldReload, setShouldReload] = useState(false);
   const [offlineSyncLoader, setOfflineSyncLoader] = useState(false);
 
   const [AllOrders, setAllOrders] = useState([]);
@@ -59,15 +59,13 @@ const AddNewCustomer = ({navigation}) => {
     // Unsubscribe
     unsubscribe();
   }, []);
-
   useEffect(() => {
-    const unsubscribe = navigation.addListener('focus', () => {
+    if (shouldReload || AllOrders.length === 0) {
       getAllOrders();
-    });
-    return unsubscribe;
-  }, [navigation]);
+      setShouldReload(false); // reset flag
+    }
+  }, [shouldReload, AllOrders.length]);
 
-  // Filter orders based on search input
   const filteredOrders = AllOrders?.filter(val => {
     const itemNameLowerCase = val.debtor_ref.toLowerCase();
     if (Search === '') {
@@ -75,7 +73,7 @@ const AddNewCustomer = ({navigation}) => {
     } else if (itemNameLowerCase?.includes(Search.toLowerCase())) {
       return val;
     }
-  });
+  }).slice(0, 50);
 
   const getAllOrders = async (num = 0) => {
     setLoader(true);
@@ -104,12 +102,16 @@ const AddNewCustomer = ({navigation}) => {
       .request(configs)
       .then(async response => {
         setAllOrders(prevData => {
-          const allOrders = [...prevData, ...response.data.data];
+          // API se aya hua data reverse karo
+          const newData = [...response.data.data].reverse();
+
+          const allOrders = [...newData, ...prevData]; // latest top per
           const uniqueOrders = allOrders.filter(
             (order, index, self) =>
               index === self.findIndex(o => o.debtor_ref === order.debtor_ref),
           );
-          return uniqueOrders;
+
+          return uniqueOrders.slice(0, 50); // sirf 50 latest
         });
 
         setLoadMore(false);
@@ -121,6 +123,7 @@ const AddNewCustomer = ({navigation}) => {
         );
         setLoader(false);
       })
+
       .catch(async error => {
         console.log(error);
 
@@ -154,26 +157,27 @@ const AddNewCustomer = ({navigation}) => {
     axios
       .request(configs)
       .then(async response => {
-        // setAllOrders(response?.data?.data);
-        // setAllOrders(prevData => [...prevData, ...response.data.data]);
         setAllOrders(prevData => {
-          const allOrders = [...prevData, ...response.data.data];
+          const newData = [...response.data.data].reverse();
+
+          const allOrders = [...prevData, ...newData]; // naya data neeche add
           const uniqueOrders = allOrders.filter(
             (order, index, self) =>
               index === self.findIndex(o => o.debtor_ref === order.debtor_ref),
           );
-          return uniqueOrders;
+
+          return uniqueOrders.slice(0, 50);
         });
 
         setLoadMore(false);
         setPage(prevPage => prevPage + 1);
-        console.log('response: ' + response.data.data);
 
         await AsyncStorage.setItem(
           'GetAllCustomers',
           JSON.stringify(response?.data?.data),
         );
       })
+
       .catch(async error => {
         console.log(error);
         setLoader(false);
@@ -239,47 +243,72 @@ const AddNewCustomer = ({navigation}) => {
 
   return (
     <View style={{flex: 1, backgroundColor: APPCOLORS.BLACK}}>
-      <View style={{backgroundColor: APPCOLORS.BLACK}}>
-        <View
+      <View
+        style={{
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'center',
+          paddingVertical: 15,
+          backgroundColor: APPCOLORS.BLACK,
+        }}>
+        {/* Back Button */}
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
           style={{
-            backgroundColor: APPCOLORS.BTN_COLOR,
-            height: 90,
-            borderBottomEndRadius: 20,
-            borderBottomLeftRadius: 20,
+            height: 45,
+            width: 45,
+            borderRadius: 12,
             alignItems: 'center',
-            justifyContent: 'space-between',
-            flexDirection: 'row',
-            paddingHorizontal: 20,
+            justifyContent: 'center',
+            marginRight: 12,
+            backgroundColor: '#E0E5EC',
+            shadowColor: '#000',
+            shadowOffset: {width: 5, height: 5},
+            shadowOpacity: 0.2,
+            shadowRadius: 5,
+            elevation: 6,
+            borderWidth: 1,
+            borderColor: '#f9f9f9',
           }}>
-          <TouchableOpacity onPress={() => navigation.goBack()}>
-            <Ionicons name={'chevron-back'} color={APPCOLORS.WHITE} size={30} />
-          </TouchableOpacity>
+          <Ionicons name="arrow-back" size={22} color="#333" />
+        </TouchableOpacity>
 
-          <View
+        {/* Search Bar */}
+        <LinearGradient
+          colors={['#000000', '#434343']} // black gradient
+          start={{x: 0, y: 0}}
+          end={{x: 1, y: 1}}
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            width: '75%',
+            height: 45,
+            borderRadius: 15,
+            paddingHorizontal: 12,
+            shadowColor: '#000',
+            shadowOffset: {width: 3, height: 3},
+            shadowOpacity: 0.2,
+            shadowRadius: 6,
+            elevation: 6,
+          }}>
+          <Ionicons
+            name="search"
+            size={20}
+            color="#fff"
+            style={{marginRight: 8}}
+          />
+          <TextInput
+            placeholder="Search"
+            placeholderTextColor="#aaa"
             style={{
-              height: 40,
-              width: '85%',
-              backgroundColor: APPCOLORS.TEXTFIELDCOLOR,
-              borderRadius: 10,
-              flexDirection: 'row',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              paddingHorizontal: 10,
-            }}>
-            <TextInput
-              placeholder="Search"
-              style={{width: '80%'}}
-              onChangeText={txt => {
-                setSearch(txt);
-              }}
-              value={Search}
-            />
-
-            <TouchableOpacity>
-              <AntDesign name={'search1'} color={APPCOLORS.BLACK} size={20} />
-            </TouchableOpacity>
-          </View>
-        </View>
+              flex: 1,
+              fontSize: 16,
+              color: '#fff',
+            }}
+            onChangeText={txt => setSearch(txt)}
+            value={Search}
+          />
+        </LinearGradient>
       </View>
 
       {/* {console.log('filteredOrders.............', filteredOrders.length)} */}
@@ -333,139 +362,43 @@ const AddNewCustomer = ({navigation}) => {
                         width: responsiveWidth(90),
                         alignSelf: 'center',
                       }}>
-                      <View
-                        style={{
-                          flexDirection: 'row',
-                          justifyContent: 'space-between',
-                          marginBottom: 8,
-                        }}>
-                        <Text
-                          style={{color: APPCOLORS.WHITE, fontWeight: 'bold'}}>
-                          1. Business Name
-                        </Text>
-                        <Text style={{color: APPCOLORS.WHITE}}>
-                          {item?.name}
+                      {/* Business Name */}
+                      <View style={styles.row}>
+                        <Text style={styles.label}>1. Business Name</Text>
+                        <Text style={styles.value}>{item?.name}</Text>
+                      </View>
+
+                      {/* Address */}
+                      <View style={styles.row}>
+                        <Text style={styles.label}>2. Address</Text>
+                        <Text style={styles.value} numberOfLines={1}>
+                          {item?.address || 'N/A'}
                         </Text>
                       </View>
 
-                      <View
-                        style={{
-                          flexDirection: 'row',
-                          justifyContent: 'space-between',
-                          marginBottom: 8,
-                        }}>
-                        <Text
-                          style={{color: APPCOLORS.WHITE, fontWeight: 'bold'}}>
-                          2. Address
-                        </Text>
-                        <Text
-                          style={{color: APPCOLORS.WHITE}}
-                          numberOfLines={1}>
-                          {item?.address}
-                        </Text>
-                      </View>
-
-                      <View
-                        style={{
-                          flexDirection: 'row',
-                          justifyContent: 'space-between',
-                          marginBottom: 8,
-                        }}>
-                        <Text
-                          style={{color: APPCOLORS.WHITE, fontWeight: 'bold'}}>
-                          3. NTN
-                        </Text>
-                        <Text style={{color: APPCOLORS.WHITE}}>
+                      {/* NTN */}
+                      <View style={styles.row}>
+                        <Text style={styles.label}>3. NTN</Text>
+                        <Text style={styles.value}>
                           {item?.ntn_id || 'N/A'}
                         </Text>
                       </View>
 
-                      <View
-                        style={{
-                          flexDirection: 'row',
-                          justifyContent: 'space-between',
-                          marginBottom: 8,
-                        }}>
-                        <Text
-                          style={{color: APPCOLORS.WHITE, fontWeight: 'bold'}}>
-                          4. POC Name
-                        </Text>
-                        <Text style={{color: APPCOLORS.WHITE}}>John Doe</Text>
-                        {/* Placeholder, API se aa jayega baad mein */}
-                      </View>
-
-                      <View
-                        style={{
-                          flexDirection: 'row',
-                          justifyContent: 'space-between',
-                          marginBottom: 8,
-                        }}>
-                        <Text
-                          style={{color: APPCOLORS.WHITE, fontWeight: 'bold'}}>
-                          5. Contact No
-                        </Text>
-                        <Text style={{color: APPCOLORS.WHITE}}>
-                          {item?.debtor_ref}
+                      {/* POC Name */}
+                      <View style={styles.row}>
+                        <Text style={styles.label}>4. POC Name</Text>
+                        <Text style={styles.value}>
+                          {item?.poc_name || 'N/A'}
                         </Text>
                       </View>
 
-                      {/* ===== Future Buttons (Commented for now) ===== */}
-
-                      {/* <View
-                        style={{
-                          flexDirection: 'row',
-                          justifyContent: 'space-between',
-                          marginTop: 15,
-                        }}>
-                        <TouchableOpacity
-                          onPress={() =>
-                            navigation.navigate('AddItems', {data: item})
-                          }
-                          style={{width: '47%'}}>
-                          <LinearGradient
-                            colors={[APPCOLORS.Secondary, APPCOLORS.Primary]}
-                            style={{
-                              height: 40,
-                              borderRadius: 100,
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                            }}>
-                            <Text
-                              style={{
-                                color: APPCOLORS.WHITE,
-                                fontWeight: 'bold',
-                              }}>
-                              Take Order
-                            </Text>
-                          </LinearGradient>
-                        </TouchableOpacity>
-
-                        <TouchableOpacity
-                          onPress={() =>
-                            navigation.navigate('AddItems', {
-                              data: item,
-                              type: 11,
-                            })
-                          }
-                          style={{width: '47%'}}>
-                          <LinearGradient
-                            colors={[APPCOLORS.Secondary, APPCOLORS.Primary]}
-                            style={{
-                              height: 40,
-                              borderRadius: 100,
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                            }}>
-                            <Text
-                              style={{
-                                color: APPCOLORS.WHITE,
-                                fontWeight: 'bold',
-                              }}>
-                              Return
-                            </Text>
-                          </LinearGradient>
-                        </TouchableOpacity>
-                      </View> */}
+                      {/* Contact No */}
+                      <View style={styles.row}>
+                        <Text style={styles.label}>5. Contact No</Text>
+                        <Text style={styles.value}>
+                          {item?.contact_no || 'N/A'}
+                        </Text>
+                      </View>
                     </LinearGradient>
                   );
                 }}
@@ -483,6 +416,7 @@ const AddNewCustomer = ({navigation}) => {
         onPress={() =>
           navigation.navigate('InsertNewCustomerDetail', {
             allCustomer: AllOrders,
+            onSuccess: () => setShouldReload(true),
           })
         }
         style={{
@@ -514,3 +448,43 @@ const AddNewCustomer = ({navigation}) => {
 };
 
 export default AddNewCustomer;
+const styles = StyleSheet.create({
+  row: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 8,
+  },
+  label: {
+    color: APPCOLORS.WHITE,
+    fontWeight: 'bold',
+  },
+  value: {
+    color: APPCOLORS.WHITE,
+    maxWidth: '60%',
+  },
+  searchWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    width: '85%',
+    height: 45,
+    borderRadius: 15,
+    paddingHorizontal: 12,
+    backgroundColor: '#E0E5EC', // soft gray background
+
+    // Shadows for Neumorphism
+    shadowColor: '#000',
+    shadowOffset: {width: 4, height: 4},
+    shadowOpacity: 0.15,
+    shadowRadius: 6,
+    elevation: 6,
+
+    // Light shadow (for top-left effect)
+    borderWidth: 1,
+    borderColor: '#f9f9f9',
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 16,
+    color: '#333',
+  },
+});

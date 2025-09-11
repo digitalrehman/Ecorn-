@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import {
   View,
   Text,
@@ -8,18 +8,57 @@ import {
   TouchableOpacity,
   Alert,
 } from 'react-native';
+import axios from 'axios';
 import SimpleHeader from '../../../../../components/SimpleHeader';
 
-const DeliveryNote = () => {
+const DeliveryNote = ({route}) => {
   const [driverName, setDriverName] = useState('');
   const [vehicleName, setVehicleName] = useState('');
+  const [items, setItems] = useState([]);
 
-  // Dummy random array (API replace later)
-  const [items, setItems] = useState([
-    {id: '1', description: '', quantity: 12, deliveredQty: '', error: ''},
-    {id: '2', description: '', quantity: 8, deliveredQty: '', error: ''},
-    {id: '3', description: '', quantity: 20, deliveredQty: '', error: ''},
-  ]);
+  useEffect(() => {
+    const fetchItems = async () => {
+      try {
+        const orderId = route?.params?.orderId || 362;
+
+        let formData = new FormData();
+        formData.append('order_no', orderId);
+
+        const res = await axios.post(
+          'https://e.de2solutions.com/mobile_dash/pending_so_item.php',
+          formData,
+          {
+            headers: {
+              'Content-Type': 'multipart/form-data',
+            },
+          },
+        );
+
+        console.log('API Response:', res.data);
+
+        if (
+          res.data?.status?.toString().toLowerCase() === 'true' &&
+          Array.isArray(res.data.data)
+        ) {
+          const mapped = res.data.data.map((item, index) => ({
+            id: String(item.id ?? index + 1),
+            description: item.text7 ?? '', // autofill but editable
+            quantity: parseInt(item.quantity) || 0,
+            deliveredQty: '',
+            error: '',
+          }));
+          setItems(mapped);
+        } else {
+          Alert.alert('No Items', 'No pending items found for this order.');
+        }
+      } catch (error) {
+        console.log('Error fetching items:', error);
+        Alert.alert('Error', 'Failed to load delivery items!');
+      }
+    };
+
+    fetchItems();
+  }, [route?.params]);
 
   const updateItem = (id, field, value) => {
     setItems(prev =>
@@ -56,7 +95,7 @@ const DeliveryNote = () => {
       items,
     };
     console.log('Form Submitted:', data);
-    Alert.alert('Success', 'Delivery Note Submitted!');
+    Alert.alert('Info', 'Process button pressed (no API yet).');
   };
 
   return (
@@ -97,7 +136,7 @@ const DeliveryNote = () => {
           renderItem={({item}) => (
             <View style={{marginBottom: 8}}>
               <View style={styles.tableRow}>
-                {/* Description */}
+                {/* Description (autofill but user can edit) */}
                 <TextInput
                   style={[
                     styles.cell,
@@ -114,12 +153,12 @@ const DeliveryNote = () => {
                   textAlignVertical="top"
                 />
 
-                {/* Order Quantity (API value) */}
+                {/* Order Quantity (readonly) */}
                 <Text style={[styles.cell, styles.labelCell, {flex: 0.8}]}>
                   {item.quantity}
                 </Text>
 
-                {/* Delivered Qty */}
+                {/* Delivered Qty (user input) */}
                 <TextInput
                   style={[
                     styles.cell,
@@ -158,6 +197,7 @@ const DeliveryNote = () => {
 };
 
 export default DeliveryNote;
+
 
 const styles = StyleSheet.create({
   container: {

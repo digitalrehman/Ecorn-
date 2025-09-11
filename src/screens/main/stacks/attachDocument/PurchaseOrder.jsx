@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useState, useRef, useCallback} from 'react';
 import {
   View,
   Text,
@@ -6,6 +6,9 @@ import {
   TouchableOpacity,
   FlatList,
   ActivityIndicator,
+  Platform,
+  PermissionsAndroid,
+  Alert,
 } from 'react-native';
 import axios from 'axios';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -13,49 +16,177 @@ import LinearGradient from 'react-native-linear-gradient';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import SimpleHeader from '../../../../components/SimpleHeader';
 import {APPCOLORS} from '../../../../utils/APPCOLORS';
+import RNFetchBlob from 'react-native-blob-util';
+import {useFocusEffect, useRoute} from '@react-navigation/native';
 
 export default function PurchaseOrder({navigation}) {
-  const [allData, setAllData] = useState([]); // original data
-  const [data, setData] = useState([]); // filtered data
+  const [allData, setAllData] = useState([]);
+  const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
 
   const [fromDate, setFromDate] = useState(null);
   const [toDate, setToDate] = useState(null);
 
   const [showPicker, setShowPicker] = useState({visible: false, type: null});
+  const route = useRoute();
 
   useEffect(() => {
     fetchData();
   }, []);
 
+  useFocusEffect(
+    useCallback(() => {
+      if (route.params?.refresh) {
+        fetchData();
+        navigation.setParams({refresh: false});
+      }
+    }, [route.params?.refresh]),
+  );
+
   const fetchData = async () => {
-  setLoading(true);
-  try {
-    const res = await axios.get(
-      'https://e.de2solutions.com/mobile_dash/dash_upload.php',
-    );
-    let result = res.data?.data_cust_age || [];
-    setAllData(result);
+    setLoading(true);
+    try {
+      const res = await axios.get(
+        'https://e.de2solutions.com/mobile_dash/dash_upload_purchase.php',
+      );
+      let result = res.data?.data_cust_age || [];
+      setAllData(result);
 
-    // 🟢 Last month ka data nikalna
-    const today = new Date();
-    const lastMonth = new Date(today.getFullYear(), today.getMonth() - 1, 1);
-    const thisMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+      if (result.length === 0) {
+        setData([]);
+        setLoading(false);
+        return;
+      }
 
-    const filtered = result.filter(item => {
-      const apiDate = new Date(item.tran_date?.split(' ')[0]); // "YYYY-MM-DD"
-      return apiDate >= lastMonth && apiDate < thisMonth;
-    });
+      const parsed = result.map(item => {
+        const dateStr = item.tran_date.split(' ')[0];
+        const [year, month, day] = dateStr.split('-').map(Number);
+        return {...item, jsDate: new Date(year, month - 1, day)};
+      });
 
-    setData(filtered); 
-  } catch (error) {
-    console.log('Error fetching data:', error);
-  }
-  setLoading(false);
-};
+      const latestDate = new Date(
+        Math.max(...parsed.map(i => i.jsDate.getTime())),
+      );
 
+      const lastMonth = new Date(
+        latestDate.getFullYear(),
+        latestDate.getMonth() - 1,
+        1,
+      );
+      const thisMonth = new Date(
+        latestDate.getFullYear(),
+        latestDate.getMonth(),
+        1,
+      );
 
-  // date ko YYYY-MM-DD me normalize
+      const filtered = parsed.filter(item => {
+        return item.jsDate >= lastMonth && item.jsDate < thisMonth;
+      });
+
+      setData(filtered);
+    } catch (error) {
+      console.log('Error fetching data:', error);
+    }
+    setLoading(false);
+  };
+
+  const requestStoragePermission = async () => {
+    if (Platform.OS === 'android' && Platform.Version < 30) {
+      try {
+        const granted = await PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
+          {
+            title: 'Storage Permission',
+            message: 'App needs access to your storage to download PDF',
+            buttonNeutral: 'Ask Me Later',
+            buttonNegative: 'Cancel',
+            buttonPositive: 'OK',
+          },
+        );
+        return granted === PermissionsAndroid.RESULTS.GRANTED;
+      } catch (err) {
+        console.warn(err);
+        return false;
+      }
+    }
+    return true;
+  };
+
+  const downloadFile = async (trans_no, type) => {
+    const hasPermission = await requestStoragePermission();
+    if (!hasPermission) {
+      Alert.alert('Permission Denied', 'Storage permission is required.');
+      return;
+    }
+
+    try {
+      // 🔹 File download with RNFetchBlob
+      const res = await RNFetchBlob.config({
+        fileCache: true,
+        appendExt: 'tmp', // temporary extension
+      }).fetch(
+        'POST',
+        'https://e.de2solutions.com/mobile_dash/dattachment_download.php',
+        {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        `type=${encodeURIComponent(type)}&trans_no=${encodeURIComponent(
+          trans_no,
+        )}`,
+      );
+
+      // 🔹 Get binary headers to detect mime
+      const info = await res.info();
+      let mime =
+        info.respInfo.headers['Content-Type'] || 'application/octet-stream';
+
+      // 🔹 Decide extension by mime type
+      let ext = 'bin';
+      if (mime.includes('pdf')) ext = 'pdf';
+      else if (mime.includes('jpeg')) ext = 'jpg';
+      else if (mime.includes('png')) ext = 'png';
+      else if (mime.includes('gif')) ext = 'gif';
+      else if (
+        mime.includes('msword') ||
+        mime.includes('officedocument.wordprocessingml')
+      )
+        ext = 'docx';
+      else if (mime.includes('spreadsheetml') || mime.includes('ms-excel'))
+        ext = 'xlsx';
+      else if (
+        mime.includes('presentationml') ||
+        mime.includes('ms-powerpoint')
+      )
+        ext = 'pptx';
+      else if (mime.includes('zip')) ext = 'zip';
+
+      // 🔹 Final save path
+      const path =
+        Platform.OS === 'android'
+          ? `${RNFetchBlob.fs.dirs.DownloadDir}/${trans_no}.${ext}`
+          : `${RNFetchBlob.fs.dirs.DocumentDir}/${trans_no}.${ext}`;
+
+      // 🔹 Move temp file → final path
+      await RNFetchBlob.fs.mv(res.path(), path);
+
+      // 🔹 Android notification
+      if (Platform.OS === 'android') {
+        await RNFetchBlob.android.addCompleteDownload({
+          title: `${trans_no}.${ext}`,
+          description: 'File downloaded successfully',
+          mime,
+          path,
+          showNotification: true,
+        });
+      }
+
+      Alert.alert('Download Successful', `File saved to: ${path}`);
+    } catch (err) {
+      console.log('Download Error:', err);
+      Alert.alert('Download Failed', 'Could not download the file.');
+    }
+  };
+
   const normalizeDate = date => {
     if (!date) return null;
     return new Date(date).toISOString().split('T')[0];
@@ -68,7 +199,7 @@ export default function PurchaseOrder({navigation}) {
     }
 
     let filtered = allData.filter(item => {
-      const apiDate = item.tran_date?.split(' ')[0]; // "2025-03-01"
+      const apiDate = item.tran_date?.split(' ')[0];
 
       let afterFrom = true;
       let beforeTo = true;
@@ -103,7 +234,6 @@ export default function PurchaseOrder({navigation}) {
     <View style={styles.container}>
       <SimpleHeader title="Purchase Order" />
 
-      {/* Date Filters */}
       <View style={styles.filterContainer}>
         <TouchableOpacity
           style={[styles.filterButton, styles.primaryButton]}
@@ -124,13 +254,12 @@ export default function PurchaseOrder({navigation}) {
         </TouchableOpacity>
       </View>
 
-      {/* Action Buttons */}
       <View style={styles.actionContainer}>
         <TouchableOpacity
           onPress={applyFilter}
           style={{flex: 1, marginRight: 6}}>
           <LinearGradient
-            colors={['#28a745', '#218838']} // green shades
+            colors={['#28a745', '#218838']}
             start={{x: 0, y: 0}}
             end={{x: 1, y: 1}}
             style={styles.gradientButton}>
@@ -143,7 +272,7 @@ export default function PurchaseOrder({navigation}) {
           onPress={clearFilter}
           style={{flex: 1, marginLeft: 6}}>
           <LinearGradient
-            colors={['#dc3545', '#a71d2a']} // red shades
+            colors={['#dc3545', '#a71d2a']}
             start={{x: 0, y: 0}}
             end={{x: 1, y: 1}}
             style={styles.gradientButton}>
@@ -153,7 +282,6 @@ export default function PurchaseOrder({navigation}) {
         </TouchableOpacity>
       </View>
 
-      {/* Date Picker */}
       {showPicker.visible && (
         <DateTimePicker
           value={new Date()}
@@ -169,7 +297,6 @@ export default function PurchaseOrder({navigation}) {
         />
       )}
 
-      {/* Table */}
       {loading ? (
         <ActivityIndicator
           size="large"
@@ -204,22 +331,57 @@ export default function PurchaseOrder({navigation}) {
           renderItem={({item}) => (
             <View style={styles.row}>
               <Text style={[styles.cell, {flex: 1}]}>
-                {item.reference || 'N/A'}
+                {item.reference.slice(0, 6) + '..' || 'N/A'}
               </Text>
               <Text style={[styles.cell, {flex: 1.5}]}>{item.tran_date}</Text>
               <Text style={[styles.cell, {flex: 1.5}]}>
                 {formatAmount(item.amount)}
               </Text>
-              <TouchableOpacity
-                style={[styles.cell, {flex: 1}]}
-                onPress={() =>
-                  navigation.navigate('UploadScreen', {
-                    transactionType: item.type,
-                    transactionNo: item.trans_no,
-                  })
-                }>
-                <Icon name="paperclip" size={20} color="#00ff99" />
-              </TouchableOpacity>
+              <View
+                style={[
+                  styles.cell,
+                  {
+                    flex: 1,
+                    flexDirection: 'row',
+                    justifyContent: 'space-around',
+                  },
+                ]}>
+                <TouchableOpacity
+                  onPress={() =>
+                    navigation.navigate('UploadScreen', {
+                      transactionType: item.type,
+                      transactionNo: item.trans_no,
+                      fromScreen: 'PurchaseOrder',
+                    })
+                  }>
+                  <Icon name="paperclip" size={20} color="#00ff99" />
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  disabled={!item.upload_status}
+                  onPress={() =>
+                    navigation.navigate('PDFViewerScreen', {
+                      type: item.type,
+                      trans_no: item.trans_no,
+                    })
+                  }>
+                  <Icon
+                    name="eye"
+                    size={20}
+                    color={item.upload_status ? '#00aced' : 'gray'}
+                  />
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  disabled={!item.upload_status}
+                  onPress={() => downloadFile(item.trans_no, item.type)}>
+                  <Icon
+                    name="download"
+                    size={20}
+                    color={item.upload_status ? '#ffcc00' : 'gray'}
+                  />
+                </TouchableOpacity>
+              </View>
             </View>
           )}
           contentContainerStyle={{paddingBottom: 50}}
