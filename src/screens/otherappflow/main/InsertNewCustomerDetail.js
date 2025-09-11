@@ -25,7 +25,7 @@ const COLORS = {
   Secondary: '#5a5c6a',
 };
 
-const InsertNewCustomerDetail = ({navigation}) => {
+const InsertNewCustomerDetail = ({navigation, route}) => {
   const [CustomerName, setCustomerName] = useState('');
   const [TradeName, setTradeName] = useState('');
   const [ContactNo, setContactNo] = useState('');

@@ -22,8 +22,8 @@ const DeliveryScreen = ({navigation}) => {
 
   const [customers, setCustomers] = useState([]);
   const [locations, setLocations] = useState([]);
-  const [selectedCustomer, setSelectedCustomer] = useState('');
-  const [selectedLocation, setSelectedLocation] = useState('');
+  const [selectedCustomer, setSelectedCustomer] = useState(null); // ✅ null instead of ''
+  const [selectedLocation, setSelectedLocation] = useState(null);
 
   const [loading, setLoading] = useState(false);
   const [transactions, setTransactions] = useState([]);
@@ -43,7 +43,7 @@ const DeliveryScreen = ({navigation}) => {
         setCustomers(
           res.data.data.map(c => ({
             label: c.name,
-            value: c.debtor_no,
+            value: c.name, // ✅ filter by customer name
           })),
         );
       }
@@ -74,26 +74,55 @@ const DeliveryScreen = ({navigation}) => {
     try {
       setLoading(true);
 
-      const params = {};
-      if (selectedCustomer) params.customer = selectedCustomer;
-      if (selectedLocation) params.location = selectedLocation;
-
       const res = await axios.get(
         'https://e.de2solutions.com/mobile_dash/pending_so.php',
-        {params},
       );
 
       if (res.data?.status === 'true') {
         let allData = res.data.data || [];
-
         let finalData = allData;
 
-        // From & To filter apply karo agar select kiya hai
+        // 🔹 Customer filter (by name)
+        if (selectedCustomer) {
+          finalData = finalData.filter(
+            item => item.name?.toLowerCase() === selectedCustomer.toLowerCase(),
+          );
+        }
+
+        // 🔹 Location filter
+        if (selectedLocation) {
+          finalData = finalData.filter(
+            item => item.location?.toString() === selectedLocation.toString(),
+          );
+        }
+
+        // 🔹 Date filter (ord_date)
         if (fromDate && toDate) {
           finalData = finalData.filter(item => {
-            if (!item.tran_date) return false;
-            const d = new Date(item.tran_date);
-            return d >= fromDate && d <= toDate;
+            if (!item.ord_date) return false;
+
+            // API date string ko Date object me convert karo
+            const d = new Date(item.ord_date);
+
+            // Sirf yyyy-mm-dd format ka support ho to ensure UTC offset issue na ho
+            const dOnly = new Date(
+              d.getFullYear(),
+              d.getMonth(),
+              d.getDate(),
+            );
+
+            const fromOnly = new Date(
+              fromDate.getFullYear(),
+              fromDate.getMonth(),
+              fromDate.getDate(),
+            );
+            const toOnly = new Date(
+              toDate.getFullYear(),
+              toDate.getMonth(),
+              toDate.getDate(),
+            );
+
+            return dOnly >= fromOnly && dOnly <= toOnly;
           });
         }
 
@@ -127,14 +156,16 @@ const DeliveryScreen = ({navigation}) => {
       delay={index * 100}
       style={styles.row}>
       <Text style={[styles.cell, {flex: 1}]}>
-        {item.reference.slice(0, 6) + '..' || '-'}
+        {item.reference?.slice(0, 6) + '..' || '-'}
       </Text>
       <Text style={[styles.cell, {flex: 1}]}>{formatDate(item.ord_date)}</Text>
       <Text style={[styles.cell, {flex: 1}]}>{formatAmount(item.total)}</Text>
       <TouchableOpacity
         style={{flex: 1, alignItems: 'center'}}
         onPress={() =>
-          navigation.navigate('DeliveryNote', {order_no: item.order_no})
+          navigation.navigate('DeliveryNote', {
+            orderId: item.order_no,
+          })
         }>
         <Icon name="truck-delivery" size={22} color="#1a1c22" />
       </TouchableOpacity>

@@ -19,7 +19,7 @@ const DeliveryNote = ({route}) => {
   useEffect(() => {
     const fetchItems = async () => {
       try {
-        const orderId = route?.params?.orderId || 362;
+        const {orderId} = route.params || {};
 
         let formData = new FormData();
         formData.append('order_no', orderId);
@@ -31,18 +31,31 @@ const DeliveryNote = ({route}) => {
             headers: {
               'Content-Type': 'multipart/form-data',
             },
+            responseType: 'text', // force text response
           },
         );
 
-        console.log('API Response:', res.data);
+        // clean unwanted text (e.g., string(3) "359")
+        let raw = res.data.trim();
+        let jsonStr = raw.substring(raw.indexOf('{')); // take only from first { onwards
+
+        let parsed;
+        try {
+          parsed = JSON.parse(jsonStr);
+          console.log('Parsed Response:', parsed);
+        } catch (e) {
+          console.log('JSON parse error:', e, raw);
+          Alert.alert('Error', 'Invalid API response format!');
+          return;
+        }
 
         if (
-          res.data?.status?.toString().toLowerCase() === 'true' &&
-          Array.isArray(res.data.data)
+          parsed?.status?.toString().toLowerCase() === 'true' &&
+          Array.isArray(parsed.data)
         ) {
-          const mapped = res.data.data.map((item, index) => ({
+          const mapped = parsed.data.map((item, index) => ({
             id: String(item.id ?? index + 1),
-            description: item.text7 ?? '', // autofill but editable
+            description: item.text7 ?? '',
             quantity: parseInt(item.quantity) || 0,
             deliveredQty: '',
             error: '',
@@ -62,9 +75,7 @@ const DeliveryNote = ({route}) => {
 
   const updateItem = (id, field, value) => {
     setItems(prev =>
-      prev.map(item =>
-        item.id === id ? {...item, [field]: value} : item,
-      ),
+      prev.map(item => (item.id === id ? {...item, [field]: value} : item)),
     );
   };
 
@@ -75,9 +86,7 @@ const DeliveryNote = ({route}) => {
     }
     setItems(prev =>
       prev.map(item =>
-        item.id === id
-          ? {...item, deliveredQty: text, error: errorMsg}
-          : item,
+        item.id === id ? {...item, deliveredQty: text, error: errorMsg} : item,
       ),
     );
   };
@@ -136,7 +145,7 @@ const DeliveryNote = ({route}) => {
           renderItem={({item}) => (
             <View style={{marginBottom: 8}}>
               <View style={styles.tableRow}>
-                {/* Description (autofill but user can edit) */}
+                {/* Description (editable) */}
                 <TextInput
                   style={[
                     styles.cell,
@@ -197,7 +206,6 @@ const DeliveryNote = ({route}) => {
 };
 
 export default DeliveryNote;
-
 
 const styles = StyleSheet.create({
   container: {

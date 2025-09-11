@@ -56,6 +56,7 @@ import PDFViewerScreen from '../screens/main/stacks/attachDocument/PDFViewerScre
 import DeliveryScreen from '../screens/main/stacks/Sales/Delivery/DeliveryScreen';
 import DeliveryNote from '../screens/main/stacks/Sales/Delivery/DeliveryNote';
 import SaleOrder from '../screens/main/stacks/attachDocument/SaleOrder';
+import TrackOrderStatus from '../screens/main/stacks/Sales/TrackOrderStatus';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -142,6 +143,7 @@ const Main = () => {
       <Stack.Screen name="DeliveryScreen" component={DeliveryScreen} />
       <Stack.Screen name="DeliveryNote" component={DeliveryNote} />
       <Stack.Screen name="SaleOrder" component={SaleOrder} />
+      <Stack.Screen name="TrackOrderStatus" component={TrackOrderStatus} />
     </Stack.Navigator>
   );
 };
