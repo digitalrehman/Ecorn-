@@ -105,11 +105,7 @@ const DeliveryScreen = ({navigation}) => {
             const d = new Date(item.ord_date);
 
             // Sirf yyyy-mm-dd format ka support ho to ensure UTC offset issue na ho
-            const dOnly = new Date(
-              d.getFullYear(),
-              d.getMonth(),
-              d.getDate(),
-            );
+            const dOnly = new Date(d.getFullYear(), d.getMonth(), d.getDate());
 
             const fromOnly = new Date(
               fromDate.getFullYear(),
@@ -165,6 +161,8 @@ const DeliveryScreen = ({navigation}) => {
         onPress={() =>
           navigation.navigate('DeliveryNote', {
             orderId: item.order_no,
+            personId: item.person_id,
+            locCode: item.location,
           })
         }>
         <Icon name="truck-delivery" size={22} color="#1a1c22" />

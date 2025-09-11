@@ -6,21 +6,25 @@ import {
   StyleSheet,
   FlatList,
   TouchableOpacity,
-  Alert,
+  ActivityIndicator,
+  ToastAndroid,
 } from 'react-native';
+import {useNavigation} from '@react-navigation/native';
 import axios from 'axios';
 import SimpleHeader from '../../../../../components/SimpleHeader';
 
 const DeliveryNote = ({route}) => {
+  const navigation = useNavigation();
+  const {orderId, personId, locCode} = route.params || {};
+
   const [driverName, setDriverName] = useState('');
   const [vehicleName, setVehicleName] = useState('');
   const [items, setItems] = useState([]);
+  const [loading, setLoading] = useState(false); // loader state
 
   useEffect(() => {
     const fetchItems = async () => {
       try {
-        const {orderId} = route.params || {};
-
         let formData = new FormData();
         formData.append('order_no', orderId);
 
@@ -31,21 +35,19 @@ const DeliveryNote = ({route}) => {
             headers: {
               'Content-Type': 'multipart/form-data',
             },
-            responseType: 'text', // force text response
+            responseType: 'text',
           },
         );
 
-        // clean unwanted text (e.g., string(3) "359")
         let raw = res.data.trim();
-        let jsonStr = raw.substring(raw.indexOf('{')); // take only from first { onwards
+        let jsonStr = raw.substring(raw.indexOf('{'));
 
         let parsed;
         try {
           parsed = JSON.parse(jsonStr);
-          console.log('Parsed Response:', parsed);
         } catch (e) {
           console.log('JSON parse error:', e, raw);
-          Alert.alert('Error', 'Invalid API response format!');
+          ToastAndroid.show('Invalid API response!', ToastAndroid.LONG);
           return;
         }
 
@@ -55,23 +57,25 @@ const DeliveryNote = ({route}) => {
         ) {
           const mapped = parsed.data.map((item, index) => ({
             id: String(item.id ?? index + 1),
+            stk_code: item.stk_code,
             description: item.text7 ?? '',
             quantity: parseInt(item.quantity) || 0,
             deliveredQty: '',
+            unit_price: item.unit_price,
             error: '',
           }));
           setItems(mapped);
         } else {
-          Alert.alert('No Items', 'No pending items found for this order.');
+          ToastAndroid.show('No pending items found!', ToastAndroid.SHORT);
         }
       } catch (error) {
         console.log('Error fetching items:', error);
-        Alert.alert('Error', 'Failed to load delivery items!');
+        ToastAndroid.show('Failed to load delivery items!', ToastAndroid.LONG);
       }
     };
 
     fetchItems();
-  }, [route?.params]);
+  }, [orderId]);
 
   const updateItem = (id, field, value) => {
     setItems(prev =>
@@ -91,20 +95,66 @@ const DeliveryNote = ({route}) => {
     );
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     const invalid = items.some(item => item.error);
     if (invalid) {
-      Alert.alert('Error', 'Fix validation errors before submitting!');
+      ToastAndroid.show('Fix validation errors first!', ToastAndroid.LONG);
       return;
     }
 
-    const data = {
-      driverName,
-      vehicleName,
-      items,
-    };
-    console.log('Form Submitted:', data);
-    Alert.alert('Info', 'Process button pressed (no API yet).');
+    try {
+      setLoading(true);
+
+      const today = new Date();
+      const orderDate = today.toISOString().slice(0, 10); // "2025-09-11"
+
+      // Calculate grand total
+      let grandTotal = 0;
+      const purchOrderDetails = items.map(itm => {
+        const qty = parseFloat(itm.deliveredQty) || 0;
+        const price = parseFloat(itm.unit_price) || 0;
+        const lineTotal = qty * price;
+        grandTotal += lineTotal;
+
+        return {
+          item_code: String(itm.stk_code ?? ''),
+          description: String(itm.description ?? ''),
+          del_qty: String(qty),
+          text7: String(itm.description ?? ''),
+          unit_price: String(price),
+        };
+      });
+
+      let formData = new FormData();
+      formData.append('order_no', String(orderId));
+      formData.append('person_id', String(personId));
+      formData.append('trans_type', String(13));
+      formData.append('ord_date', String(orderDate));
+      formData.append('driver_name', String(driverName));
+      formData.append('vehicle_no', String(vehicleName));
+      formData.append('loc_code', String(locCode));
+      formData.append('total', String(grandTotal.toFixed(2)));
+
+      formData.append('purch_order_details', JSON.stringify(purchOrderDetails));
+
+      const res = await axios.post(
+        'https://e.de2solutions.com/mobile_dash/post_service_purch_sale.php',
+        formData,
+        {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        },
+      );
+
+      ToastAndroid.show('Delivery Note submitted!', ToastAndroid.LONG);
+      navigation.goBack();
+    } catch (error) {
+      console.log('Submit Error:', error);
+      ToastAndroid.show('Failed to submit delivery note!', ToastAndroid.LONG);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -162,12 +212,12 @@ const DeliveryNote = ({route}) => {
                   textAlignVertical="top"
                 />
 
-                {/* Order Quantity (readonly) */}
+                {/* Order Quantity */}
                 <Text style={[styles.cell, styles.labelCell, {flex: 0.8}]}>
                   {item.quantity}
                 </Text>
 
-                {/* Delivered Qty (user input) */}
+                {/* Delivered Qty */}
                 <TextInput
                   style={[
                     styles.cell,
@@ -187,8 +237,6 @@ const DeliveryNote = ({route}) => {
                   }
                 />
               </View>
-
-              {/* Error message */}
               {item.error ? (
                 <Text style={styles.errorText}>{item.error}</Text>
               ) : null}
@@ -196,9 +244,16 @@ const DeliveryNote = ({route}) => {
           )}
         />
 
-        {/* Process Button */}
-        <TouchableOpacity style={styles.button} onPress={handleSubmit}>
-          <Text style={styles.buttonText}>Process</Text>
+        {/* Submit Button */}
+        <TouchableOpacity
+          style={[styles.button, loading && {opacity: 0.7}]}
+          onPress={handleSubmit}
+          disabled={loading}>
+          {loading ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <Text style={styles.buttonText}>Process</Text>
+          )}
         </TouchableOpacity>
       </View>
     </>
