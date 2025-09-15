@@ -57,6 +57,10 @@ import DeliveryScreen from '../screens/main/stacks/Sales/Delivery/DeliveryScreen
 import DeliveryNote from '../screens/main/stacks/Sales/Delivery/DeliveryNote';
 import SaleOrder from '../screens/main/stacks/attachDocument/SaleOrder';
 import TrackOrderStatus from '../screens/main/stacks/Sales/TrackOrderStatus';
+import AddSuppliersScreen from '../screens/main/stacks/purchase/AddSuppliersScreen';
+import AddLeadScreen from '../screens/main/stacks/Crm/AddLeadScreen';
+import LeadsListScreen from '../screens/main/stacks/Crm/LeadsListScreen';
+import ViewLeads from '../screens/main/stacks/Crm/ViewLeads';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -144,6 +148,10 @@ const Main = () => {
       <Stack.Screen name="DeliveryNote" component={DeliveryNote} />
       <Stack.Screen name="SaleOrder" component={SaleOrder} />
       <Stack.Screen name="TrackOrderStatus" component={TrackOrderStatus} />
+      <Stack.Screen name="AddSuppliersScreen" component={AddSuppliersScreen} />
+      <Stack.Screen name="AddLeadScreen" component={AddLeadScreen} />
+      <Stack.Screen name="LeadsListScreen" component={LeadsListScreen} />
+      <Stack.Screen name="ViewLeads" component={ViewLeads} />
     </Stack.Navigator>
   );
 };

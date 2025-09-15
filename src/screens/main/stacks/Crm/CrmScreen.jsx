@@ -7,10 +7,10 @@ import {APPCOLORS} from '../../../../utils/APPCOLORS';
 import * as Animatable from 'react-native-animatable';
 
 const buttons = [
-  {name: 'View Leads', icon: 'account-search'},
-  {name: 'Add or Update Lead', icon: 'account-plus'},
-  {name: 'Schedule Meeting', icon: 'calendar-clock'},
-  {name: 'View Lead to Order', icon: 'cart-check'},
+  {name: 'Add Lead', icon: 'account-plus', screen: 'AddLeadScreen'},
+  {name: 'View Leads', icon: 'account-search', screen: 'ViewLeads'},
+  {name: 'Schedule Meeting', icon: 'calendar-clock', screen: 'ScheduleMeetingScreen'},
+  {name: 'View Lead to Order', icon: 'cart-check', screen: 'LeadToOrderScreen'},
 ];
 
 export default function CrmScreen({navigation}) {
@@ -22,7 +22,7 @@ export default function CrmScreen({navigation}) {
       style={styles.buttonWrapper}>
       <TouchableOpacity
         activeOpacity={0.85}
-        onPress={() => navigation.navigate('Dashboard')}>
+        onPress={() => navigation.navigate(item.screen)}>
         <LinearGradient
           colors={['rgba(255,255,255,0.08)', 'rgba(255,255,255,0.02)']}
           style={styles.buttonContainer}>

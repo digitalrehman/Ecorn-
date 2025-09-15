@@ -59,33 +59,10 @@ export default function VoucherScreen({navigation}) {
         return;
       }
 
-      // date parsing & filtering ka code yahan rahega (same as before)...
-      const parsed = result.map(item => {
-        const dateStr = item.tran_date.split(' ')[0];
-        const [year, month, day] = dateStr.split('-').map(Number);
-        return {...item, jsDate: new Date(year, month - 1, day)};
-      });
+      // 🔹 bas last ke 30 record chahiye
+      const last30 = result.slice(-30);
 
-      const latestDate = new Date(
-        Math.max(...parsed.map(i => i.jsDate.getTime())),
-      );
-
-      const lastMonth = new Date(
-        latestDate.getFullYear(),
-        latestDate.getMonth() - 1,
-        1,
-      );
-      const thisMonth = new Date(
-        latestDate.getFullYear(),
-        latestDate.getMonth(),
-        1,
-      );
-
-      const filtered = parsed.filter(item => {
-        return item.jsDate >= lastMonth && item.jsDate < thisMonth;
-      });
-
-      setData(filtered);
+      setData(last30);
     } catch (error) {
       console.log('Error fetching data:', error);
     }
@@ -196,7 +173,7 @@ export default function VoucherScreen({navigation}) {
 
   const applyFilter = () => {
     if (!fromDate && !toDate) {
-      setData(allData);
+      setData(allData.slice(-30));
       return;
     }
 
@@ -215,13 +192,14 @@ export default function VoucherScreen({navigation}) {
       return afterFrom && beforeTo;
     });
 
-    setData(filtered);
+    // 🔹 filter ke baad bhi sirf last 30 hi dikhao
+    setData(filtered.slice(-30));
   };
 
   const clearFilter = () => {
     setFromDate(null);
     setToDate(null);
-    setData(allData);
+    setData(allData.slice(-30));
   };
 
   const formatAmount = value => {
@@ -353,7 +331,7 @@ export default function VoucherScreen({navigation}) {
                     navigation.navigate('UploadScreen', {
                       transactionType: item.type,
                       transactionNo: item.trans_no,
-                      fromScreen: 'VoucherScreen', 
+                      fromScreen: 'VoucherScreen',
                     })
                   }>
                   <Icon name="paperclip" size={20} color="#00ff99" />

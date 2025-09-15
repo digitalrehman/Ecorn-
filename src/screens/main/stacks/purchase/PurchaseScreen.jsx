@@ -7,13 +7,10 @@ import {APPCOLORS} from '../../../../utils/APPCOLORS';
 import * as Animatable from 'react-native-animatable';
 
 const buttons = [
-  {name: 'Add Suppliers', icon: 'account-multiple-plus'},
-  {name: 'Purchase Approval', icon: 'clipboard-check-multiple'},
-  {name: 'GRM', icon: 'file-document-outline'},
-  {name: 'Upload Vendor Data', icon: 'upload-network'},
-  {name: 'Outstanding PO', icon: 'file-clock'},
-  {name: 'Payable Summary', icon: 'cash-multiple'},
-  {name: 'PBC Detail', icon: 'file-chart'},
+  {name: 'Add Suppliers', icon: 'account-multiple-plus', screen: 'AddSuppliersScreen'},
+  {name: 'GRN AGAINST PO', icon: 'file-clock', screen: 'GRNPoScreen'},
+  {name: 'PDC Detail', icon: 'file-chart', screen: 'PdcDetailScreen'},
+  {name: 'Payable Summary', icon: 'cash-multiple', screen: 'PayableSummaryScreen'},
 ];
 
 export default function PurchaseScreen({navigation}) {
@@ -25,7 +22,7 @@ export default function PurchaseScreen({navigation}) {
       style={styles.buttonWrapper}>
       <TouchableOpacity
         activeOpacity={0.85}
-        onPress={() => navigation.navigate('Dashboard')}>
+        onPress={() => navigation.navigate(item.screen)}>
         <LinearGradient
           colors={['rgba(255,255,255,0.08)', 'rgba(255,255,255,0.02)']}
           style={styles.buttonContainer}>

@@ -235,8 +235,24 @@ const TrackOrderStatus = ({navigation}) => {
           <Ionicons name="chevron-back" color={COLORS.WHITE} size={28} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Track Orders</Text>
-        <TouchableOpacity onPress={fetchOrders}>
-          <Ionicons name="refresh" color={COLORS.WHITE} size={24} />
+
+        {/* Clear Filter Btn */}
+        <TouchableOpacity
+          onPress={() => {
+            setSearch('');
+            setSelectedLocation(null);
+            setFromDate(null);
+            setToDate(null);
+            setFilteredOrders(orders);
+            Toast.show({
+              type: 'info',
+              text1: 'Filters Cleared',
+              position: 'bottom',
+            });
+          }}>
+          <Text style={{color: COLORS.WHITE, fontSize: 15, fontWeight: '600'}}>
+            Clear
+          </Text>
         </TouchableOpacity>
       </View>
 
