@@ -1,4 +1,4 @@
-import React, {useState, useEffect, useRef} from 'react';
+import React, {useState, useEffect} from 'react';
 import {
   View,
   Text,
@@ -6,12 +6,12 @@ import {
   TouchableOpacity,
   ScrollView,
   StyleSheet,
+  ActivityIndicator,
   Platform,
-  Animated,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import {Dropdown} from 'react-native-element-dropdown';
+import {Dropdown, MultiSelect} from 'react-native-element-dropdown';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
 const COLORS = {
@@ -22,132 +22,210 @@ const COLORS = {
   Glass: 'rgba(255,255,255,0.08)',
 };
 
-const FIELDS = [
-  {key: 'projectType', type: 'dropdown', label: 'Project Type'},
-  {key: 'estimator', type: 'text', label: 'Estimator'},
-  {key: 'sendingDate', type: 'date', label: 'Project Sending Date'},
-  {key: 'revisionDate', type: 'date', label: 'Revision Date'},
-  {
-    key: 'revisionPrice',
-    type: 'text',
-    label: 'Latest Revision Price',
-    keyboard: 'numeric',
-  },
-  {key: 'poStatus', type: 'dropdown', label: 'PO Status'},
-  {key: 'companyName', type: 'text', label: 'Company Name'},
-  {key: 'projectName', type: 'text', label: 'Project Name'},
-  {key: 'salesPerson', type: 'text', label: 'Sales Person'},
-  {key: 'referenceNo', type: 'text', label: 'Reference No'},
-  {key: 'enclosure', type: 'text', label: 'Enclosure'},
-  {key: 'remarks', type: 'text', label: 'Remarks'},
+// --- Static Dropdown Options ---
+const projectTypeOptions = [
+  {label: 'In-hand', value: '0'},
+  {label: 'Tender', value: '1'},
 ];
 
-const AddLeadScreen = ({navigation}) => {
-  const [form, setForm] = useState({});
-  const [showPicker, setShowPicker] = useState({show: false, type: null});
+const poStatusOptions = [
+  {label: 'Active', value: '0'},
+  {label: 'PO Received', value: '1'},
+  {label: 'On-Hold', value: '2'},
+  {label: 'Enquiry Cancelled', value: '3'},
+];
 
-  // Animation refs
-  const animations = useRef(FIELDS.map(() => new Animated.Value(0))).current;
+const AddLeadScreen = ({navigation, route}) => {
+  const {id} = route.params || {};
 
+  const [form, setForm] = useState({
+    id: id || 0,
+    project_receiving_date: '',
+    job_type_id: '',
+    revision_no: '',
+    reference_no: '',
+    project_name: '',
+    company_name: '',
+    component_id: '',
+    enclosure_id: '',
+    sales_person_id: '',
+    project_type: '',
+    purch_order_details: [], // [{estimator_id: 1}, {estimator_id: 2}]
+    project_sending_date: '',
+    revision_date: '',
+    latest_revision_price: '',
+    po_status: '',
+    number_of_days: '',
+  });
+
+  const [loading, setLoading] = useState(false);
+  const [dropdownData, setDropdownData] = useState({
+    jobTypes: [],
+    components: [],
+    enclosures: [],
+    salesPersons: [],
+    estimators: [],
+  });
+  const [showPicker, setShowPicker] = useState({show: false, key: null});
+
+  // --- Fetch Dropdown Data ---
   useEffect(() => {
-    Animated.stagger(
-      150,
-      animations.map(anim =>
-        Animated.timing(anim, {
-          toValue: 1,
-          duration: 500,
-          useNativeDriver: true,
-        }),
-      ),
-    ).start();
-  }, []);
+    const fetchData = async () => {
+      try {
+        const jobTypes = await fetch(
+          'https://e.de2solutions.com/mobile_dash/lead_job_type.php',
+        ).then(res => res.json());
 
-  const updateField = (key, value) => {
-    setForm({...form, [key]: value});
-  };
+        const components = await fetch(
+          'https://e.de2solutions.com/mobile_dash/lead_components.php',
+        ).then(res => res.json());
 
-  const handleSubmit = () => {
-    console.log('Form Data:', form);
-    alert('Lead submitted successfully!');
-  };
+        const enclosures = await fetch(
+          'https://e.de2solutions.com/mobile_dash/lead_enclosure.php',
+        ).then(res => res.json());
 
-  const renderField = (field, index) => {
-    const animStyle = {
-      opacity: animations[index],
-      transform: [
-        {
-          translateY: animations[index].interpolate({
-            inputRange: [0, 1],
-            outputRange: [20, 0],
-          }),
-        },
-      ],
+        const salesPersons = await fetch(
+          'https://e.de2solutions.com/mobile_dash/salesman.php',
+        ).then(res => res.json());
+
+        const estimators = await fetch(
+          'https://e.de2solutions.com/mobile_dash/lead_estimator.php',
+        ).then(res => res.json());
+
+        setDropdownData({
+          jobTypes: jobTypes.data || [],
+          components: components.data || [],
+          enclosures: enclosures.data || [],
+          salesPersons: salesPersons.data || [],
+          estimators: estimators.data || [],
+        });
+      } catch (err) {
+        console.log('API Error:', err);
+      }
     };
 
-    switch (field.type) {
-      case 'dropdown':
-        const data =
-          field.key === 'projectType'
-            ? [
-                {label: 'Tender', value: 'Tender'},
-                {label: 'In-hand', value: 'In-hand'},
-              ]
-            : [
-                {label: 'Active', value: 'Active'},
-                {label: 'PO Received', value: 'PO Received'},
-                {label: 'On-Hold', value: 'On-Hold'},
-                {label: 'Cancelled', value: 'Cancelled'},
-              ];
-        return (
-          <Animated.View
-            key={field.key}
-            style={[styles.animatedWrap, animStyle]}>
-            <Dropdown
-              style={styles.dropdown}
-              data={data}
-              labelField="label"
-              valueField="value"
-              placeholder={field.label}
-              value={form[field.key]}
-              onChange={item => updateField(field.key, item.value)}
-            />
-          </Animated.View>
-        );
+    fetchData();
+  }, []);
 
-      case 'date':
-        return (
-          <Animated.View
-            key={field.key}
-            style={[styles.animatedWrap, animStyle]}>
-            <TouchableOpacity
-              style={styles.input}
-              onPress={() => setShowPicker({show: true, type: field.key})}>
-              <Text style={styles.dateText}>
-                {form[field.key]
-                  ? form[field.key].toLocaleDateString()
-                  : field.label}
-              </Text>
-            </TouchableOpacity>
-          </Animated.View>
-        );
+  // --- Agar update mode hai to lead_edit.php call karke data auto-fill karo ---
+  useEffect(() => {
+    if (form.id > 0) {
+      const fetchLead = async () => {
+        try {
+          const formData = new FormData();
+          formData.append('id', form.id);
 
-      default:
-        return (
-          <Animated.View
-            key={field.key}
-            style={[styles.animatedWrap, animStyle]}>
-            <TextInput
-              style={styles.input}
-              placeholder={field.label}
-              placeholderTextColor="rgba(255,255,255,0.6)"
-              keyboardType={field.keyboard || 'default'}
-              value={form[field.key]}
-              onChangeText={t => updateField(field.key, t)}
-            />
-          </Animated.View>
-        );
+          const response = await fetch(
+            'https://e.de2solutions.com/mobile_dash/lead_edit.php',
+            {
+              method: 'POST',
+              body: formData,
+            },
+          );
+
+          const result = await response.json();
+
+          if (result.status === 'true') {
+            const header = result.header[0];
+            const estimators = result.data || [];
+
+            setForm(prev => ({
+              ...prev,
+              ...header,
+              purch_order_details: estimators, // prefill estimators
+            }));
+          }
+        } catch (err) {
+          console.log('Edit API error:', err);
+        }
+      };
+      fetchLead();
+    }
+  }, [form.id]);
+
+  // --- Update Form Fields ---
+  const updateField = (key, value) => {
+    setForm(prev => ({...prev, [key]: value}));
+
+    // Auto generate Reference No
+    if (key === 'job_type_id' || key === 'revision_no') {
+      generateReferenceNo(
+        key === 'job_type_id' ? value : form.job_type_id,
+        key === 'revision_no' ? value : form.revision_no,
+      );
     }
   };
+
+  // --- Auto Generate Reference No ---
+  const generateReferenceNo = (jobTypeId, revisionNo) => {
+    let prefix = 'PK';
+    if (jobTypeId == '1') prefix = 'PK';
+    if (jobTypeId == '2') prefix = 'PKm';
+    if (jobTypeId == '3') prefix = 'SO';
+
+    const date = new Date();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const counter = '0011'; // TODO: Backend se aayega
+    const rev = revisionNo ? revisionNo.toString().padStart(2, '0') : '00';
+
+    const ref = `${prefix}${counter}-${month}-R${rev}`;
+    setForm(prev => ({...prev, reference_no: ref}));
+  };
+
+  // --- Submit Form ---
+  const handleSubmit = async () => {
+    setLoading(true);
+    try {
+      const formData = new FormData();
+
+      Object.keys(form).forEach(key => {
+        if (key === 'purch_order_details') {
+          formData.append(key, JSON.stringify(form[key]));
+        } else {
+          formData.append(key, form[key]);
+        }
+      });
+
+      const url =
+        form.id > 0
+          ? 'https://e.de2solutions.com/mobile_dash/lead_edit.php'
+          : 'https://e.de2solutions.com/mobile_dash/lead_post.php';
+
+      const response = await fetch(url, {
+        method: 'POST',
+        body: formData,
+      });
+
+      const result = await response.json();
+      console.log('Submit Result:', result);
+
+      if (result.status === 'true') {
+        alert(
+          form.id > 0
+            ? 'Lead updated successfully!'
+            : 'Lead added successfully!',
+        );
+        navigation.goBack();
+      } else {
+        alert('Error: ' + JSON.stringify(result));
+      }
+    } catch (err) {
+      console.log('Submit Error:', err);
+      alert('Error submitting form');
+    }
+    setLoading(false);
+  };
+
+  // --- Render Date Picker ---
+  const renderDateField = (label, key) => (
+    <TouchableOpacity
+      style={styles.input}
+      onPress={() => setShowPicker({show: true, key})}>
+      <Text style={styles.dateText}>
+        {form[key] ? new Date(form[key]).toLocaleDateString() : label}
+      </Text>
+    </TouchableOpacity>
+  );
 
   return (
     <LinearGradient
@@ -158,42 +236,201 @@ const AddLeadScreen = ({navigation}) => {
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Ionicons name="chevron-back" size={26} color={COLORS.WHITE} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Add Lead</Text>
+        <Text style={styles.headerTitle}>
+          {form.id > 0 ? 'Update Lead' : 'Add Lead'}
+        </Text>
         <View style={{width: 26}} />
       </View>
 
       <ScrollView contentContainerStyle={{padding: 16}}>
-        {FIELDS.map((f, i) => renderField(f, i))}
+        {/* Project Receiving Date */}
+        {renderDateField('Project Receiving Date', 'project_receiving_date')}
+
+        {/* Job Type */}
+        <Dropdown
+          style={styles.dropdown}
+          data={dropdownData.jobTypes.map(j => ({
+            label: j.description,
+            value: j.id,
+          }))}
+          labelField="label"
+          valueField="value"
+          placeholder="Job Type"
+          value={form.job_type_id}
+          onChange={item => updateField('job_type_id', item.value)}
+        />
+
+        {/* Revision No */}
+        <TextInput
+          style={styles.input}
+          placeholder="Revision No"
+          placeholderTextColor="rgba(255,255,255,0.6)"
+          keyboardType="numeric"
+          value={form.revision_no?.toString()}
+          onChangeText={t => updateField('revision_no', t)}
+        />
+
+        {/* Reference No */}
+        <TextInput
+          style={styles.input}
+          placeholder="Reference No"
+          placeholderTextColor="rgba(255,255,255,0.6)"
+          value={form.reference_no}
+          editable={false}
+        />
+
+        {/* Project Name */}
+        <TextInput
+          style={styles.input}
+          placeholder="Project Name"
+          placeholderTextColor="rgba(255,255,255,0.6)"
+          value={form.project_name}
+          onChangeText={t => updateField('project_name', t)}
+        />
+
+        {/* Company Name */}
+        <TextInput
+          style={styles.input}
+          placeholder="Company Name"
+          placeholderTextColor="rgba(255,255,255,0.6)"
+          value={form.company_name}
+          onChangeText={t => updateField('company_name', t)}
+        />
+
+        {/* Components */}
+        <Dropdown
+          style={styles.dropdown}
+          data={dropdownData.components.map(c => ({
+            label: c.description,
+            value: c.id,
+          }))}
+          labelField="label"
+          valueField="value"
+          placeholder="Components"
+          value={form.component_id}
+          onChange={item => updateField('component_id', item.value)}
+        />
+
+        {/* Enclosure */}
+        <Dropdown
+          style={styles.dropdown}
+          data={dropdownData.enclosures.map(e => ({
+            label: e.description,
+            value: e.id,
+          }))}
+          labelField="label"
+          valueField="value"
+          placeholder="Enclosure"
+          value={form.enclosure_id}
+          onChange={item => updateField('enclosure_id', item.value)}
+        />
+
+        {/* Sales Person */}
+        <Dropdown
+          style={styles.dropdown}
+          data={dropdownData.salesPersons.map(s => ({
+            label: s.salesman_name,
+            value: s.salesman_code,
+          }))}
+          labelField="label"
+          valueField="value"
+          placeholder="Sales Person"
+          value={form.sales_person_id}
+          onChange={item => updateField('sales_person_id', item.value)}
+        />
+
+        {/* Project Type */}
+        <Dropdown
+          style={styles.dropdown}
+          data={projectTypeOptions}
+          labelField="label"
+          valueField="value"
+          placeholder="Project Type"
+          value={form.project_type}
+          onChange={item => updateField('project_type', item.value)}
+        />
+
+        {/* Estimator MultiSelect */}
+        <MultiSelect
+          style={styles.dropdown}
+          data={dropdownData.estimators.map(e => ({
+            label: e.description,
+            value: e.id,
+          }))}
+          labelField="label"
+          valueField="value"
+          placeholder="Select Estimator"
+          value={form.purch_order_details.map(e => e.estimator_id)}
+          onChange={items => {
+            const mapped = items.map(i => ({estimator_id: i}));
+            updateField('purch_order_details', mapped);
+          }}
+          renderSelectedItem={(item, unSelect) => (
+            <View style={styles.selectedStyle}>
+              <Text style={styles.textSelectedStyle}>{item.label}</Text>
+              <TouchableOpacity onPress={() => unSelect(item)}>
+                <Ionicons name="close" size={18} color="white" />
+              </TouchableOpacity>
+            </View>
+          )}
+          selectedStyle={styles.selectedContainer}
+        />
+
+        {/* Project Sending Date */}
+        {renderDateField('Project Sending Date', 'project_sending_date')}
+
+        {/* Revision Date */}
+        {renderDateField('Revision Date', 'revision_date')}
+
+        {/* Latest Revision Price */}
+        <TextInput
+          style={styles.input}
+          placeholder="Latest Revision Price"
+          placeholderTextColor="rgba(255,255,255,0.6)"
+          keyboardType="numeric"
+          value={form.latest_revision_price?.toString()}
+          onChangeText={t => updateField('latest_revision_price', t)}
+        />
+
+        {/* PO Status */}
+        <Dropdown
+          style={styles.dropdown}
+          data={poStatusOptions}
+          labelField="label"
+          valueField="value"
+          placeholder="PO Status"
+          value={form.po_status}
+          onChange={item => updateField('po_status', item.value)}
+        />
+
+        {/* Number of Days */}
+        <TextInput
+          style={styles.input}
+          placeholder="Number of Days"
+          placeholderTextColor="rgba(255,255,255,0.6)"
+          keyboardType="numeric"
+          value={form.number_of_days?.toString()}
+          onChangeText={t => updateField('number_of_days', t)}
+        />
 
         {/* Submit Button */}
-        <Animated.View
-          style={[
-            styles.animatedWrap,
-            {
-              opacity: animations[FIELDS.length - 1],
-              transform: [
-                {
-                  translateY: animations[FIELDS.length - 1].interpolate({
-                    inputRange: [0, 1],
-                    outputRange: [20, 0],
-                  }),
-                },
-              ],
-            },
-          ]}>
-          <TouchableOpacity
-            activeOpacity={0.85}
-            style={styles.submitBtn}
-            onPress={handleSubmit}>
-            <LinearGradient
-              colors={[COLORS.Secondary, '#7a7c8a', COLORS.Primary]}
-              start={{x: 0, y: 0}}
-              end={{x: 1, y: 1}}
-              style={styles.submitGradient}>
-              <Text style={styles.submitText}>Submit Lead</Text>
-            </LinearGradient>
-          </TouchableOpacity>
-        </Animated.View>
+        <TouchableOpacity
+          activeOpacity={0.85}
+          style={styles.submitBtn}
+          onPress={handleSubmit}
+          disabled={loading}>
+          <LinearGradient
+            colors={[COLORS.Secondary, '#7a7c8a', COLORS.Primary]}
+            style={styles.submitGradient}>
+            {loading ? (
+              <ActivityIndicator color={COLORS.WHITE} />
+            ) : (
+              <Text style={styles.submitText}>
+                {form.id > 0 ? 'Update Lead' : 'Submit Lead'}
+              </Text>
+            )}
+          </LinearGradient>
+        </TouchableOpacity>
       </ScrollView>
 
       {/* Date Picker */}
@@ -203,9 +440,9 @@ const AddLeadScreen = ({navigation}) => {
           mode="date"
           display={Platform.OS === 'ios' ? 'spinner' : 'default'}
           onChange={(e, selected) => {
-            setShowPicker({show: false, type: null});
+            setShowPicker({show: false, key: null});
             if (selected) {
-              updateField(showPicker.type, selected);
+              updateField(showPicker.key, selected.toISOString().split('T')[0]);
             }
           }}
         />
@@ -229,9 +466,6 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: COLORS.WHITE,
   },
-  animatedWrap: {
-    marginBottom: 14,
-  },
   input: {
     height: 50,
     borderRadius: 14,
@@ -240,6 +474,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.Glass,
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.1)',
+    marginBottom: 12,
     justifyContent: 'center',
   },
   dropdown: {
@@ -249,13 +484,14 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.Glass,
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.1)',
+    marginBottom: 12,
   },
   dateText: {
     color: 'rgba(255,255,255,0.85)',
     fontSize: 15,
   },
   submitBtn: {
-    marginTop: 10,
+    marginTop: 20,
     borderRadius: 14,
     overflow: 'hidden',
   },
@@ -269,5 +505,21 @@ const styles = StyleSheet.create({
     color: COLORS.WHITE,
     fontSize: 16,
     fontWeight: '700',
+  },
+  selectedStyle: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.Secondary,
+    borderRadius: 12,
+    marginRight: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+  },
+  textSelectedStyle: {
+    color: COLORS.WHITE,
+    marginRight: 4,
+  },
+  selectedContainer: {
+    marginTop: 8,
   },
 });

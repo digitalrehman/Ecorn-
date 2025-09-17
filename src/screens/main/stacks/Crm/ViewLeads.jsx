@@ -1,10 +1,11 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {
   View,
   Text,
   TouchableOpacity,
   StyleSheet,
   FlatList,
+  ActivityIndicator,
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import LinearGradient from 'react-native-linear-gradient';
@@ -16,96 +17,90 @@ const COLORS = {
   Secondary: '#5a5c6a',
 };
 
-// Dummy Data
-const LEADS = [
-  {
-    id: '1',
-    date: '2025-09-10',
-    referenceNo: 'REF001',
-    projectName: 'Mall Construction',
-    companyName: 'ABC Builders',
-    enclosure: 'Yes',
-    salesPerson: 'Ali',
-    estimator: 'Sara',
-    status: 'Active',
-  },
-  {
-    id: '2',
-    date: '2025-09-11',
-    referenceNo: 'REF002',
-    projectName: 'Apartment Tower',
-    companyName: 'XYZ Developers',
-    enclosure: 'No',
-    salesPerson: 'Ahmed',
-    estimator: 'Zara',
-    status: 'POC Detail',
-  },
-  {
-    id: '3',
-    date: '2025-09-12',
-    referenceNo: 'REF003',
-    projectName: 'Housing Scheme',
-    companyName: 'Star Constructions',
-    enclosure: 'Yes',
-    salesPerson: 'Bilal',
-    estimator: 'Ayesha',
-    status: 'On Hold',
-  },
-  {
-    id: '4',
-    date: '2025-09-13',
-    referenceNo: 'REF004',
-    projectName: 'Bridge Project',
-    companyName: 'Road Masters',
-    enclosure: 'Yes',
-    salesPerson: 'Hassan',
-    estimator: 'Imran',
-    status: 'Cancelled',
-  },
-];
-
 const FILTERS = [
   {key: 'Active', icon: 'checkmark-circle'},
-  {key: 'POC Detail', icon: 'document-text'},
-  {key: 'On Hold', icon: 'pause-circle'},
-  {key: 'Cancelled', icon: 'close-circle'},
+  {key: 'PO Received', icon: 'document-text'},
+  {key: 'On-Hold', icon: 'pause-circle'},
+  {key: 'Enquiry Cancelled', icon: 'close-circle'},
 ];
 
 const ViewLeads = ({navigation}) => {
-  const [selectedFilter, setSelectedFilter] = useState('Active');
+  const [selectedFilter, setSelectedFilter] = useState('All');
+  const [leads, setLeads] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const filteredLeads = LEADS.filter(l => l.status === selectedFilter);
+  // GET API call
+  useEffect(() => {
+    const fetchLeads = async () => {
+      try {
+        const res = await fetch(
+          'https://e.de2solutions.com/mobile_dash/leads.php',
+        );
+        const json = await res.json();
+        if (json.status === 'true') {
+          setLeads(json.data);
+        } else {
+          console.log('API Error:', json);
+        }
+      } catch (err) {
+        console.log('Fetch Error:', err);
+      }
+      setLoading(false);
+    };
+    fetchLeads();
+  }, []);
+
+  // status mapping
+  const STATUS_MAP = {
+    0: 'Active',
+    1: 'PO Received',
+    2: 'On-Hold',
+    3: 'Enquiry Cancelled',
+  };
+  // filter apply
+  const filteredLeads =
+    selectedFilter === 'All'
+      ? leads
+      : leads.filter(l => STATUS_MAP[l.po_status] === selectedFilter);
 
   const renderCard = ({item}) => (
     <View style={styles.card}>
       <View style={styles.kvRow}>
         <Text style={styles.kvKey}>Date:</Text>
-        <Text style={styles.kvValue}>{item.date}</Text>
+        <Text style={styles.kvValue}>{item.project_receiving_date}</Text>
       </View>
       <View style={styles.kvRow}>
         <Text style={styles.kvKey}>Reference No:</Text>
-        <Text style={styles.kvValue}>{item.referenceNo}</Text>
+        <Text style={styles.kvValue}>{item.reference_no}</Text>
       </View>
       <View style={styles.kvRow}>
         <Text style={styles.kvKey}>Project:</Text>
-        <Text style={styles.kvValue}>{item.projectName}</Text>
+        <Text style={styles.kvValue}>{item.project_name}</Text>
       </View>
       <View style={styles.kvRow}>
         <Text style={styles.kvKey}>Company:</Text>
-        <Text style={styles.kvValue}>{item.companyName}</Text>
+        <Text style={styles.kvValue}>{item.company_name}</Text>
       </View>
       <View style={styles.kvRow}>
         <Text style={styles.kvKey}>Enclosure:</Text>
-        <Text style={styles.kvValue}>{item.enclosure}</Text>
+        <Text style={styles.kvValue}>{item.enclosure_name}</Text>
       </View>
       <View style={styles.kvRow}>
         <Text style={styles.kvKey}>Sales Person:</Text>
-        <Text style={styles.kvValue}>{item.salesPerson}</Text>
+        <Text style={styles.kvValue}>{item.salesman_name}</Text>
       </View>
       <View style={styles.kvRow}>
         <Text style={styles.kvKey}>Estimator:</Text>
-        <Text style={styles.kvValue}>{item.estimator}</Text>
+        <Text style={styles.kvValue}>{item.estimator_name}</Text>
       </View>
+
+      {/* Edit button */}
+      <TouchableOpacity
+        style={styles.editBtn}
+        onPress={() => navigation.navigate('AddLeadScreen', {id: item.id})}>
+        <Ionicons name="create-outline" color={COLORS.WHITE} size={18} />
+        <Text style={styles.editText}>Edit</Text>
+      </TouchableOpacity>
     </View>
   );
 
@@ -118,11 +113,22 @@ const ViewLeads = ({navigation}) => {
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Ionicons name="chevron-back" color={COLORS.WHITE} size={28} />
         </TouchableOpacity>
+
         <Text style={styles.headerTitle}>View Leads</Text>
-        <Ionicons name="filter" color={COLORS.WHITE} size={24} />
+
+        <TouchableOpacity
+          onPress={
+            () => (selectedFilter === 'All' ? null : setSelectedFilter('All')) // 👈 reset filter
+          }>
+          <Ionicons
+            name={selectedFilter === 'All' ? 'filter' : 'close-circle'}
+            color={COLORS.WHITE}
+            size={24}
+          />
+        </TouchableOpacity>
       </View>
 
-      {/* Filter Buttons in Grid (2x2) */}
+      {/* Filters */}
       <View style={styles.filterGrid}>
         {FILTERS.map(f => (
           <TouchableOpacity
@@ -149,13 +155,21 @@ const ViewLeads = ({navigation}) => {
         ))}
       </View>
 
-      {/* Cards */}
-      <FlatList
-        data={filteredLeads}
-        keyExtractor={item => item.id}
-        renderItem={renderCard}
-        contentContainerStyle={{padding: 16}}
-      />
+      {/* Loader or Cards */}
+      {loading ? (
+        <ActivityIndicator
+          size="large"
+          color={COLORS.WHITE}
+          style={{marginTop: 30}}
+        />
+      ) : (
+        <FlatList
+          data={filteredLeads}
+          keyExtractor={item => item.id}
+          renderItem={renderCard}
+          contentContainerStyle={{padding: 16}}
+        />
+      )}
     </LinearGradient>
   );
 };
@@ -186,7 +200,7 @@ const styles = StyleSheet.create({
     marginTop: 12,
   },
   filterBtn: {
-    width: '48%', // 2 per row
+    width: '48%',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -230,5 +244,21 @@ const styles = StyleSheet.create({
     textAlign: 'right',
     flex: 1,
     marginLeft: 8,
+  },
+  editBtn: {
+    marginTop: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-end',
+    backgroundColor: COLORS.Secondary,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
+  },
+  editText: {
+    marginLeft: 6,
+    color: COLORS.WHITE,
+    fontSize: 13,
+    fontWeight: '600',
   },
 });
