@@ -13,7 +13,7 @@ import LinearGradient from 'react-native-linear-gradient';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import {Dropdown, MultiSelect} from 'react-native-element-dropdown';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-
+import Toast from 'react-native-toast-message';
 const COLORS = {
   WHITE: '#FFFFFF',
   BLACK: '#000000',
@@ -132,7 +132,7 @@ const AddLeadScreen = ({navigation, route}) => {
             setForm(prev => ({
               ...prev,
               ...header,
-              purch_order_details: estimators, // prefill estimators
+              purch_order_details: estimators,
             }));
           }
         } catch (err) {
@@ -160,19 +160,23 @@ const AddLeadScreen = ({navigation, route}) => {
   const generateReferenceNo = (jobTypeId, revisionNo) => {
     let prefix = 'PK';
     if (jobTypeId == '1') prefix = 'PK';
-    if (jobTypeId == '2') prefix = 'PKm';
+    if (jobTypeId == '9') prefix = 'PKm';
     if (jobTypeId == '3') prefix = 'SO';
 
     const date = new Date();
+
+    // yyyyMMdd ko counter ke taur pe use kar lo (unique daily)
+    const day = String(date.getDate()).padStart(2, '0');
     const month = String(date.getMonth() + 1).padStart(2, '0');
-    const counter = '0011'; // TODO: Backend se aayega
+
+    const counter = `00${day}`;
+
     const rev = revisionNo ? revisionNo.toString().padStart(2, '0') : '00';
 
     const ref = `${prefix}${counter}-${month}-R${rev}`;
     setForm(prev => ({...prev, reference_no: ref}));
   };
 
-  // --- Submit Form ---
   const handleSubmit = async () => {
     setLoading(true);
     try {
@@ -182,36 +186,73 @@ const AddLeadScreen = ({navigation, route}) => {
         if (key === 'purch_order_details') {
           formData.append(key, JSON.stringify(form[key]));
         } else {
-          formData.append(key, form[key]);
+          formData.append(key, form[key] || 0);
         }
       });
 
-      const url =
-        form.id > 0
-          ? 'https://e.de2solutions.com/mobile_dash/lead_edit.php'
-          : 'https://e.de2solutions.com/mobile_dash/lead_post.php';
+      // id hamesha bhejna
+      formData.append('id', form.id || 0);
+
+      const url = 'https://e.de2solutions.com/mobile_dash/lead_post.php';
 
       const response = await fetch(url, {
         method: 'POST',
         body: formData,
       });
 
-      const result = await response.json();
-      console.log('Submit Result:', result);
+      const raw = await response.text(); // 👈 pehle text lo
+      console.log('Submit Raw Response:', raw);
 
-      if (result.status === 'true') {
-        alert(
-          form.id > 0
-            ? 'Lead updated successfully!'
-            : 'Lead added successfully!',
-        );
-        navigation.goBack();
+      let result;
+      try {
+        result = JSON.parse(raw); // 👈 parse try karo
+      } catch (e) {
+        result = {status: true, message: raw}; // 👈 agar JSON na ho to bhi success मान लो
+      }
+
+      if (result.status === true || result.status === 'true') {
+        Toast.show({
+          type: 'success',
+          text1:
+            form.id > 0
+              ? 'Lead updated successfully!'
+              : 'Lead added successfully!',
+        });
+
+        setForm({
+          id: 0,
+          project_receiving_date: '',
+          job_type_id: '',
+          revision_no: '',
+          reference_no: '',
+          project_name: '',
+          company_name: '',
+          component_id: '',
+          enclosure_id: '',
+          sales_person_id: '',
+          project_type: '',
+          purch_order_details: [],
+          project_sending_date: '',
+          revision_date: '',
+          latest_revision_price: '',
+          po_status: '',
+          number_of_days: '',
+        });
+
+        navigation.navigate('ViewLeads');
       } else {
-        alert('Error: ' + JSON.stringify(result));
+        Toast.show({
+          type: 'error',
+          text1: 'Error submitting form',
+          text2: JSON.stringify(result),
+        });
       }
     } catch (err) {
       console.log('Submit Error:', err);
-      alert('Error submitting form');
+      Toast.show({
+        type: 'error',
+        text1: 'Error submitting form',
+      });
     }
     setLoading(false);
   };
@@ -246,7 +287,6 @@ const AddLeadScreen = ({navigation, route}) => {
         {/* Project Receiving Date */}
         {renderDateField('Project Receiving Date', 'project_receiving_date')}
 
-        {/* Job Type */}
         <Dropdown
           style={styles.dropdown}
           data={dropdownData.jobTypes.map(j => ({
@@ -256,6 +296,9 @@ const AddLeadScreen = ({navigation, route}) => {
           labelField="label"
           valueField="value"
           placeholder="Job Type"
+          placeholderStyle={{color: 'rgba(255,255,255,0.6)'}} // Placeholder white-ish
+          selectedTextStyle={{color: COLORS.WHITE}} // Selected value white
+          itemTextStyle={{color: COLORS.BLACK}} // Dropdown list black
           value={form.job_type_id}
           onChange={item => updateField('job_type_id', item.value)}
         />
@@ -307,6 +350,9 @@ const AddLeadScreen = ({navigation, route}) => {
           labelField="label"
           valueField="value"
           placeholder="Components"
+          placeholderStyle={{color: 'rgba(255,255,255,0.6)'}} // Placeholder white-ish
+          selectedTextStyle={{color: COLORS.WHITE}} // Selected value white
+          itemTextStyle={{color: COLORS.BLACK}} // Dropdown list black
           value={form.component_id}
           onChange={item => updateField('component_id', item.value)}
         />
@@ -321,6 +367,9 @@ const AddLeadScreen = ({navigation, route}) => {
           labelField="label"
           valueField="value"
           placeholder="Enclosure"
+          placeholderStyle={{color: 'rgba(255,255,255,0.6)'}} // Placeholder white-ish
+          selectedTextStyle={{color: COLORS.WHITE}} // Selected value white
+          itemTextStyle={{color: COLORS.BLACK}} // Dropdown list black
           value={form.enclosure_id}
           onChange={item => updateField('enclosure_id', item.value)}
         />
@@ -335,6 +384,9 @@ const AddLeadScreen = ({navigation, route}) => {
           labelField="label"
           valueField="value"
           placeholder="Sales Person"
+          placeholderStyle={{color: 'rgba(255,255,255,0.6)'}} // Placeholder white-ish
+          selectedTextStyle={{color: COLORS.WHITE}} // Selected value white
+          itemTextStyle={{color: COLORS.BLACK}} // Dropdown list black
           value={form.sales_person_id}
           onChange={item => updateField('sales_person_id', item.value)}
         />
@@ -346,11 +398,13 @@ const AddLeadScreen = ({navigation, route}) => {
           labelField="label"
           valueField="value"
           placeholder="Project Type"
+          placeholderStyle={{color: 'rgba(255,255,255,0.6)'}} // Placeholder white-ish
+          selectedTextStyle={{color: COLORS.WHITE}} // Selected value white
+          itemTextStyle={{color: COLORS.BLACK}} // Dropdown list black
           value={form.project_type}
           onChange={item => updateField('project_type', item.value)}
         />
 
-        {/* Estimator MultiSelect */}
         <MultiSelect
           style={styles.dropdown}
           data={dropdownData.estimators.map(e => ({
@@ -365,6 +419,9 @@ const AddLeadScreen = ({navigation, route}) => {
             const mapped = items.map(i => ({estimator_id: i}));
             updateField('purch_order_details', mapped);
           }}
+          placeholderStyle={{color: 'rgba(255,255,255,0.6)'}}
+          selectedTextStyle={{color: COLORS.WHITE}}
+          itemTextStyle={{color: COLORS.BLACK}} // Dropdown list black
           renderSelectedItem={(item, unSelect) => (
             <View style={styles.selectedStyle}>
               <Text style={styles.textSelectedStyle}>{item.label}</Text>
@@ -399,6 +456,9 @@ const AddLeadScreen = ({navigation, route}) => {
           labelField="label"
           valueField="value"
           placeholder="PO Status"
+          placeholderStyle={{color: 'rgba(255,255,255,0.6)'}} // Placeholder white-ish
+          selectedTextStyle={{color: COLORS.WHITE}} // Selected value white
+          itemTextStyle={{color: COLORS.BLACK}} // Dropdown list black
           value={form.po_status}
           onChange={item => updateField('po_status', item.value)}
         />
@@ -521,5 +581,8 @@ const styles = StyleSheet.create({
   },
   selectedContainer: {
     marginTop: 8,
+  },
+  dropdownText: {
+    color: COLORS.WHITE,
   },
 });
