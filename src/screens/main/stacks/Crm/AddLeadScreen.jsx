@@ -165,7 +165,6 @@ const AddLeadScreen = ({navigation, route}) => {
 
     const date = new Date();
 
-    // yyyyMMdd ko counter ke taur pe use kar lo (unique daily)
     const day = String(date.getDate()).padStart(2, '0');
     const month = String(date.getMonth() + 1).padStart(2, '0');
 
@@ -205,9 +204,9 @@ const AddLeadScreen = ({navigation, route}) => {
 
       let result;
       try {
-        result = JSON.parse(raw); // 👈 parse try karo
+        result = JSON.parse(raw);
       } catch (e) {
-        result = {status: true, message: raw}; // 👈 agar JSON na ho to bhi success मान लो
+        result = {status: true, message: raw};
       }
 
       if (result.status === true || result.status === 'true') {

@@ -143,7 +143,6 @@ const AddNewCustomer = ({navigation}) => {
     datas.append('customer_status', num);
     datas.append('page', page);
 
-    console.log('datasdatasdatasdatasdatasdatas', datas);
     let configs = {
       method: 'post',
       maxBodyLength: Infinity,

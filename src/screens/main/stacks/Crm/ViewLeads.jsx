@@ -23,6 +23,16 @@ const FILTERS = [
   {key: 'On-Hold', icon: 'pause-circle'},
   {key: 'Enquiry Cancelled', icon: 'close-circle'},
 ];
+// 👇 Date format helper
+const formatDate = dateStr => {
+  if (!dateStr) return '-';
+  const d = new Date(dateStr);
+  if (isNaN(d)) return dateStr; // agar backend ka format different ho
+  const day = String(d.getDate()).padStart(2, '0');
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const year = String(d.getFullYear()).slice(-2); // last 2 digits
+  return `${day}/${month}/${year}`;
+};
 
 const ViewLeads = ({navigation}) => {
   const [selectedFilter, setSelectedFilter] = useState('All');
@@ -67,8 +77,11 @@ const ViewLeads = ({navigation}) => {
     <View style={styles.card}>
       <View style={styles.kvRow}>
         <Text style={styles.kvKey}>Date:</Text>
-        <Text style={styles.kvValue}>{item.project_receiving_date}</Text>
+        <Text style={styles.kvValue}>
+          {formatDate(item.project_receiving_date)}
+        </Text>
       </View>
+
       <View style={styles.kvRow}>
         <Text style={styles.kvKey}>Reference No:</Text>
         <Text style={styles.kvValue}>{item.reference_no}</Text>
@@ -92,6 +105,16 @@ const ViewLeads = ({navigation}) => {
       <View style={styles.kvRow}>
         <Text style={styles.kvKey}>Estimator:</Text>
         <Text style={styles.kvValue}>{item.estimator_name}</Text>
+      </View>
+
+      {/* 👇 New Row */}
+      <View style={styles.kvRow}>
+        <Text style={styles.kvKey}>Latest Price:</Text>
+        <Text style={styles.kvValue}>
+          {item.latest_revision_price
+            ? `PKR ${item.latest_revision_price}`
+            : '-'}
+        </Text>
       </View>
 
       {/* Edit button */}
