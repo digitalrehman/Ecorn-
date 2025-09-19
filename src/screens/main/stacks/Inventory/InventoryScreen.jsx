@@ -7,13 +7,14 @@ import {APPCOLORS} from '../../../../utils/APPCOLORS';
 import * as Animatable from 'react-native-animatable';
 
 const buttons = [
-  {name: 'Add Item', icon: 'plus-box'},
-  {name: 'Search Item', icon: 'magnify'},
-  {name: 'Item Movement', icon: 'swap-horizontal'},
-  {name: 'Location Transfer', icon: 'map-marker-multiple'},
-  {name: 'Project Wise Report', icon: 'file-chart-outline'},
-  {name: 'Dated Stock Sheet', icon: 'calendar-text'},
-  {name: 'Costed Inventory Movement', icon: 'finance'},
+  {name: 'Add Item', icon: 'plus-box', screen: 'AddItem'},
+  {name: 'Search Item', icon: 'magnify', screen: 'SearchItemScreen'},
+  {name: 'Item Movement', icon: 'swap-horizontal', screen: 'MovementScreen'},
+  {name: 'Location Transfer', icon: 'map-marker-multiple', screen: 'LocationTransfer'},
+  {name: 'Inventory Ajustment', icon: 'playlist-edit', screen: 'InventoryAjustment'},
+  {name: 'Project Wise Report', icon: 'file-chart-outline', screen: 'ReportScreen'},
+  {name: 'Dated Stock Sheet', icon: 'calendar-text', screen: 'StockSheetScreen'},
+  {name: 'Costed Inventory Movement', icon: 'finance', screen: 'InventoryMovementScreen'},
 ];
 
 export default function InventoryScreen({navigation}) {
@@ -25,7 +26,7 @@ export default function InventoryScreen({navigation}) {
       style={styles.buttonWrapper}>
       <TouchableOpacity
         activeOpacity={0.85}
-        onPress={() => navigation.navigate('Dashboard')}>
+        onPress={() => navigation.navigate(item.screen)}>
         <LinearGradient
           colors={['rgba(255,255,255,0.08)', 'rgba(255,255,255,0.02)']}
           style={styles.buttonContainer}>

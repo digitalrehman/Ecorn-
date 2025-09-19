@@ -61,6 +61,9 @@ import AddSuppliersScreen from '../screens/main/stacks/purchase/AddSuppliersScre
 import AddLeadScreen from '../screens/main/stacks/Crm/AddLeadScreen';
 import LeadsListScreen from '../screens/main/stacks/Crm/LeadsListScreen';
 import ViewLeads from '../screens/main/stacks/Crm/ViewLeads';
+import AddItem from '../screens/main/stacks/Inventory/AddItem';
+import InventoryAjustment from '../screens/main/stacks/Inventory/InventoryAjustment';
+import LocationTransfer from '../screens/main/stacks/Inventory/LocationTransfer';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -152,6 +155,9 @@ const Main = () => {
       <Stack.Screen name="AddLeadScreen" component={AddLeadScreen} />
       <Stack.Screen name="LeadsListScreen" component={LeadsListScreen} />
       <Stack.Screen name="ViewLeads" component={ViewLeads} />
+      <Stack.Screen name="AddItem" component={AddItem} />
+      <Stack.Screen name="InventoryAjustment" component={InventoryAjustment} />
+      <Stack.Screen name="LocationTransfer" component={LocationTransfer} />
     </Stack.Navigator>
   );
 };

@@ -99,7 +99,6 @@ export default function VoucherScreen({navigation}) {
     }
 
     try {
-      // 🔹 File download with RNFetchBlob
       const res = await RNFetchBlob.config({
         fileCache: true,
         appendExt: 'tmp', // temporary extension
