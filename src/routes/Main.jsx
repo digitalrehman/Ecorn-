@@ -64,6 +64,11 @@ import ViewLeads from '../screens/main/stacks/Crm/ViewLeads';
 import AddItem from '../screens/main/stacks/Inventory/AddItem';
 import InventoryAjustment from '../screens/main/stacks/Inventory/InventoryAjustment';
 import LocationTransfer from '../screens/main/stacks/Inventory/LocationTransfer';
+import ElectricalJobCardsScreen from '../screens/main/stacks/Manufacturing/ElectricalJobCardsScreen';
+import UploadSuppliers from '../screens/main/stacks/purchase/UploadSuppliers';
+import MechanicalJobCardsScreen from '../screens/main/stacks/Manufacturing/MechanicalJobCardsScreen';
+import MechanicalEstimate from '../screens/main/stacks/Manufacturing/MechanicalEstimate';
+import MechanicalProduce from '../screens/main/stacks/Manufacturing/MechanicalProduce';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -158,6 +163,17 @@ const Main = () => {
       <Stack.Screen name="AddItem" component={AddItem} />
       <Stack.Screen name="InventoryAjustment" component={InventoryAjustment} />
       <Stack.Screen name="LocationTransfer" component={LocationTransfer} />
+      <Stack.Screen name="UploadSuppliers" component={UploadSuppliers} />
+      <Stack.Screen
+        name="ElectricalJobCardsScreen"
+        component={ElectricalJobCardsScreen}
+      />
+      <Stack.Screen
+        name="MechanicalJobCardsScreen"
+        component={MechanicalJobCardsScreen}
+        />
+        <Stack.Screen name="MechanicalEstimate" component={MechanicalEstimate} />
+        <Stack.Screen name="MechanicalProduce" component={MechanicalProduce} />
     </Stack.Navigator>
   );
 };

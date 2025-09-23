@@ -39,13 +39,9 @@ const AddSuppliersScreen = ({navigation}) => {
   // Subscribe
   useEffect(() => {
     const unsubscribe = addEventListener(async state => {
-      console.log('Connection type', state.type);
-
-      console.log('Is connected?', state.isConnected);
 
       if (state.isConnected === false) {
         const getAllProducts = await AsyncStorage.getItem('GetAllCustomers');
-        console.log('getAllProducts', getAllProducts);
 
         setAllOrders(JSON.parse(getAllProducts));
       } else {
@@ -81,8 +77,7 @@ const AddSuppliersScreen = ({navigation}) => {
     let configs = {
       method: 'post',
       maxBodyLength: Infinity,
-      url: `${BASE_URL_1}debtors_master.php`,
-      // url: `${BASE_URL_1}suppliers.php`,
+      url: `${BASE_URL_1}suppliers.php`,
       headers: {
         'Content-Type': 'multipart/form-data',
       },
@@ -134,7 +129,6 @@ const AddSuppliersScreen = ({navigation}) => {
     datas.append('customer_status', num);
     datas.append('page', page);
 
-    console.log('datasdatasdatasdatasdatasdatas', datas);
     let configs = {
       method: 'post',
       maxBodyLength: Infinity,
@@ -405,7 +399,7 @@ const AddSuppliersScreen = ({navigation}) => {
 
       <TouchableOpacity
         onPress={() =>
-          navigation.navigate('InsertNewCustomerDetail', {
+          navigation.navigate('UploadSuppliers', {
             allCustomer: AllOrders,
             onSuccess: () => setShouldReload(true),
           })

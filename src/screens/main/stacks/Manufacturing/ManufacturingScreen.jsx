@@ -7,10 +7,11 @@ import {APPCOLORS} from '../../../../utils/APPCOLORS';
 import * as Animatable from 'react-native-animatable';
 
 const buttons = [
-  {name: 'Job Cards', icon: 'briefcase-check'},
-  {name: 'Product Option', icon: 'cube-outline'},
-  {name: 'VOM', icon: 'playlist-check'}, // assuming VOM = Vendor Order Management or BOM Variant
-  {name: 'Track Material', icon: 'cube-scan'},
+  {name: 'Electrical Job Cards', icon: 'flash', screen: 'ElectricalJobCardsScreen'},
+  {name: 'Mechanical Job Cards', icon: 'cog', screen: 'MechanicalJobCardsScreen'},
+  {name: 'Product Options', icon: 'cube-outline', screen: 'ProductOptionsScreen'},
+  {name: 'VOM', icon: 'playlist-check', screen: 'VOMScreen'},
+  {name: 'Track Material', icon: 'cube-scan', screen: 'TrackMaterialScreen'},
 ];
 
 export default function ManufacturingScreen({navigation}) {
@@ -22,7 +23,7 @@ export default function ManufacturingScreen({navigation}) {
       style={styles.buttonWrapper}>
       <TouchableOpacity
         activeOpacity={0.85}
-        onPress={() => navigation.navigate('Dashboard')}>
+        onPress={() => navigation.navigate(item.screen)}>
         <LinearGradient
           colors={['rgba(255,255,255,0.08)', 'rgba(255,255,255,0.02)']}
           style={styles.buttonContainer}>

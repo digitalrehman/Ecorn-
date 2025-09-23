@@ -1,3 +1,65 @@
+yeh get ki api hai jo app dropdown main lagao gay or search bhi work karay (https://e.de2solutions.com/mobile_dash/stock_category.php resposne hai 
+"status": "true",
+"data": [
+{
+"category_id": "1",
+"description": "Electrical Raw Material",
+"dflt_tax_type": "3",
+"dflt_units": "No",
+"dflt_mb_flag": "B",
+"dflt_sales_act": "403001",
+"dflt_cogs_act": "501001",
+"dflt_inventory_act": "102006",
+"dflt_adjustment_act": "501004",
+"dflt_assembly_act": null,
+"dflt_dim1": "0",
+"dflt_dim2": "0",
+"inactive": "0",
+"dflt_no_sale": "0"
+},)  yeh ayga tax type main yeh searchable na h bhalay (https://e.de2solutions.com/mobile_dash/item_tax_types.php 
+"status": "true",
+"data": [
+{
+"id": "1",
+"name": "Tax Exempt",
+"inactive": null
+},) or item type dropdown hoga jiss main 3 option hongay hardcode banao (Item Type(Manufactured:M
+                (Purchase:B
+                  (Service:S)) Manufactured ke cick per M jayega DB per Purchase ke click per B Service ke click per S.
+item of measure main get api (https://e.de2solutions.com/mobile_dash/item_units.php  yeh resposne 
+"status": "true",
+"data": [
+{
+"abbr": "Area",
+"name": "Area",
+"inactive": null
+},
+{)  sales type main et ki api (https://e.de2solutions.com/mobile_dash/sales_type.php) yeh resposne 
+"status": "true",
+"data": [
+{
+"id": "2",
+"sales_type": "Wholesale",
+"tax_included": "0",
+"factor": "0.7",
+"inactive": "0"
+},  2 new dropdown or add karo (Make) Dropdown get i api (https://e.de2solutions.com/mobile_dash/combo1.php yeh resposne 
+"status": "true",
+"data": [
+{
+"combo_code": "1",
+"description": "ABB",
+"inactive": "0"
+},)  2 dropdown (Main Group) get ki api (https://e.de2solutions.com/mobile_dash/combo2.php yeh resposne 
+"status": "true",
+"data": [
+{
+"combo_code": "1",
+"description": "Box",
+"inactive": "0"
+},)
+
+
 import React, {useState, useRef, useEffect} from 'react';
 import {
   View,
@@ -7,13 +69,12 @@ import {
   StyleSheet,
   ScrollView,
   Animated,
-  Platform,
   ActivityIndicator,
+  Platform,
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import {Dropdown} from 'react-native-element-dropdown';
 import LinearGradient from 'react-native-linear-gradient';
-import axios from 'axios';
 
 const COLORS = {
   WHITE: '#FFFFFF',
@@ -22,39 +83,24 @@ const COLORS = {
   Secondary: '#5a5c6a',
 };
 
+const dropdownOptions = [
+  {label: 'Option 1', value: '1'},
+  {label: 'Option 2', value: '2'},
+  {label: 'Option 3', value: '3'},
+];
+
 export default function AddItem({navigation}) {
-  // States for dropdowns
   const [category, setCategory] = useState(null);
-  const [categories, setCategories] = useState([]);
-
-  const [taxType, setTaxType] = useState(null);
-  const [taxTypes, setTaxTypes] = useState([]);
-
-  const [itemType, setItemType] = useState(null);
-  const itemTypes = [
-    {label: 'Manufactured', value: 'M'},
-    {label: 'Purchase', value: 'B'},
-    {label: 'Service', value: 'S'},
-  ];
-
-  const [unit, setUnit] = useState(null);
-  const [units, setUnits] = useState([]);
-
-  const [saleType, setSaleType] = useState(null);
-  const [saleTypes, setSaleTypes] = useState([]);
-
-  const [make, setMake] = useState(null);
-  const [makes, setMakes] = useState([]);
-
-  const [mainGroup, setMainGroup] = useState(null);
-  const [mainGroups, setMainGroups] = useState([]);
-
   const [name, setName] = useState('');
+  const [taxType, setTaxType] = useState(null);
+  const [itemType, setItemType] = useState('');
+  const [unit, setUnit] = useState(null);
+  const [saleType, setSaleType] = useState(null);
   const [price, setPrice] = useState('');
 
   // Animation setup
   const animValues = useRef([]).current;
-  const fieldCount = 9;
+  const fieldCount = 7;
   if (animValues.length === 0) {
     for (let i = 0; i < fieldCount; i++) {
       animValues.push({
@@ -64,7 +110,6 @@ export default function AddItem({navigation}) {
     }
   }
 
-  // Animate fields
   useEffect(() => {
     const anims = animValues.map((av, idx) =>
       Animated.parallel([
@@ -85,70 +130,7 @@ export default function AddItem({navigation}) {
     Animated.stagger(80, anims).start();
   }, []);
 
-  // Fetch dropdown data
-  useEffect(() => {
-    fetchData(
-      'https://e.de2solutions.com/mobile_dash/stock_category.php',
-      setCategories,
-      'category_id',
-      'description',
-    );
-    fetchData(
-      'https://e.de2solutions.com/mobile_dash/item_tax_types.php',
-      setTaxTypes,
-      'id',
-      'name',
-    );
-    fetchData(
-      'https://e.de2solutions.com/mobile_dash/item_units.php',
-      setUnits,
-      'abbr',
-      'name',
-    );
-    fetchData(
-      'https://e.de2solutions.com/mobile_dash/sales_type.php',
-      setSaleTypes,
-      'id',
-      'sales_type',
-    );
-    fetchData(
-      'https://e.de2solutions.com/mobile_dash/combo1.php',
-      setMakes,
-      'combo_code',
-      'description',
-    );
-    fetchData(
-      'https://e.de2solutions.com/mobile_dash/combo2.php',
-      setMainGroups,
-      'combo_code',
-      'description',
-    );
-  }, []);
-
-  const fetchData = async (url, setState, valueField, labelField) => {
-    try {
-      const {data} = await axios.get(url);
-      if (data?.status === 'true' && Array.isArray(data.data)) {
-        const mapped = data.data.map(item => ({
-          label: item[labelField],
-          value: item[valueField],
-        }));
-        setState(mapped);
-      }
-    } catch (error) {
-      console.error('Error fetching:', url, error);
-    }
-  };
-
-  // Reusable Dropdown
-  const renderDropdown = (
-    index,
-    placeholder,
-    value,
-    setValue,
-    options,
-    searchable = true,
-  ) => (
+  const renderDropdown = (index, placeholder, value, setValue) => (
     <Animated.View
       style={[
         styles.glassInput,
@@ -159,14 +141,14 @@ export default function AddItem({navigation}) {
       ]}>
       <Dropdown
         style={styles.dropdown}
-        data={options}
-        search={searchable}
+        data={dropdownOptions}
+        search
         labelField="label"
         valueField="value"
         placeholder={placeholder}
         placeholderStyle={{color: 'rgba(255,255,255,0.6)'}}
-        selectedTextStyle={{color: COLORS.WHITE}}
-        itemTextStyle={{color: COLORS.BLACK}}
+          selectedTextStyle={{color: COLORS.WHITE}}
+          itemTextStyle={{color: COLORS.BLACK}}
         searchPlaceholder="Search..."
         value={value}
         onChange={item => setValue(item.value)}
@@ -174,7 +156,6 @@ export default function AddItem({navigation}) {
     </Animated.View>
   );
 
-  // Reusable Input
   const renderInput = (
     index,
     placeholder,
@@ -211,27 +192,18 @@ export default function AddItem({navigation}) {
           <Ionicons name="chevron-back" color={COLORS.WHITE} size={28} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Add Item</Text>
-        <View style={{width: 28}} /> {/* spacer */}
+        <View style={{width: 28}} /> {/* right side spacer */}
       </View>
 
       {/* Form */}
       <ScrollView contentContainerStyle={{padding: 20, gap: 16}}>
-        {renderDropdown(0, 'Select Category', category, setCategory, categories)}
+        {renderDropdown(0, 'Select Category', category, setCategory)}
         {renderInput(1, 'Name', name, setName)}
-        {renderDropdown(
-          2,
-          'Select Item Tax Type',
-          taxType,
-          setTaxType,
-          taxTypes,
-          false, // ❌ not searchable
-        )}
-        {renderDropdown(3, 'Item Type', itemType, setItemType, itemTypes)}
-        {renderDropdown(4, 'Units of Measure', unit, setUnit, units)}
-        {renderDropdown(5, 'Sale Type', saleType, setSaleType, saleTypes)}
-        {renderDropdown(6, 'Make', make, setMake, makes)}
-        {renderDropdown(7, 'Main Group', mainGroup, setMainGroup, mainGroups)}
-        {renderInput(8, 'Price', price, setPrice, 'numeric')}
+        {renderDropdown(2, 'Select Item Tax Type', taxType, setTaxType)}
+        {renderInput(3, 'Item Type', itemType, setItemType)}
+        {renderDropdown(4, 'Units of Measure', unit, setUnit)}
+        {renderDropdown(5, 'Sale Type', saleType, setSaleType)}
+        {renderInput(6, 'Price', price, setPrice, 'numeric')}
 
         <TouchableOpacity style={styles.submitBtn}>
           <Text style={{color: COLORS.WHITE, fontSize: 18}}>Submit</Text>

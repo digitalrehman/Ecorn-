@@ -27,10 +27,10 @@ const dropdownOptions = [
 ];
 
 export default function LocationTransfer({navigation}) {
-  const [location, setLocation] = useState(null);
+  const [fromLocation, setFromLocation] = useState(null);
+  const [toLocation, setToLocation] = useState(null);
   const [date, setDate] = useState(new Date());
   const [showDate, setShowDate] = useState(false);
-  const [adjustmentType, setAdjustmentType] = useState(null);
 
   const [product, setProduct] = useState(null);
   const [qty, setQty] = useState('');
@@ -76,23 +76,24 @@ export default function LocationTransfer({navigation}) {
         {/* Item Adjustments */}
         <Text style={styles.sectionTitle}>Item Adjustments</Text>
 
-        {/* Location */}
+        {/* From Location */}
         <Dropdown
           style={styles.dropdown}
           data={dropdownOptions}
           search
           labelField="label"
           valueField="value"
-          placeholder="Select Location"
+          placeholder="From Location"
           placeholderStyle={{color: 'rgba(255,255,255,0.6)'}}
           selectedTextStyle={{color: COLORS.WHITE}}
           itemTextStyle={{color: COLORS.BLACK}}
-          value={location}
-          onChange={item => setLocation(item.value)}
+          value={fromLocation}
+          onChange={item => setFromLocation(item.value)}
         />
 
-        {/* Date + Adjustment Type */}
+        {/* Date + To Location */}
         <View style={{flexDirection: 'row', gap: 12}}>
+          {/* Date Picker */}
           <TouchableOpacity
             style={[styles.dropdown, {flex: 1, justifyContent: 'center'}]}
             onPress={() => setShowDate(true)}>
@@ -101,17 +102,18 @@ export default function LocationTransfer({navigation}) {
             </Text>
           </TouchableOpacity>
 
+          {/* To Location */}
           <Dropdown
             style={[styles.dropdown, {flex: 1}]}
             data={dropdownOptions}
             labelField="label"
             valueField="value"
-            placeholder="Adjust Type"
+            placeholder="To Location"
             placeholderStyle={{color: 'rgba(255,255,255,0.6)'}}
             selectedTextStyle={{color: COLORS.WHITE}}
             itemTextStyle={{color: COLORS.BLACK}}
-            value={adjustmentType}
-            onChange={item => setAdjustmentType(item.value)}
+            value={toLocation}
+            onChange={item => setToLocation(item.value)}
           />
         </View>
 
