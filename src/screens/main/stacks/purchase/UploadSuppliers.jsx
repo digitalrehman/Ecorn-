@@ -229,7 +229,6 @@ const UploadSuppliers = ({navigation, route}) => {
         placeholderTextColor={'rgba(255,255,255,0.6)'}
         value={value}
         onChangeText={txt => {
-          console.log(`${fieldName}:`, txt); // 👈 Console log for debug
           setValue(txt);
         }}
         keyboardType={keyboardType || 'default'}

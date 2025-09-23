@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import {
   View,
   Text,
@@ -6,12 +6,14 @@ import {
   TextInput,
   StyleSheet,
   ScrollView,
-  Platform,
+  ActivityIndicator,
+  ToastAndroid,
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import {Dropdown} from 'react-native-element-dropdown';
 import LinearGradient from 'react-native-linear-gradient';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import axios from 'axios';
 
 const COLORS = {
   WHITE: '#FFFFFF',
@@ -20,33 +22,74 @@ const COLORS = {
   Secondary: '#5a5c6a',
 };
 
-const dropdownOptions = [
-  {label: 'Option 1', value: '1'},
-  {label: 'Option 2', value: '2'},
-  {label: 'Option 3', value: '3'},
-];
-
 export default function LocationTransfer({navigation}) {
   const [fromLocation, setFromLocation] = useState(null);
   const [toLocation, setToLocation] = useState(null);
+  const [locations, setLocations] = useState([]);
+
   const [date, setDate] = useState(new Date());
   const [showDate, setShowDate] = useState(false);
 
   const [product, setProduct] = useState(null);
+  const [products, setProducts] = useState([]);
+  const [allProducts, setAllProducts] = useState([]);
+
   const [qty, setQty] = useState('');
   const [memo, setMemo] = useState('');
 
   const [items, setItems] = useState([]); // table data
+  const [loading, setLoading] = useState(false);
 
+  // Fetch Locations
+  useEffect(() => {
+    axios
+      .get('https://e.de2solutions.com/mobile_dash/locations.php')
+      .then(res => {
+        if (res.data.status === 'true') {
+          const formatted = res.data.data.map(loc => ({
+            label: loc.location_name,
+            value: loc.loc_code,
+          }));
+          setLocations(formatted);
+        }
+      })
+      .catch(() =>
+        ToastAndroid.show('Failed to load locations', ToastAndroid.SHORT),
+      );
+  }, []);
+
+  // Fetch Products
+  useEffect(() => {
+    axios
+      .get('https://e.de2solutions.com/mobile_dash/stock_master.php')
+      .then(res => {
+        if (res.data.status === 'true') {
+          const formatted = res.data.data.map(p => ({
+            label: p.description,
+            value: p.stock_id,
+          }));
+          setProducts(formatted.slice(0, 10));
+          setAllProducts(formatted);
+        }
+      })
+      .catch(() =>
+        ToastAndroid.show('Failed to load products', ToastAndroid.SHORT),
+      );
+  }, []);
+
+  // Add product row
   const handleAdd = () => {
     if (!product || !qty) return;
+
+    const selectedProduct = allProducts.find(p => p.value === product);
 
     setItems(prev => [
       ...prev,
       {
         id: Date.now().toString(),
-        product,
-        qty,
+        item_code: product,
+        description: selectedProduct?.label || '',
+        quantity_ordered: Number(qty),
       },
     ]);
 
@@ -55,8 +98,92 @@ export default function LocationTransfer({navigation}) {
     setQty('');
   };
 
+  // Delete row
   const handleDelete = id => {
     setItems(prev => prev.filter(item => item.id !== id));
+  };
+
+  // Submit API
+  const handleSubmit = async () => {
+    if (!fromLocation || !toLocation || items.length === 0) {
+      ToastAndroid.show(
+        'Select locations and add items first',
+        ToastAndroid.SHORT,
+      );
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const form = new FormData();
+      form.append('trans_type', '16'); // always 16
+      form.append('ord_date', date.toISOString().split('T')[0]); // yyyy-mm-dd
+      form.append('loc_code', fromLocation);
+      form.append('to_loc_code', toLocation);
+      form.append('purch_order_details', JSON.stringify(items));
+      form.append('memo', memo);
+
+      const res = await axios.post(
+        'https://e.de2solutions.com/mobile_dash/post_service_purch_sale.php',
+        form,
+        {
+          headers: {'Content-Type': 'multipart/form-data'},
+        },
+      );
+
+      // ✅ Response parsing
+      let parsed = res.data;
+      if (typeof res.data === 'string') {
+        try {
+          const jsonStr = res.data.substring(res.data.lastIndexOf('{'));
+          parsed = JSON.parse(jsonStr);
+        } catch (e) {
+          console.log('❌ JSON parse error:', e);
+        }
+      }
+
+      console.log('📦 Parsed Response:', parsed);
+
+      if (
+        parsed?.status === true ||
+        parsed?.status === 'true' ||
+        parsed?.status == 1
+      ) {
+        ToastAndroid.show('Transfer successful', ToastAndroid.LONG);
+
+        // ✅ Reset all fields
+        setItems([]);
+        setMemo('');
+        setFromLocation(null);
+        setToLocation(null);
+        setDate(new Date());
+      } else {
+        ToastAndroid.show('Server rejected transfer', ToastAndroid.LONG);
+      }
+
+      console.log('📦 Response:', res.data);
+
+      if (
+        res.data?.status === true ||
+        res.data?.status === 'true' ||
+        res.data?.status == 1
+      ) {
+        ToastAndroid.show('Transfer successful', ToastAndroid.LONG);
+        setItems([]);
+        setMemo('');
+        setFromLocation(null);
+        setToLocation(null);
+        setDate(new Date());
+      } else {
+        ToastAndroid.show('Server rejected transfer', ToastAndroid.LONG);
+      }
+    } catch (err) {
+      console.log('❌ Error:', err.response?.data || err.message);
+      ToastAndroid.show('Submission failed', ToastAndroid.LONG);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -68,18 +195,15 @@ export default function LocationTransfer({navigation}) {
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Ionicons name="chevron-back" color={COLORS.WHITE} size={28} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Inventory Ajustment</Text>
+        <Text style={styles.headerTitle}>Location Transfer</Text>
         <View style={{width: 28}} />
       </View>
 
       <ScrollView contentContainerStyle={{padding: 20, paddingBottom: 100}}>
-        {/* Item Adjustments */}
-        <Text style={styles.sectionTitle}>Item Adjustments</Text>
-
         {/* From Location */}
         <Dropdown
           style={styles.dropdown}
-          data={dropdownOptions}
+          data={locations}
           search
           labelField="label"
           valueField="value"
@@ -105,7 +229,8 @@ export default function LocationTransfer({navigation}) {
           {/* To Location */}
           <Dropdown
             style={[styles.dropdown, {flex: 1}]}
-            data={dropdownOptions}
+            data={locations}
+            search
             labelField="label"
             valueField="value"
             placeholder="To Location"
@@ -129,9 +254,6 @@ export default function LocationTransfer({navigation}) {
           />
         )}
 
-        {/* Adjustment Detail */}
-        <Text style={styles.sectionTitle}>Adjustment Detail</Text>
-
         {/* Table Header */}
         <View style={styles.tableHeader}>
           <Text style={[styles.tableHeaderText, {flex: 7}]}>Product</Text>
@@ -142,8 +264,10 @@ export default function LocationTransfer({navigation}) {
         {/* Table Rows */}
         {items.map(row => (
           <View key={row.id} style={styles.tableRow}>
-            <Text style={[styles.tableText, {flex: 7}]}>{row.product}</Text>
-            <Text style={[styles.tableText, {flex: 2}]}>{row.qty}</Text>
+            <Text style={[styles.tableText, {flex: 7}]}>{row.description}</Text>
+            <Text style={[styles.tableText, {flex: 2}]}>
+              {row.quantity_ordered}
+            </Text>
             <TouchableOpacity
               style={{flex: 1, alignItems: 'center'}}
               onPress={() => handleDelete(row.id)}>
@@ -152,12 +276,13 @@ export default function LocationTransfer({navigation}) {
           </View>
         ))}
 
-        {/* Form to add row */}
+        {/* Add Row */}
         <View style={{flexDirection: 'row', gap: 12, marginTop: 12}}>
           <Dropdown
             style={[styles.dropdown, {flex: 7}]}
-            data={dropdownOptions}
+            data={products}
             search
+            searchPlaceholder="Search product..."
             labelField="label"
             valueField="value"
             placeholder="Product"
@@ -166,6 +291,9 @@ export default function LocationTransfer({navigation}) {
             itemTextStyle={{color: COLORS.BLACK}}
             value={product}
             onChange={item => setProduct(item.value)}
+            onChangeText={val => {
+              if (val.length > 1) setProducts(allProducts);
+            }}
           />
           <TextInput
             style={[styles.textInput, {flex: 2}]}
@@ -196,12 +324,19 @@ export default function LocationTransfer({navigation}) {
         />
       </ScrollView>
 
-      {/* Fixed Bottom Button */}
+      {/* Bottom Button */}
       <View style={styles.bottomBar}>
-        <TouchableOpacity style={styles.submitBtn}>
-          <Text style={{color: COLORS.WHITE, fontSize: 18}}>
-            Process Adjustment
-          </Text>
+        <TouchableOpacity
+          style={styles.submitBtn}
+          onPress={handleSubmit}
+          disabled={loading}>
+          {loading ? (
+            <ActivityIndicator color={COLORS.WHITE} />
+          ) : (
+            <Text style={{color: COLORS.WHITE, fontSize: 18}}>
+              Process Transfer
+            </Text>
+          )}
         </TouchableOpacity>
       </View>
     </LinearGradient>
@@ -219,17 +354,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 0.5,
     borderBottomColor: 'rgba(255,255,255,0.1)',
   },
-  headerTitle: {
-    color: '#fff',
-    fontSize: 20,
-    fontWeight: '700',
-  },
-  sectionTitle: {
-    fontSize: 18,
-    color: COLORS.WHITE,
-    fontWeight: '700',
-    marginBlock: 10,
-  },
+  headerTitle: {color: '#fff', fontSize: 20, fontWeight: '700'},
   dropdown: {
     height: 52,
     borderRadius: 10,

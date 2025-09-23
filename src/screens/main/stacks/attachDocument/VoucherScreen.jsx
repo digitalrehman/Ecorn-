@@ -91,79 +91,61 @@ export default function VoucherScreen({navigation}) {
     return true;
   };
 
-  const downloadFile = async (trans_no, type) => {
-    const hasPermission = await requestStoragePermission();
-    if (!hasPermission) {
-      Alert.alert('Permission Denied', 'Storage permission is required.');
-      return;
-    }
+  const detectFileType = async filePath => {
+    const base64Data = await RNFetchBlob.fs.readFile(filePath, 'base64');
+    const hex = Buffer.from(base64Data, 'base64')
+      .toString('hex')
+      .substring(0, 8)
+      .toUpperCase();
 
-    try {
-      const res = await RNFetchBlob.config({
-        fileCache: true,
-        appendExt: 'tmp', // temporary extension
-      }).fetch(
-        'POST',
-        'https://e.de2solutions.com/mobile_dash/dattachment_download.php',
-        {
-          'Content-Type': 'application/x-www-form-urlencoded',
-        },
-        `type=${encodeURIComponent(type)}&trans_no=${encodeURIComponent(
-          trans_no,
-        )}`,
-      );
+    if (hex.startsWith('25504446')) return 'pdf'; // %PDF
+    if (hex.startsWith('FFD8FF')) return 'jpg'; // JPEG
+    if (hex.startsWith('89504E47')) return 'png'; // PNG
+    if (hex.startsWith('504B0304')) return 'zip'; // Could be docx/xlsx/pptx
 
-      // 🔹 Get binary headers to detect mime
-      const info = await res.info();
-      let mime =
-        info.respInfo.headers['Content-Type'] || 'application/octet-stream';
-
-      // 🔹 Decide extension by mime type
-      let ext = 'bin';
-      if (mime.includes('pdf')) ext = 'pdf';
-      else if (mime.includes('jpeg')) ext = 'jpg';
-      else if (mime.includes('png')) ext = 'png';
-      else if (mime.includes('gif')) ext = 'gif';
-      else if (
-        mime.includes('msword') ||
-        mime.includes('officedocument.wordprocessingml')
-      )
-        ext = 'docx';
-      else if (mime.includes('spreadsheetml') || mime.includes('ms-excel'))
-        ext = 'xlsx';
-      else if (
-        mime.includes('presentationml') ||
-        mime.includes('ms-powerpoint')
-      )
-        ext = 'pptx';
-      else if (mime.includes('zip')) ext = 'zip';
-
-      // 🔹 Final save path
-      const path =
-        Platform.OS === 'android'
-          ? `${RNFetchBlob.fs.dirs.DownloadDir}/${trans_no}.${ext}`
-          : `${RNFetchBlob.fs.dirs.DocumentDir}/${trans_no}.${ext}`;
-
-      // 🔹 Move temp file → final path
-      await RNFetchBlob.fs.mv(res.path(), path);
-
-      // 🔹 Android notification
-      if (Platform.OS === 'android') {
-        await RNFetchBlob.android.addCompleteDownload({
-          title: `${trans_no}.${ext}`,
-          description: 'File downloaded successfully',
-          mime,
-          path,
-          showNotification: true,
-        });
-      }
-
-      Alert.alert('Download Successful', `File saved to: ${path}`);
-    } catch (err) {
-      console.log('Download Error:', err);
-      Alert.alert('Download Failed', 'Could not download the file.');
-    }
+    return 'bin';
   };
+const downloadFile = async (trans_no, type) => {
+  try {
+    const res = await RNFetchBlob.config({
+      fileCache: true,
+      addAndroidDownloads: {
+        useDownloadManager: true,
+        notification: true,
+        description: 'File downloaded',
+        mime: 'application/octet-stream',
+        path: RNFetchBlob.fs.dirs.DownloadDir + `/${trans_no}_${Date.now()}.tmp`,
+      },
+    }).fetch(
+      'POST',
+      'https://e.de2solutions.com/mobile_dash/dattachment_download.php',
+      {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      `trans_no=${encodeURIComponent(trans_no)}&type=${encodeURIComponent(type)}`
+    );
+
+    const tempPath = res.path();
+
+    // 🔎 Detect extension
+    let ext = await detectFileType(tempPath);
+
+    if (ext === 'zip') {
+      if (type.toLowerCase().includes('doc')) ext = 'docx';
+      else if (type.toLowerCase().includes('xls')) ext = 'xlsx';
+      else if (type.toLowerCase().includes('ppt')) ext = 'pptx';
+    }
+
+    const finalPath = `${RNFetchBlob.fs.dirs.DownloadDir}/${trans_no}.${ext}`;
+    await RNFetchBlob.fs.mv(tempPath, finalPath);
+
+    Alert.alert('✅ Download Successful', `Saved to: ${finalPath}`);
+  } catch (err) {
+    console.log('❌ Download Error:', err);
+    Alert.alert('❌ Download Failed', 'Could not download file.');
+  }
+};
+
 
   const normalizeDate = date => {
     if (!date) return null;
