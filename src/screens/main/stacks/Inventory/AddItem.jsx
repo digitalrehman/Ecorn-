@@ -14,6 +14,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import {Dropdown} from 'react-native-element-dropdown';
 import LinearGradient from 'react-native-linear-gradient';
 import axios from 'axios';
+import Toast from 'react-native-toast-message'; // ✅ Toast library
 
 const COLORS = {
   WHITE: '#FFFFFF',
@@ -31,6 +32,9 @@ export default function AddItem({navigation}) {
   const [taxTypes, setTaxTypes] = useState([]);
 
   const [itemType, setItemType] = useState(null);
+
+  const [loading, setLoading] = useState(false);
+
   const itemTypes = [
     {label: 'Manufactured', value: 'M'},
     {label: 'Purchase', value: 'B'},
@@ -49,12 +53,14 @@ export default function AddItem({navigation}) {
   const [mainGroup, setMainGroup] = useState(null);
   const [mainGroups, setMainGroups] = useState([]);
 
+  // Inputs
+  const [stockId, setStockId] = useState('');
   const [name, setName] = useState('');
   const [price, setPrice] = useState('');
 
   // Animation setup
   const animValues = useRef([]).current;
-  const fieldCount = 9;
+  const fieldCount = 10;
   if (animValues.length === 0) {
     for (let i = 0; i < fieldCount; i++) {
       animValues.push({
@@ -140,6 +146,94 @@ export default function AddItem({navigation}) {
     }
   };
 
+  // Submit Function
+  const handleSubmit = async () => {
+    if (
+      !category ||
+      !stockId ||
+      !name ||
+      !taxType ||
+      !itemType ||
+      !unit ||
+      !saleType ||
+      !make ||
+      !mainGroup ||
+      !price
+    ) {
+      Toast.show({type: 'error', text1: 'Please fill all fields'});
+      return;
+    }
+    setLoading(true);
+    const formData = new FormData();
+    formData.append('category_id', category);
+    formData.append('stock_id', stockId);
+    formData.append('description', name);
+    formData.append('tax_type_id', taxType);
+    formData.append('units', unit);
+    formData.append('mb_flag', itemType);
+    formData.append('sales_type', saleType);
+    formData.append('price', price);
+    formData.append('combo1', make);
+    formData.append('combo2', mainGroup);
+
+    try {
+      const res = await axios.post(
+        'https://e.de2solutions.com/mobile_dash/stock_master_post.php',
+        formData,
+        {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        },
+      );
+
+      console.log('Raw Response:', res.data);
+
+      // --- yahan parse kero
+      let parsedData = {};
+      if (typeof res.data === 'string') {
+        // SQL query + JSON ka mixture -> sirf JSON part extract
+        const jsonMatch = res.data.match(/\{.*\}$/);
+        if (jsonMatch) {
+          parsedData = JSON.parse(jsonMatch[0]);
+        }
+      } else {
+        parsedData = res.data;
+      }
+
+      console.log('Parsed:', parsedData);
+
+      if (parsedData?.status === true) {
+        Toast.show({type: 'success', text1: 'Item added successfully!'});
+
+        // reset fields
+        setCategory(null);
+        setStockId('');
+        setName('');
+        setTaxType(null);
+        setItemType(null);
+        setUnit(null);
+        setSaleType(null);
+        setMake(null);
+        setMainGroup(null);
+        setPrice('');
+
+        navigation.navigate('ViewItem');
+      } else {
+        Toast.show({
+          type: 'error',
+          text1: 'Failed',
+          text2: JSON.stringify(parsedData),
+        });
+      }
+    } catch (error) {
+      console.error('Submit Error:', error);
+      Toast.show({type: 'error', text1: 'Error submitting item'});
+    } finally {
+      setLoading(false); // <-- stop loading in all cases
+    }
+  };
+
   // Reusable Dropdown
   const renderDropdown = (
     index,
@@ -216,27 +310,46 @@ export default function AddItem({navigation}) {
 
       {/* Form */}
       <ScrollView contentContainerStyle={{padding: 20, gap: 16}}>
-        {renderDropdown(0, 'Select Category', category, setCategory, categories)}
-        {renderInput(1, 'Name', name, setName)}
         {renderDropdown(
-          2,
+          0,
+          'Select Category',
+          category,
+          setCategory,
+          categories,
+        )}
+        {renderInput(1, 'Stock ID', stockId, setStockId, 'default')}
+        {renderInput(2, 'Name', name, setName)}
+        {renderDropdown(
+          3,
           'Select Item Tax Type',
           taxType,
           setTaxType,
           taxTypes,
-          false, // ❌ not searchable
+          false,
         )}
-        {renderDropdown(3, 'Item Type', itemType, setItemType, itemTypes)}
-        {renderDropdown(4, 'Units of Measure', unit, setUnit, units)}
-        {renderDropdown(5, 'Sale Type', saleType, setSaleType, saleTypes)}
-        {renderDropdown(6, 'Make', make, setMake, makes)}
-        {renderDropdown(7, 'Main Group', mainGroup, setMainGroup, mainGroups)}
-        {renderInput(8, 'Price', price, setPrice, 'numeric')}
+        {renderDropdown(4, 'Item Type', itemType, setItemType, itemTypes)}
+        {renderDropdown(5, 'Units of Measure', unit, setUnit, units)}
+        {renderDropdown(6, 'Sale Type', saleType, setSaleType, saleTypes)}
+        {renderDropdown(7, 'Make', make, setMake, makes)}
+        {renderDropdown(8, 'Main Group', mainGroup, setMainGroup, mainGroups)}
+        {renderInput(9, 'Price', price, setPrice, 'numeric')}
 
-        <TouchableOpacity style={styles.submitBtn}>
-          <Text style={{color: COLORS.WHITE, fontSize: 18}}>Submit</Text>
+        {/* Submit Button */}
+        <TouchableOpacity
+          style={styles.submitBtn}
+          onPress={handleSubmit}
+          disabled={loading}
+        >
+          {loading ? (
+            <ActivityIndicator color={COLORS.WHITE} />
+          ) : (
+            <Text style={{color: COLORS.WHITE, fontSize: 18}}>Submit</Text>
+          )}
         </TouchableOpacity>
       </ScrollView>
+
+      {/* Toast Container */}
+      <Toast />
     </LinearGradient>
   );
 }

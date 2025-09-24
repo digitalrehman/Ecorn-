@@ -70,6 +70,7 @@ import MechanicalJobCardsScreen from '../screens/main/stacks/Manufacturing/Mecha
 import MechanicalEstimate from '../screens/main/stacks/Manufacturing/MechanicalEstimate';
 import MechanicalProduce from '../screens/main/stacks/Manufacturing/MechanicalProduce';
 import StockSheetScreen from '../screens/main/stacks/Inventory/StockSheetScreen';
+import ViewItem from '../screens/main/stacks/Inventory/ViewItem';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -176,6 +177,7 @@ const Main = () => {
         <Stack.Screen name="MechanicalEstimate" component={MechanicalEstimate} />
         <Stack.Screen name="StockSheetScreen" component={StockSheetScreen} />
         <Stack.Screen name="MechanicalProduce" component={MechanicalProduce} />
+        <Stack.Screen name="ViewItem" component={ViewItem} />
     </Stack.Navigator>
   );
 };
