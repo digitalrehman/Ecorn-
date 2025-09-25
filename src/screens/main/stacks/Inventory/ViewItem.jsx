@@ -12,13 +12,15 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import LinearGradient from 'react-native-linear-gradient';
 import axios from 'axios';
 import {Dropdown} from 'react-native-element-dropdown';
-
+import {saveLargeData, loadLargeData} from '../../../../utils/storage';
 const COLORS = {
   WHITE: '#FFFFFF',
   BLACK: '#000000',
   Primary: '#1a1c22',
   Secondary: '#5a5c6a',
 };
+
+const ITEMS_PER_PAGE = 30;
 
 const ViewItem = ({navigation}) => {
   const [items, setItems] = useState([]);
@@ -28,6 +30,11 @@ const ViewItem = ({navigation}) => {
   const [category, setCategory] = useState(null);
   const [searchCode, setSearchCode] = useState('');
   const [searchName, setSearchName] = useState('');
+
+  // pagination states
+  const [visibleItems, setVisibleItems] = useState([]);
+  const [page, setPage] = useState(1);
+  const [loadingMore, setLoadingMore] = useState(false);
 
   // Fetch categories
   useEffect(() => {
@@ -50,15 +57,29 @@ const ViewItem = ({navigation}) => {
     fetchCategories();
   }, []);
 
-  // Fetch items
   useEffect(() => {
     const fetchItems = async () => {
       try {
+        const cached = await loadLargeData('itemsCache');
+        if (cached && cached.length > 0) {
+          setItems(cached);
+          setVisibleItems(cached.slice(0, ITEMS_PER_PAGE));
+          console.log('Loaded from chunked cache');
+          setLoading(false);
+          return;
+        }
+
         const res = await axios.get(
           'https://e.de2solutions.com/mobile_dash/stock_master.php',
         );
+
         if (res.data?.status === 'true') {
           setItems(res.data.data);
+          setVisibleItems(res.data.data.slice(0, ITEMS_PER_PAGE));
+
+          // Save in chunks
+          await saveLargeData('itemsCache', res.data.data);
+          console.log('Loaded from API & saved in chunked cache');
         } else {
           console.log('API Error:', res.data);
         }
@@ -67,10 +88,11 @@ const ViewItem = ({navigation}) => {
       }
       setLoading(false);
     };
+
     fetchItems();
   }, []);
 
-  // Filtered list
+  // Filtered list (always up to date)
   const filteredItems = items.filter(it => {
     const matchCategory = category ? it.category_id === category : true;
     const matchCode = searchCode
@@ -82,8 +104,34 @@ const ViewItem = ({navigation}) => {
     return matchCategory && matchCode && matchName;
   });
 
+  // Reset visible items jab items ya filters change ho
+  useEffect(() => {
+    if (items.length > 0) {
+      setPage(1);
+      setVisibleItems(filteredItems.slice(0, ITEMS_PER_PAGE));
+    }
+  }, [category, searchCode, searchName, items]);
+
+  // Load more items
+  const loadMore = () => {
+    if (loadingMore) return;
+
+    const total = filteredItems.length;
+    const nextPage = page + 1;
+    const start = (nextPage - 1) * ITEMS_PER_PAGE;
+    const end = start + ITEMS_PER_PAGE;
+
+    if (start < total) {
+      setLoadingMore(true);
+      setTimeout(() => {
+        setVisibleItems(prev => [...prev, ...filteredItems.slice(start, end)]);
+        setPage(nextPage);
+        setLoadingMore(false);
+      }, 300);
+    }
+  };
+
   const renderCard = ({item}) => {
-    // category name lookup
     const catName =
       categories.find(c => c.value === item.category_id)?.label || '-';
 
@@ -121,14 +169,7 @@ const ViewItem = ({navigation}) => {
           <Text style={styles.kvKey}>QOH:</Text>
           <Text style={styles.kvValue}>{item.qoh || '-'}</Text>
         </View>
-
-        {/* Edit button */}
-        <TouchableOpacity
-          style={styles.editBtn}
-          onPress={() => navigation.navigate('AddItem', {item})}>
-          <Ionicons name="create-outline" color={COLORS.WHITE} size={18} />
-          <Text style={styles.editText}>Edit</Text>
-        </TouchableOpacity>
+        {/* Edit button removed */}
       </View>
     );
   };
@@ -150,6 +191,8 @@ const ViewItem = ({navigation}) => {
             setCategory(null);
             setSearchCode('');
             setSearchName('');
+            setPage(1);
+            setVisibleItems(items.slice(0, ITEMS_PER_PAGE));
           }}>
           <Ionicons name="close-circle" color={COLORS.WHITE} size={24} />
         </TouchableOpacity>
@@ -157,7 +200,6 @@ const ViewItem = ({navigation}) => {
 
       {/* Filters */}
       <View style={styles.filterContainer}>
-        {/* Category Dropdown */}
         <Dropdown
           style={styles.dropdown}
           data={categories}
@@ -168,24 +210,35 @@ const ViewItem = ({navigation}) => {
           selectedTextStyle={{color: COLORS.WHITE}}
           itemTextStyle={{color: COLORS.BLACK}}
           value={category}
-          onChange={item => setCategory(item.value)}
+          onChange={item => {
+            setCategory(item.value);
+            setPage(1);
+            setVisibleItems(filteredItems.slice(0, ITEMS_PER_PAGE));
+          }}
         />
 
-        {/* Search Inputs */}
         <View style={styles.searchRow}>
           <TextInput
             style={styles.searchInput}
             placeholder="Search by Code"
             placeholderTextColor="rgba(255,255,255,0.6)"
             value={searchCode}
-            onChangeText={setSearchCode}
+            onChangeText={txt => {
+              setSearchCode(txt);
+              setPage(1);
+              setVisibleItems(filteredItems.slice(0, ITEMS_PER_PAGE));
+            }}
           />
           <TextInput
             style={styles.searchInput}
             placeholder="Search by Name"
             placeholderTextColor="rgba(255,255,255,0.6)"
             value={searchName}
-            onChangeText={setSearchName}
+            onChangeText={txt => {
+              setSearchName(txt);
+              setPage(1);
+              setVisibleItems(filteredItems.slice(0, ITEMS_PER_PAGE));
+            }}
           />
         </View>
       </View>
@@ -199,10 +252,25 @@ const ViewItem = ({navigation}) => {
         />
       ) : (
         <FlatList
-          data={filteredItems}
+          data={visibleItems}
           keyExtractor={(item, index) => item.stock_id || index.toString()}
           renderItem={renderCard}
-          contentContainerStyle={{padding: 16}}
+          contentContainerStyle={{padding: 16, flexGrow: 1}}
+          onEndReached={loadMore}
+          onEndReachedThreshold={0.5}
+          ListFooterComponent={
+            loadingMore ? (
+              <ActivityIndicator size="small" color={COLORS.WHITE} />
+            ) : null
+          }
+          ListEmptyComponent={
+            !loading && (
+              <View style={styles.emptyContainer}>
+                <Ionicons name="alert-circle-outline" size={48} color="gray" />
+                <Text style={styles.emptyText}>No items found</Text>
+              </View>
+            )
+          }
         />
       )}
     </LinearGradient>
@@ -278,20 +346,16 @@ const styles = StyleSheet.create({
     flex: 1,
     marginLeft: 8,
   },
-  editBtn: {
-    marginTop: 12,
-    flexDirection: 'row',
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
     alignItems: 'center',
-    alignSelf: 'flex-end',
-    backgroundColor: COLORS.Secondary,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 8,
+    marginTop: 50,
   },
-  editText: {
-    marginLeft: 6,
+  emptyText: {
+    marginTop: 10,
+    fontSize: 16,
     color: COLORS.WHITE,
-    fontSize: 13,
     fontWeight: '600',
   },
 });

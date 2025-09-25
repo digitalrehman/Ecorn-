@@ -71,6 +71,7 @@ import MechanicalEstimate from '../screens/main/stacks/Manufacturing/MechanicalE
 import MechanicalProduce from '../screens/main/stacks/Manufacturing/MechanicalProduce';
 import StockSheetScreen from '../screens/main/stacks/Inventory/StockSheetScreen';
 import ViewItem from '../screens/main/stacks/Inventory/ViewItem';
+import GrnAgainst from '../screens/main/stacks/purchase/GrnAgainst';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -178,6 +179,7 @@ const Main = () => {
         <Stack.Screen name="StockSheetScreen" component={StockSheetScreen} />
         <Stack.Screen name="MechanicalProduce" component={MechanicalProduce} />
         <Stack.Screen name="ViewItem" component={ViewItem} />
+        <Stack.Screen name="GrnAgainst" component={GrnAgainst} />
     </Stack.Navigator>
   );
 };

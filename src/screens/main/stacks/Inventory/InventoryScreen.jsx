@@ -8,8 +8,7 @@ import * as Animatable from 'react-native-animatable';
 
 const buttons = [
   {name: 'Add Item', icon: 'plus-box', screen: 'AddItem'},
-  {name: 'View Item', icon: 'eye', screen: 'ViewItem'},
-  {name: 'Search Item', icon: 'magnify', screen: 'SearchItemScreen'},
+  {name: 'Search Item', icon: 'magnify', screen: 'ViewItem'},
   {name: 'Item Movement', icon: 'swap-horizontal', screen: 'MovementScreen'},
   {name: 'Location Transfer', icon: 'map-marker-multiple', screen: 'LocationTransfer'},
   {name: 'Inventory Ajustment', icon: 'playlist-edit', screen: 'InventoryAjustment'},
