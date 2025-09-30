@@ -59,7 +59,6 @@ const ShowUnapprovedDetails = ({route, navigation}) => {
     axios
       .request(config)
       .then(response => {
-        // console.log(".,.,.,.,.,.,.,.,.,.,.,.,.,",JSON.stringify(response.data));
         if(response.data.status == true){
           Alert.alert(`Status ${status == 0 ? "UnApproved" : "Approved"}`)
           navigation.goBack()

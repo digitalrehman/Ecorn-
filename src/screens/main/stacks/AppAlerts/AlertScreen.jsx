@@ -1,33 +1,147 @@
-// AlertScreen.tsx
-import {View, Text, ActivityIndicator, ScrollView} from 'react-native';
 import React, {useEffect, useState} from 'react';
-import SimpleHeader from '../../../../components/SimpleHeader';
+import {
+  View,
+  ActivityIndicator,
+  ScrollView,
+  RefreshControl,
+} from 'react-native';
 import axios from 'axios';
-import {APPCOLORS} from '../../../../utils/APPCOLORS';
+import SimpleHeader from '../../../../components/SimpleHeader';
 import AlertCards from '../../../../components/AlertCards';
+import {APPCOLORS} from '../../../../utils/APPCOLORS';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const AlertScreen = ({navigation}) => {
-  const [AllData, setAllData] = useState();
+  const [AllData, setAllData] = useState({});
   const [Loading, setLoading] = useState(false);
+  const [Refreshing, setRefreshing] = useState(false);
+
+  const CACHE_KEY = 'alert_data_cache';
 
   useEffect(() => {
+    loadCachedData();
     getAllData();
   }, []);
+
+  const loadCachedData = async () => {
+    try {
+      const cached = await AsyncStorage.getItem(CACHE_KEY);
+      if (cached) {
+        setAllData(JSON.parse(cached));
+      }
+    } catch (err) {
+      console.log('Cache Error:', err);
+    }
+  };
 
   const getAllData = async () => {
     setLoading(true);
     try {
       const res = await axios.get(
-        'https://erp.speridian.pk/api/v1/dashboard/approval',
+        'https://e.de2solutions.com/mobile_dash/dash_approval.php',
       );
-      setAllData(res.data);
+
+      const newData = res.data?.approval_data || {};
+      setAllData(newData);
+
+      // Cache update
+      await AsyncStorage.setItem(CACHE_KEY, JSON.stringify(newData));
     } catch (err) {
-      console.log(err);
+      console.log('API Error: ', err);
     }
     setLoading(false);
   };
 
-  if (Loading) {
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await getAllData();
+    setRefreshing(false);
+  };
+
+  // 🔑 Modules Config
+  const moduleGroups = [
+    {
+      title: 'Sales Alert',
+      items: [
+        {
+          heading: 'Sale Quotation',
+          key: 'quotation_approval',
+          icon: 'file-alt',
+          screen: 'SaleQuotationScreen',
+        },
+        {
+          heading: 'Sale Order',
+          key: 'so_approval',
+          icon: 'shopping-cart',
+          screen: 'SaleOrderScreen',
+        },
+        {
+          heading: 'Delivery Note',
+          key: 'delivery_approval',
+          icon: 'truck',
+          screen: 'SaleDeliveryScreen',
+        },
+      ],
+    },
+    {
+      title: 'Purchase Alert',
+      items: [
+        {
+          heading: 'Purchase Order',
+          key: 'po_approval',
+          icon: 'clipboard-list',
+          screen: 'PurchaseOrderScreen',
+        },
+        {
+          heading: 'GRN Approval',
+          key: 'grn_approval',
+          icon: 'check-square',
+          screen: 'GrnApprovalScreen',
+        },
+      ],
+    },
+    {
+      title: 'Inventory Alert',
+      items: [
+        {
+          heading: 'Location Transfer',
+          key: 'location_transfer_app',
+          icon: 'exchange-alt',
+          screen: 'LocationTransferScreen',
+        },
+      ],
+    },
+    {
+      title: 'Account Approval',
+      items: [
+        {
+          heading: 'Voucher Approval',
+          key: 'voucher_approval',
+          icon: 'file-invoice-dollar',
+          screen: 'VoucherApprovalScreen',
+        },
+      ],
+    },
+    {
+      title: 'Job Card Approval',
+      items: [
+        {
+          heading: 'Electrical Approval',
+          key: 'electrocal_job_cards',
+          icon: 'bolt',
+          screen: 'ElectricalApprovalScreen',
+        },
+        {
+          heading: 'Mechanical Approval',
+          key: 'mechnical_job_cards',
+          icon: 'cogs',
+          screen: 'MechanicalApprovalScreen',
+        },
+      ],
+    },
+  ];
+
+  if (Loading && Object.keys(AllData).length === 0) {
     return (
       <View style={{flex: 1, alignItems: 'center', justifyContent: 'center'}}>
         <ActivityIndicator size="large" color={APPCOLORS.Primary} />
@@ -36,73 +150,54 @@ const AlertScreen = ({navigation}) => {
   }
 
   return (
-    <View style={{flex: 1}}>
+    <View style={{flex: 1, backgroundColor: '#fff'}}>
       <SimpleHeader title="Alerts" />
-      <ScrollView contentContainerStyle={{padding: 15}}>
-        {/* Sales Alert */}
-        <AlertCards
-          AlertHeading="Sales Alert"
-          HeadingOne="Sale Quotation"
-          ValueOne={AllData?.approval_data?.quotation_approval}
-          IconOne="file-alt"
-          onValuePressOne={() => navigation.navigate('SaleQuotationScreen')}
-          HeadingTwo="Sale Order"
-          ValueTwo={AllData?.approval_data?.so_approval}
-          IconTwo="shopping-cart"
-          onValuePressTwo={() => navigation.navigate('SaleOrderScreen')}
-          HeadingThree="Delivery Note"
-          ValueThree={AllData?.approval_data?.delivery_approval}
-          IconThree="truck"
-          onValuePressThree={() => navigation.navigate('SaleDeliveryScreen')}
-        />
+      <ScrollView
+        contentContainerStyle={{padding: 15}}
+        refreshControl={
+          <RefreshControl refreshing={Refreshing} onRefresh={onRefresh} />
+        }>
+        {moduleGroups.map((group, idx) => {
+          const props = {
+            AlertHeading: group.title,
+          };
 
-        {/* Purchase Alert */}
-        <AlertCards
-          AlertHeading="Purchase Alert"
-          HeadingOne="Purchase Order"
-          ValueOne={AllData?.approval_data?.po_approval}
-          IconOne="clipboard-list"
-          onValuePressOne={() => navigation.navigate('PurchaseOrderScreen')}
-          HeadingTwo="GRN Approval"
-          ValueTwo={AllData?.approval_data?.grn_approval}
-          IconTwo="check-square"
-          onValuePressTwo={() => navigation.navigate('GrnApprovalScreen')}
-        />
+          group.items.forEach((item, i) => {
+            const value = AllData[item.key] ?? 0;
 
-        {/* Inventory Alert */}
-        <AlertCards
-          AlertHeading="Inventory Alert"
-          HeadingOne="Location Transfer"
-          ValueOne={AllData?.approval_data?.location_transfer}
-          IconOne="exchange-alt"
-          onValuePressOne={() => navigation.navigate('LocationTransferScreen')}
-        />
+            const commonProps = {
+              heading: item.heading,
+              value,
+              icon: item.icon,
+              onPress: () =>
+                navigation.navigate('ApprovalListScreen', {
+                  listKey: item.key,
+                  title: item.heading,
+                }),
+            };
 
-        {/* Account Approval */}
-        <AlertCards
-          AlertHeading="Account Approval"
-          HeadingOne="Voucher Approval"
-          ValueOne={AllData?.approval_data?.voucher_approval}
-          IconOne="file-invoice-dollar"
-          onValuePressOne={() => navigation.navigate('VoucherApprovalScreen')}
-        />
+            if (i === 0) {
+              props.HeadingOne = commonProps.heading;
+              props.ValueOne = commonProps.value;
+              props.IconOne = commonProps.icon;
+              props.onValuePressOne = commonProps.onPress;
+            }
+            if (i === 1) {
+              props.HeadingTwo = commonProps.heading;
+              props.ValueTwo = commonProps.value;
+              props.IconTwo = commonProps.icon;
+              props.onValuePressTwo = commonProps.onPress;
+            }
+            if (i === 2) {
+              props.HeadingThree = commonProps.heading;
+              props.ValueThree = commonProps.value;
+              props.IconThree = commonProps.icon;
+              props.onValuePressThree = commonProps.onPress;
+            }
+          });
 
-        {/* Job Card Approval */}
-        <AlertCards
-          AlertHeading="Job Card Approval"
-          HeadingOne="Electrical Approval"
-          ValueOne={AllData?.approval_data?.electrical_approval}
-          IconOne="bolt"
-          onValuePressOne={() =>
-            navigation.navigate('ElectricalApprovalScreen')
-          }
-          HeadingTwo="Mechanical Approval"
-          ValueTwo={AllData?.approval_data?.mechanical_approval}
-          IconTwo="cogs"
-          onValuePressTwo={() =>
-            navigation.navigate('MechanicalApprovalScreen')
-          }
-        />
+          return <AlertCards key={idx} {...props} />;
+        })}
       </ScrollView>
     </View>
   );
