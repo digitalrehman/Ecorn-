@@ -23,6 +23,8 @@ const ApprovalListScreen = ({route}) => {
     grn_approval: 'data_unapprove_grn_order',
     voucher_approval: 'data_unapprove_voucher',
     delivery_approval: 'data_unapprove_deliveries',
+    electrocal_job_cards: 'data_electrical_job_cards',
+    mechanical_job_cards: 'data_Mechanical_job_cards',
   };
 
   const CACHE_KEY = `approval_list_${listKey}`;
@@ -145,7 +147,7 @@ const ApprovalListScreen = ({route}) => {
                 marginTop: 20,
                 fontSize: 18,
                 fontWeight: 'bold',
-                color: APPCOLORS.BLACK,
+                color: APPCOLORS.WHITE,
               }}>
               No Data Available
             </Text>
@@ -154,7 +156,7 @@ const ApprovalListScreen = ({route}) => {
                 textAlign: 'center',
                 marginTop: 10,
                 fontSize: 14,
-                color: 'gray',
+                color: APPCOLORS.WHITE,
                 paddingHorizontal: 20,
               }}>
               There are no records pending for approval in this module.

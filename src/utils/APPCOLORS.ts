@@ -10,7 +10,8 @@ export const APPCOLORS = {
     BTN_COLOR: '#1a1c22',
     SKY_BLUE  : '#5a5c6a',
     CLOSETOWHITE : '#F1FFFA',
-    TEXTFIELDCOLOR : '#EBEBEB'
+    TEXTFIELDCOLOR : '#EBEBEB',
+    
 }
 
 

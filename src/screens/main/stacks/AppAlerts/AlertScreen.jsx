@@ -151,7 +151,7 @@ const AlertScreen = ({navigation}) => {
 
   return (
     <View style={{flex: 1, backgroundColor: '#fff'}}>
-      <SimpleHeader title="Alerts" />
+      <SimpleHeader title="Approvals" />
       <ScrollView
         contentContainerStyle={{padding: 15}}
         refreshControl={
