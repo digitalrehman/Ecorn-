@@ -1,5 +1,13 @@
-import {View, Text, FlatList, TextInput} from 'react-native';
+import {
+  View,
+  Text,
+  FlatList,
+  TextInput,
+  TouchableOpacity,
+} from 'react-native';
 import React, {useState, useEffect} from 'react';
+import LinearGradient from 'react-native-linear-gradient';
+import Icon from 'react-native-vector-icons/Ionicons'; // 👈 icon for search
 import SimpleHeader from '../../../../components/SimpleHeader';
 import NameBalanceContainer from '../../../../components/NameBalanceContainer';
 import {responsiveHeight, responsiveWidth} from '../../../../utils/Responsive';
@@ -31,15 +39,20 @@ const NormalViewAll = ({navigation, route}) => {
             ? item?.name
             : dataname === 'Payable'
             ? item.supp_name
-            : item?.name;
+            : dataname === 'Cash'
+            ? item?.bank_name
+            : dataname === 'Receivable'
+            ? item?.name
+            : null;
 
         return name?.toLowerCase().includes(lowerSearch);
       });
       setFilteredData(newData);
     }
   }, [searchQuery, AllData]);
+
   // Helper function
-  const getNameAndBalance = (item: any, dataname: string) => {
+  const getNameAndBalance = (item, dataname) => {
     switch (dataname) {
       case 'Bank':
         return {Name: item?.bank_name, Balance: item?.bank_balance};
@@ -53,8 +66,7 @@ const NormalViewAll = ({navigation, route}) => {
       case 'salesman':
         return {Name: item?.salesman_name, Balance: item?.Balance};
       case 'Cash':
-        return {Name: 'Cash', Balance: item?.Balance};
-
+        return {Name: item?.bank_name, Balance: item?.bank_balance};
       case 'Receivable':
         return {Name: item?.name, Balance: item?.Balance};
       default:
@@ -63,7 +75,9 @@ const NormalViewAll = ({navigation, route}) => {
   };
 
   return (
-    <View>
+    <LinearGradient
+      colors={['#f6f7fb', '#dfe9f3']}
+      style={{flex: 1, paddingBottom: 10}}>
       <SimpleHeader title="View All" />
 
       {dataname === 'Customer' || dataname === 'Supplier' ? (
@@ -88,34 +102,52 @@ const NormalViewAll = ({navigation, route}) => {
         </View>
       ) : null}
 
-      <TextInput
-        placeholder="Search"
-        value={searchQuery}
-        onChangeText={setSearchQuery}
+      {/* Search Bar */}
+      <View
         style={{
-          height: responsiveHeight(7),
+          flexDirection: 'row',
+          alignItems: 'center',
+          backgroundColor: '#fff',
+          height: responsiveHeight(6.5),
           width: responsiveWidth(90),
           alignSelf: 'center',
-          borderWidth: 1,
-          borderColor: APPCOLORS.BLACK,
-          borderRadius: 10,
+          borderRadius: 12,
           marginTop: responsiveHeight(2),
-          paddingHorizontal: 20,
-        }}
-      />
-
-      <View style={{gap: 10, marginTop: 20, padding: 20, paddingTop: 0}}>
-        <FlatList
-          data={filteredData}
-          keyExtractor={(item, index) => index.toString()}
-          contentContainerStyle={{gap: 10, marginTop: 20, paddingBottom: 350}}
-          renderItem={({item}) => {
-            const {Name, Balance} = getNameAndBalance(item, dataname);
-            return <NameBalanceContainer Name={Name} balance={Balance} />;
+          paddingHorizontal: 15,
+          elevation: 4,
+          shadowColor: '#000',
+          shadowOpacity: 0.1,
+          shadowOffset: {width: 0, height: 2},
+        }}>
+        <Icon name="search-outline" size={20} color="#888" />
+        <TextInput
+          placeholder="Search here..."
+          placeholderTextColor="#999"
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+          style={{
+            flex: 1,
+            fontSize: 16,
+            color: '#333',
+            marginLeft: 10,
           }}
         />
       </View>
-    </View>
+
+      {/* List */}
+      <FlatList
+        data={filteredData}
+        keyExtractor={(item, index) => index.toString()}
+        contentContainerStyle={{
+          padding: 20,
+          paddingBottom: 30,
+        }}
+        renderItem={({item}) => {
+          const {Name, Balance} = getNameAndBalance(item, dataname);
+          return <NameBalanceContainer Name={Name} balance={Balance} />;
+        }}
+      />
+    </LinearGradient>
   );
 };
 

@@ -6,14 +6,7 @@ import LinearGradient from 'react-native-linear-gradient';
 import {responsiveWidth} from '../utils/Responsive';
 import AppButton from './AppButton';
 import {useNavigation} from '@react-navigation/native';
-type props = {
-  Name?: string;
-  balance?: number;
-  percent?: number;
-  type?: string;
-  item?: any;
-  onPress?: () => void;
-};
+
 const NameBalanceContainer = ({
   Name,
   type,
@@ -21,16 +14,16 @@ const NameBalanceContainer = ({
   percent,
   onPress,
   item,
-}: props) => {
+}) => {
 
 
   const navigation = useNavigation();
   return (
     <LinearGradient
       colors={[APPCOLORS.BLACK, APPCOLORS.Secondary]}
-      style={{padding: 20, borderRadius: 20}}>
+      style={{padding: 20, borderRadius: 20, marginBottom: 6}}>
       <TouchableOpacity >
-        <View style={{flexDirection: 'row', justifyContent: 'space-between'}}>
+        <View style={{flexDirection: 'row', justifyContent: 'space-between', marginBottom: 2}}>
           <AppText
             title="Name"
             titleSize={1.6}
@@ -45,12 +38,12 @@ const NameBalanceContainer = ({
               titleWeight
               titleColor={APPCOLORS.WHITE}
             />
-            <AppText
+            {/* <AppText
               title="%"
               titleSize={1.6}
               titleWeight
               titleColor={APPCOLORS.WHITE}
-            />
+            /> */}
           </View>
         </View>
 
@@ -69,7 +62,7 @@ const NameBalanceContainer = ({
               titleSize={1.8}
               titleColor={APPCOLORS.WHITE}
             />
-            <AppText title={`${percent ?? 0}%`} titleSize={1.8} titleColor={APPCOLORS.WHITE} />
+            {/* <AppText title={`${percent ?? 0}%`} titleSize={1.8} titleColor={APPCOLORS.WHITE} /> */}
           </View>
         </View>
       </TouchableOpacity>

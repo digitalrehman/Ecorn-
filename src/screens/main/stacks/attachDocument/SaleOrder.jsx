@@ -38,58 +38,44 @@ export default function SaleOrder({navigation}) {
     useCallback(() => {
       if (route.params?.refresh) {
         fetchData();
-        navigation.setParams({refresh: false}); // reset flag
+        navigation.setParams({refresh: false});
       }
     }, [route.params?.refresh]),
   );
 
   const fetchData = async () => {
-    setLoading(true);
-    try {
-      const res = await axios.get(
-        'https://e.de2solutions.com/mobile_dash/dash_upload_sale.php',
-      );
-      let result = res.data?.data_cust_age || [];
-      setAllData(result);
+  setLoading(true);
+  try {
+    const res = await axios.get(
+      'https://e.de2solutions.com/mobile_dash/dash_upload_sale.php',
+    );
+    let result = res.data?.data_cust_age || [];
+    setAllData(result);
 
-      if (result.length === 0) {
-        setData([]);
-        setLoading(false);
-        return;
-      }
-
-      // date parsing & filtering ka code yahan rahega (same as before)...
-      const parsed = result.map(item => {
-        const dateStr = item.tran_date.split(' ')[0];
-        const [year, month, day] = dateStr.split('-').map(Number);
-        return {...item, jsDate: new Date(year, month - 1, day)};
-      });
-
-      const latestDate = new Date(
-        Math.max(...parsed.map(i => i.jsDate.getTime())),
-      );
-
-      const lastMonth = new Date(
-        latestDate.getFullYear(),
-        latestDate.getMonth() - 1,
-        1,
-      );
-      const thisMonth = new Date(
-        latestDate.getFullYear(),
-        latestDate.getMonth(),
-        1,
-      );
-
-      const filtered = parsed.filter(item => {
-        return item.jsDate >= lastMonth && item.jsDate < thisMonth;
-      });
-
-      setData(filtered);
-    } catch (error) {
-      console.log('Error fetching data:', error);
+    if (result.length === 0) {
+      setData([]);
+      setLoading(false);
+      return;
     }
-    setLoading(false);
-  };
+
+    const parsed = result.map(item => {
+      const dateStr = item.tran_date.split(' ')[0];
+      const [year, month, day] = dateStr.split('-').map(Number);
+      return {...item, jsDate: new Date(year, month - 1, day)};
+    });
+
+    // 🔹 Latest date find karne ki zarurat nahi (agar sirf 30 records chahiye)
+    // bas sorted list le kar slice kar lo
+    const sorted = parsed.sort((a, b) => b.jsDate - a.jsDate);
+
+    // 🔹 Sirf last 30 records
+    setData(sorted.slice(0, 30));
+  } catch (error) {
+    console.log('Error fetching data:', error);
+  }
+  setLoading(false);
+};
+
 
   const requestStoragePermission = async () => {
     if (Platform.OS === 'android' && Platform.Version < 30) {

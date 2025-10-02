@@ -15,6 +15,7 @@ import AppText from '../../../../components/AppText';
 import AppButton from '../../../../components/AppButton';
 import DatePicker from 'react-native-date-picker';
 import moment from 'moment';
+import LinearGradient from 'react-native-linear-gradient';
 
 const Ledger = ({navigation, route}) => {
   const {name, item} = route.params;
@@ -215,316 +216,251 @@ const Ledger = ({navigation, route}) => {
       });
   };
 
-  return (
-    <View>
-      <SimpleHeader title="Ledger" />
+ return (
+  <LinearGradient
+    colors={[APPCOLORS.Primary, APPCOLORS.Secondary, APPCOLORS.BLACK]}
+    style={{flex: 1}}>
+    {/* Header */}
+    <SimpleHeader title="Ledger" />
 
-      <ScrollView contentContainerStyle={{flexGrow: 1, paddingBottom: 150}}>
-        <View
-          style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'space-around',
-            marginTop: 10,
-          }}>
-          <View style={{gap: 10}}>
-            <AppText title="From Date" titleSize={2} titleWeight />
-            <AppButton
-              title={moment(fromDate)
-                .subtract('months', 1)
-                .format('YYYY-MM-DD')}
-              btnWidth={30}
-              onPress={() => setOpenFrom(true)}
-            />
-          </View>
-
-          <View style={{gap: 10}}>
-            <AppText title="End Date" titleSize={2} titleWeight />
-            <AppButton
-              title={moment(EndDate).format('YYYY-MM-DD')}
-              btnWidth={30}
-              onPress={() => setOpenEnd(true)}
-            />
-          </View>
+    <ScrollView contentContainerStyle={{flexGrow: 1, paddingBottom: 150}}>
+      {/* Date Filters */}
+      <View
+        style={{
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'space-around',
+          marginTop: 10,
+        }}>
+        <View style={{gap: 10}}>
+          <AppText title="From Date" titleSize={2} titleWeight titleColor={APPCOLORS.WHITE} />
+          <AppButton
+            title={moment(fromDate).subtract('months', 1).format('YYYY-MM-DD')}
+            btnWidth={30}
+            onPress={() => setOpenFrom(true)}
+          />
         </View>
 
-        {Laoder && <ActivityIndicator size={'large'} color={APPCOLORS.BLACK} />}
+        <View style={{gap: 10}}>
+          <AppText title="End Date" titleSize={2} titleWeight titleColor={APPCOLORS.WHITE} />
+          <AppButton
+            title={moment(EndDate).format('YYYY-MM-DD')}
+            btnWidth={30}
+            onPress={() => setOpenEnd(true)}
+          />
+        </View>
+      </View>
 
-        <DatePicker
-          modal
-          open={openFrom}
-          date={new Date()}
-          mode="date"
-          onConfirm={date => {
-            const foramtDate = moment(date).format('YYYY-MM-DD');
-            setOpenFrom(false);
-            setFromDate(foramtDate);
-          }}
-          onCancel={() => {
-            setOpenFrom(false);
-          }}
+      {Laoder && (
+        <ActivityIndicator
+          size="large"
+          color={APPCOLORS.WHITE}
+          style={{marginTop: 20}}
         />
+      )}
 
-        {
-          //End date
-        }
-        <DatePicker
-          modal
-          open={openEnd}
-          date={new Date()}
-          mode="date"
-          onConfirm={date => {
-            const foramtDate = moment(date).format('YYYY-MM-DD');
-            setOpenEnd(false);
-            setEndDate(foramtDate);
-          }}
-          onCancel={() => {
-            setOpenEnd(false);
-          }}
-        />
+      {/* Date Pickers */}
+      <DatePicker
+        modal
+        open={openFrom}
+        date={new Date()}
+        mode="date"
+        onConfirm={date => {
+          const foramtDate = moment(date).format('YYYY-MM-DD');
+          setOpenFrom(false);
+          setFromDate(foramtDate);
+        }}
+        onCancel={() => setOpenFrom(false)}
+      />
 
-        {opening && (
-          <View
-            style={{
-              padding: 20,
-              flexDirection: 'row',
-              justifyContent: 'space-between',
-            }}>
-            <AppText title={'Opening'} titleSize={2} titleWeight />
-            <AppText
-              title={Number(opening).toLocaleString('en-US', {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
-              })}
-              titleSize={2}
-              titleWeight
-            />
-          </View>
-        )}
+      <DatePicker
+        modal
+        open={openEnd}
+        date={new Date()}
+        mode="date"
+        onConfirm={date => {
+          const foramtDate = moment(date).format('YYYY-MM-DD');
+          setOpenEnd(false);
+          setEndDate(foramtDate);
+        }}
+        onCancel={() => setOpenEnd(false)}
+      />
 
-        <FlatList
-          data={aging}
-          contentContainerStyle={{gap: 20, padding: 20}}
-          renderItem={({item}) => {
-            return (
-              <>
-                {name == 'Items' ? (
-                  <View
-                    style={{
-                      padding: 20,
-                      backgroundColor: APPCOLORS.Secondary,
-                      borderRadius: 10,
-                    }}>
-                    <View
-                      style={{
-                        flexDirection: 'row',
-                        justifyContent: 'space-between',
-                      }}>
-                      <AppText title={'location name'} titleSize={2} />
-                      <AppText title={item.location_name} />
-                    </View>
+      {/* Opening Balance */}
+      {opening && (
+        <View
+          style={{
+            padding: 16,
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            marginHorizontal: 16,
+            marginVertical: 12,
+            borderRadius: 12,
+            backgroundColor: 'rgba(255,255,255,0.05)',
+            borderWidth: 1,
+            borderColor: 'rgba(255,255,255,0.1)',
+          }}>
+          <AppText title="Opening" titleSize={2} titleWeight titleColor={APPCOLORS.WHITE} />
+          <AppText
+            title={Number(opening).toLocaleString('en-US', {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            })}
+            titleSize={2}
+            titleWeight
+            titleColor={APPCOLORS.WHITE}
+          />
+        </View>
+      )}
 
-                    <View
-                      style={{
-                        flexDirection: 'row',
-                        justifyContent: 'space-between',
-                      }}>
-                      <AppText title={'QOH'} titleSize={2} />
-                      <AppText title={item.QOH} />
-                    </View>
+      {/* Ledger List */}
+      <FlatList
+        data={aging}
+        contentContainerStyle={{gap: 16, padding: 16}}
+        renderItem={({item}) => {
+          return (
+            <>
+              {name == 'Items' ? (
+                <View style={{
+                  padding: 16,
+                  borderRadius: 16,
+                  backgroundColor: 'rgba(255,255,255,0.05)',
+                  borderWidth: 1,
+                  borderColor: 'rgba(255,255,255,0.1)',
+                }}>
+                  <View style={{flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8}}>
+                    <AppText title="location name" titleSize={2} titleWeight titleColor={APPCOLORS.WHITE} />
+                    <AppText title={item.location_name} titleColor="rgba(255,255,255,0.85)" />
                   </View>
-                ) : name == 'Banks' ? (
-                  <View
-                    style={{
-                      padding: 20,
-                      backgroundColor: APPCOLORS.Secondary,
-                      borderRadius: 10,
-                    }}>
-                    <View
-                      style={{
-                        flexDirection: 'row',
-                        justifyContent: 'space-between',
-                      }}>
-                      <AppText title={'Reference'} titleSize={2} />
-                      <AppText title={item.reference} />
-                    </View>
 
-                    <View
-                      style={{
-                        flexDirection: 'row',
-                        justifyContent: 'space-between',
-                      }}>
-                      <AppText title={'Transaction date'} titleSize={2} />
-                      <AppText title={item.trans_date} />
-                    </View>
-
-                    <View
-                      style={{
-                        flexDirection: 'row',
-                        justifyContent: 'space-between',
-                      }}>
-                      <AppText title={'debit'} titleSize={2} />
-                      <AppText title={item.debit} />
-                    </View>
-
-                    <View
-                      style={{
-                        flexDirection: 'row',
-                        justifyContent: 'space-between',
-                      }}>
-                      <AppText title={'credit'} titleSize={2} />
-                      <AppText title={item.credit} />
-                    </View>
-
-                    <View
-                      style={{
-                        flexDirection: 'row',
-                        justifyContent: 'space-between',
-                      }}>
-                      <AppText title={'balance'} titleSize={2} />
-                      <AppText title={item.balance} />
-                    </View>
+                  <View style={{flexDirection: 'row', justifyContent: 'space-between'}}>
+                    <AppText title="QOH" titleSize={2} titleWeight titleColor={APPCOLORS.WHITE} />
+                    <AppText title={item.QOH} titleColor="rgba(255,255,255,0.85)" />
                   </View>
-                ) :name == 'Audit' ? (
-                  <View
-                    style={{
-                      padding: 20,
-                      backgroundColor: APPCOLORS.Secondary,
-                      borderRadius: 10,
-                    }}>
-                    <View
-                      style={{
-                        flexDirection: 'row',
-                        justifyContent: 'space-between',
-                      }}>
-                      <AppText title={'Date'} titleSize={2} />
-                      <AppText title={item.date} />
-                    </View>
-
-                    <View
-                      style={{
-                        flexDirection: 'row',
-                        justifyContent: 'space-between',
-                      }}>
-                      <AppText title={'Time'} titleSize={2} />
-                      <AppText title={item.time} />
-                    </View>
-
-                    <View
-                      style={{
-                        flexDirection: 'row',
-                        justifyContent: 'space-between',
-                      }}>
-                      <AppText title={'Name'} titleSize={2} />
-                      <AppText title={item.user_id} />
-                    </View>
-
-                    <View
-                      style={{
-                        flexDirection: 'row',
-                        justifyContent: 'space-between',
-                      }}>
-                      <AppText title={'Transaction Date'} titleSize={2} />
-                      <AppText title={item.trans_date} />
-                    </View>
-
-                    <View
-                      style={{
-                        flexDirection: 'row',
-                        justifyContent: 'space-between',
-                      }}>
-                      <AppText title={'Type'} titleSize={2} />
-                      <AppText title={item.type} />
-                    </View>
-
-                     <View
-                      style={{
-                        flexDirection: 'row',
-                        justifyContent: 'space-between',
-                      }}>
-                      <AppText title={'Reference'} titleSize={2} />
-                      <AppText title={item.reference} />
-                    </View>
-
-                     <View
-                      style={{
-                        flexDirection: 'row',
-                        justifyContent: 'space-between',
-                      }}>
-                      <AppText title={'Action'} titleSize={2} />
-                      <AppText title={item.description} />
-                    </View>
-
-
-                     <View
-                      style={{
-                        flexDirection: 'row',
-                        justifyContent: 'space-between',
-                      }}>
-                      <AppText title={'Amount'} titleSize={2} />
-                      <AppText title={item.amount} />
-                    </View>
+                </View>
+              ) : name == 'Banks' ? (
+                <View style={{
+                  padding: 16,
+                  borderRadius: 16,
+                  backgroundColor: 'rgba(255,255,255,0.05)',
+                  borderWidth: 1,
+                  borderColor: 'rgba(255,255,255,0.1)',
+                }}>
+                  <View style={{flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8}}>
+                    <AppText title="Reference" titleSize={2} titleWeight titleColor={APPCOLORS.WHITE} />
+                    <AppText title={item.reference} titleColor="rgba(255,255,255,0.85)" />
                   </View>
-                ): (
-                  <View
-                    style={{
-                      padding: 20,
-                      backgroundColor: APPCOLORS.Secondary,
-                      borderRadius: 10,
-                    }}>
-                    <View
-                      style={{
-                        flexDirection: 'row',
-                        justifyContent: 'space-between',
-                      }}>
-                      <AppText title={'Reference'} titleSize={2} />
-                      <AppText title={item.reference} />
-                    </View>
 
-                    <View
-                      style={{
-                        flexDirection: 'row',
-                        justifyContent: 'space-between',
-                      }}>
-                      <AppText title={'Transaction date'} titleSize={2} />
-                      <AppText title={item.tran_date} />
-                    </View>
-
-                    <View
-                      style={{
-                        flexDirection: 'row',
-                        justifyContent: 'space-between',
-                      }}>
-                      <AppText title={'debit'} titleSize={2} />
-                      <AppText title={item.debit} />
-                    </View>
-
-                    <View
-                      style={{
-                        flexDirection: 'row',
-                        justifyContent: 'space-between',
-                      }}>
-                      <AppText title={'credit'} titleSize={2} />
-                      <AppText title={item.credit} />
-                    </View>
-
-                    <View
-                      style={{
-                        flexDirection: 'row',
-                        justifyContent: 'space-between',
-                      }}>
-                      <AppText title={'balance'} titleSize={2} />
-                      <AppText title={item.balance} />
-                    </View>
+                  <View style={{flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8}}>
+                    <AppText title="Transaction date" titleSize={2} titleWeight titleColor={APPCOLORS.WHITE} />
+                    <AppText title={item.trans_date} titleColor="rgba(255,255,255,0.85)" />
                   </View>
-                )}
-              </>
-            );
-          }}
-        />
-      </ScrollView>
-    </View>
-  );
+
+                  <View style={{flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8}}>
+                    <AppText title="debit" titleSize={2} titleWeight titleColor={APPCOLORS.WHITE} />
+                    <AppText title={item.debit} titleColor="rgba(255,255,255,0.85)" />
+                  </View>
+
+                  <View style={{flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8}}>
+                    <AppText title="credit" titleSize={2} titleWeight titleColor={APPCOLORS.WHITE} />
+                    <AppText title={item.credit} titleColor="rgba(255,255,255,0.85)" />
+                  </View>
+
+                  <View style={{flexDirection: 'row', justifyContent: 'space-between'}}>
+                    <AppText title="balance" titleSize={2} titleWeight titleColor={APPCOLORS.WHITE} />
+                    <AppText title={item.balance} titleColor="rgba(255,255,255,0.85)" />
+                  </View>
+                </View>
+              ) : name == 'Audit' ? (
+                <View style={{
+                  padding: 16,
+                  borderRadius: 16,
+                  backgroundColor: 'rgba(255,255,255,0.05)',
+                  borderWidth: 1,
+                  borderColor: 'rgba(255,255,255,0.1)',
+                }}>
+                  <View style={{flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8}}>
+                    <AppText title="Date" titleSize={2} titleWeight titleColor={APPCOLORS.WHITE} />
+                    <AppText title={item.date} titleColor="rgba(255,255,255,0.85)" />
+                  </View>
+
+                  <View style={{flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8}}>
+                    <AppText title="Time" titleSize={2} titleWeight titleColor={APPCOLORS.WHITE} />
+                    <AppText title={item.time} titleColor="rgba(255,255,255,0.85)" />
+                  </View>
+
+                  <View style={{flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8}}>
+                    <AppText title="Name" titleSize={2} titleWeight titleColor={APPCOLORS.WHITE} />
+                    <AppText title={item.user_id} titleColor="rgba(255,255,255,0.85)" />
+                  </View>
+
+                  <View style={{flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8}}>
+                    <AppText title="Transaction Date" titleSize={2} titleWeight titleColor={APPCOLORS.WHITE} />
+                    <AppText title={item.trans_date} titleColor="rgba(255,255,255,0.85)" />
+                  </View>
+
+                  <View style={{flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8}}>
+                    <AppText title="Type" titleSize={2} titleWeight titleColor={APPCOLORS.WHITE} />
+                    <AppText title={item.type} titleColor="rgba(255,255,255,0.85)" />
+                  </View>
+
+                  <View style={{flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8}}>
+                    <AppText title="Reference" titleSize={2} titleWeight titleColor={APPCOLORS.WHITE} />
+                    <AppText title={item.reference} titleColor="rgba(255,255,255,0.85)" />
+                  </View>
+
+                  <View style={{flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8}}>
+                    <AppText title="Action" titleSize={2} titleWeight titleColor={APPCOLORS.WHITE} />
+                    <AppText title={item.description} titleColor="rgba(255,255,255,0.85)" />
+                  </View>
+
+                  <View style={{flexDirection: 'row', justifyContent: 'space-between'}}>
+                    <AppText title="Amount" titleSize={2} titleWeight titleColor={APPCOLORS.WHITE} />
+                    <AppText title={item.amount} titleColor="rgba(255,255,255,0.85)" />
+                  </View>
+                </View>
+              ) : (
+                <View style={{
+                  padding: 16,
+                  borderRadius: 16,
+                  backgroundColor: 'rgba(255,255,255,0.05)',
+                  borderWidth: 1,
+                  borderColor: 'rgba(255,255,255,0.1)',
+                }}>
+                  <View style={{flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8}}>
+                    <AppText title="Reference" titleSize={2} titleWeight titleColor={APPCOLORS.WHITE} />
+                    <AppText title={item.reference} titleColor="rgba(255,255,255,0.85)" />
+                  </View>
+
+                  <View style={{flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8}}>
+                    <AppText title="Transaction date" titleSize={2} titleWeight titleColor={APPCOLORS.WHITE} />
+                    <AppText title={item.tran_date} titleColor="rgba(255,255,255,0.85)" />
+                  </View>
+
+                  <View style={{flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8}}>
+                    <AppText title="debit" titleSize={2} titleWeight titleColor={APPCOLORS.WHITE} />
+                    <AppText title={item.debit} titleColor="rgba(255,255,255,0.85)" />
+                  </View>
+
+                  <View style={{flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8}}>
+                    <AppText title="credit" titleSize={2} titleWeight titleColor={APPCOLORS.WHITE} />
+                    <AppText title={item.credit} titleColor="rgba(255,255,255,0.85)" />
+                  </View>
+
+                  <View style={{flexDirection: 'row', justifyContent: 'space-between'}}>
+                    <AppText title="balance" titleSize={2} titleWeight titleColor={APPCOLORS.WHITE} />
+                    <AppText title={item.balance} titleColor="rgba(255,255,255,0.85)" />
+                  </View>
+                </View>
+              )}
+            </>
+          );
+        }}
+      />
+    </ScrollView>
+  </LinearGradient>
+);
+
 };
 
 export default Ledger;

@@ -9,35 +9,41 @@ import {
 import React, {useEffect, useState} from 'react';
 import SimpleHeader from '../../../../components/SimpleHeader';
 import RevenueCards from '../../../../components/RevenueCards';
-import {APPCOLORS} from '../../../../utils/APPCOLORS';
 import {responsiveHeight, responsiveWidth} from '../../../../utils/Responsive';
 import BaseUrl from '../../../../utils/BaseUrl';
 import axios from 'axios';
 import TopTen from '../../../../components/TopTen';
 import {useSelector} from 'react-redux';
+import LinearGradient from 'react-native-linear-gradient';
+
+const COLORS = {
+  WHITE: '#FFFFFF',
+  BLACK: '#000000',
+  Primary: '#1a1c22',
+  Secondary: '#5a5c6a',
+};
 
 const Detail = ({navigation}) => {
   const accessData = useSelector(state => state?.Data?.accessData);
 
   const [slider_data, setslider_data] = useState();
   const [AllData, setAllData] = useState();
-
+  const [expenseData, setExpenseData] = useState([]);
   const [loader, setLoader] = useState(false);
+
   const incomeData = [
-    {id: '1', title: 'Total Income', amount: slider_data?.cur_m_income},
+    {
+      id: '1',
+      title: 'Total Income',
+      amount: Math.abs(slider_data?.cur_m_income || 0),
+    },
   ];
-  const expenseData = [
-    {id: '501', title: 'Cost of Goods Sold', amount: 200000},
-    {id: '502', title: 'Payroll Expenses', amount: 120000},
-    {id: '504', title: 'Administrative Expenses', amount: 30000},
-    {id: '505', title: 'Selling & Marketing', amount: 15000},
-    {id: '503', title: 'Finanace Cost', amount: 40000},
-  ];
+
   const revData = [
     {
       id: 6,
       title: 'Cash',
-      accessKey: 'cash',
+      accessKey: 'bank',
       Amount: slider_data?.cur_m_cash,
       Prev_title: 'Previous Month',
       Prev_Amount: slider_data?.pre_m_cash,
@@ -82,7 +88,6 @@ const Detail = ({navigation}) => {
   const getMoneyData = async () => {
     setLoader(true);
     const form = new FormData();
-
     form.append('current_date', '2025-05-19');
     form.append('pre_month_date', '2025-04-19');
 
@@ -97,9 +102,9 @@ const Detail = ({navigation}) => {
 
     try {
       const {data} = await axios.request(options);
-      console.log(data);
       setslider_data(data?.slider_data);
       setAllData(data);
+      setExpenseData(data?.data_exp_det || []);
       setLoader(false);
     } catch (error) {
       console.error(error);
@@ -109,14 +114,20 @@ const Detail = ({navigation}) => {
 
   const renderRow = ({item}) => (
     <View style={styles.row}>
-      <Text style={styles.rowTitle}>{item.title}</Text>
-      <Text style={styles.rowAmount}>{item.amount}</Text>
+      <Text style={styles.rowTitle}>
+        {(item.name || item.title)?.replace(/&amp;/g, '&')}
+      </Text>
+      <Text style={styles.rowAmount}>
+        {parseFloat(item.total || item.amount).toLocaleString()}
+      </Text>
     </View>
   );
 
   return (
-    <View style={{flex: 1, backgroundColor: APPCOLORS.WHITE}}>
-      <SimpleHeader title="Detail" />
+    <LinearGradient
+      colors={[COLORS.Primary, COLORS.Secondary, COLORS.BLACK]}
+      style={{flex: 1}}>
+      <SimpleHeader title="Dashboard" />
 
       {loader ? (
         <View
@@ -125,12 +136,12 @@ const Detail = ({navigation}) => {
             width: responsiveWidth(100),
             position: 'absolute',
             zIndex: 10,
-            backgroundColor: APPCOLORS.BLACK,
+            backgroundColor: COLORS.BLACK,
             opacity: 0.5,
             alignItems: 'center',
             justifyContent: 'center',
           }}>
-          <ActivityIndicator size={'large'} color={APPCOLORS.WHITE} />
+          <ActivityIndicator size={'large'} color={COLORS.WHITE} />
         </View>
       ) : null}
 
@@ -150,11 +161,12 @@ const Detail = ({navigation}) => {
           <Text style={styles.boxHeader}>Expense</Text>
           <FlatList
             data={expenseData}
-            keyExtractor={item => item.id}
+            keyExtractor={(item, index) => index.toString()}
             renderItem={renderRow}
           />
         </View>
 
+        {/* Revenue Section */}
         <FlatList
           data={revData.filter(
             item =>
@@ -172,8 +184,8 @@ const Detail = ({navigation}) => {
                 prev_title={item?.Prev_title}
                 prev_type={item?.Prev_type}
                 prev_amount={item?.Prev_Amount}
-                gradientTopColor={APPCOLORS.Primary}
-                gradientBottomColor={APPCOLORS.Secondary}
+                gradientTopColor={COLORS.Primary}
+                gradientBottomColor={COLORS.Secondary}
                 IsUp={item?.isUp}
                 onPress={() =>
                   navigation.navigate('MoreDetail', {
@@ -207,31 +219,27 @@ const Detail = ({navigation}) => {
           </View>
         </View>
       </ScrollView>
-    </View>
+    </LinearGradient>
   );
 };
 
 export default Detail;
-let styles = StyleSheet.create({
-  container: {flex: 1, backgroundColor: '#fff'},
 
+let styles = StyleSheet.create({
   box: {
-    backgroundColor: '#fff',
+    backgroundColor: 'rgba(255,255,255,0.05)',
     marginHorizontal: 15,
     marginTop: 15,
-    borderRadius: 12,
+    borderRadius: 16,
     padding: 15,
-    shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowOffset: {width: 0, height: 3},
-    shadowRadius: 6,
-    elevation: 4,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)',
   },
   boxHeader: {
     fontSize: 18,
     fontWeight: '700',
     marginBottom: 10,
-    color: APPCOLORS.Primary,
+    color: COLORS.WHITE,
   },
 
   row: {
@@ -239,8 +247,8 @@ let styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingVertical: 10,
     borderBottomWidth: 1,
-    borderBottomColor: '#eee',
+    borderBottomColor: 'rgba(255,255,255,0.1)',
   },
-  rowTitle: {fontSize: 16, color: '#444'},
-  rowAmount: {fontSize: 16, fontWeight: 'bold', color: '#000'},
+  rowTitle: {fontSize: 16, color: 'rgba(255,255,255,0.85)'},
+  rowAmount: {fontSize: 16, fontWeight: 'bold', color: COLORS.WHITE},
 });

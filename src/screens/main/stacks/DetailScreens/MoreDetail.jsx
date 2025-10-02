@@ -1,15 +1,29 @@
-import {View, Text, StyleSheet, ScrollView, FlatList} from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  FlatList,
+} from 'react-native';
 import React, {useEffect, useState} from 'react';
 import SimpleHeader from '../../../../components/SimpleHeader';
 import PieChart from 'react-native-pie-chart';
 import AppText from '../../../../components/AppText';
 import NameBalanceContainer from '../../../../components/NameBalanceContainer';
 import ViewAll from '../../../../components/ViewAll';
+import LinearGradient from 'react-native-linear-gradient';
 import {
   GetBankBalance,
   GetPayable,
   GetReceivable,
 } from '../../../../global/ChartApisCall';
+
+const COLORS = {
+  WHITE: '#FFFFFF',
+  BLACK: '#000000',
+  Primary: '#1a1c22',
+  Secondary: '#5a5c6a',
+};
 
 const MoreDetail = ({navigation, route}) => {
   const {type} = route.params;
@@ -18,15 +32,15 @@ const MoreDetail = ({navigation, route}) => {
   const [circleData, setCircleData] = useState(null);
 
   const colors = [
-    '#910000',
-    '#00FF26',
-    '#FF704D',
-    '#DA0000',
-    '#FF9168',
-    '#FF5234',
-    '#AD5959',
-    '#ABCD12',
-    '#910000',
+    '#00E0FF',
+    '#FF6B6B',
+    '#FFD93D',
+    '#6BCB77',
+    '#4D96FF',
+    '#FFB347',
+    '#9D4EDD',
+    '#38BDF8',
+    '#FF007F',
     '#FFAA00',
   ];
 
@@ -81,10 +95,8 @@ const MoreDetail = ({navigation, route}) => {
         }
         break;
 
-      case 'cash': // Agar cash ka API alag hai to yahan call karein
-        apiResponse = await GetBankBalance(); // Placeholder
-        console.log('apirespnse', apiResponse);
-
+      case 'cash':
+        apiResponse = await GetBankBalance();
         if (apiResponse?.data_bank_bal) {
           circleBar = apiResponse.data_bank_bal.map((item, index) => ({
             value:
@@ -134,9 +146,27 @@ const MoreDetail = ({navigation, route}) => {
     }
   };
 
+  const getListAllData = () => {
+    switch (type) {
+      case 'bank':
+        return dataState?.data_bank_bal_view_all || [];
+      case 'payable':
+        return dataState?.data_supp_bal_view_all || [];
+      case 'receivable':
+        return dataState?.data_view_cust_bal || [];
+      case 'cash':
+        return dataState?.data_bank_bal_view_all || [];
+      default:
+        return [];
+    }
+  };
+
   return (
-    <View>
+    <LinearGradient
+      colors={[COLORS.Primary, COLORS.Secondary, COLORS.BLACK]}
+      style={{flex: 1}}>
       <SimpleHeader title={getTitle()} />
+
       <ScrollView contentContainerStyle={{flexGrow: 1, paddingBottom: 200}}>
         <View style={{padding: 20}}>
           {/* Chart */}
@@ -159,7 +189,7 @@ const MoreDetail = ({navigation, route}) => {
                     alignItems: 'center',
                     justifyContent: 'center',
                   }}>
-                  <AppText title={getTitle()} titleSize={2} titleWeight />
+                  <Text style={styles.chartTitle}>{getTitle()}</Text>
                 </View>
               </>
             )}
@@ -167,16 +197,11 @@ const MoreDetail = ({navigation, route}) => {
 
           {/* List Header */}
           <View style={styles.headerContainer}>
-            <AppText
-              title={`Top 10 ${getTitle()}`}
-              titleSize={2}
-              titleWeight
-              titleSizeWeight={40}
-            />
+            <Text style={styles.sectionTitle}>{`Top 10 ${getTitle()}`}</Text>
             <ViewAll
               onPress={() =>
                 navigation.navigate('NormalViewAll', {
-                  AllData: getListData(),
+                  AllData: getListAllData(),
                   dataname:
                     type === 'bank'
                       ? 'Bank'
@@ -222,36 +247,55 @@ const MoreDetail = ({navigation, route}) => {
                   total > 0 ? ((balance / total) * 100).toFixed(2) : 0;
 
                 return (
-                  <NameBalanceContainer
-                    Name={
-                      type === 'bank' || type === 'cash'
-                        ? item?.bank_name
-                        : type === 'payable'
-                        ? item?.supp_name
-                        : type === 'receivable'
-                        ? item?.name
-                        : ''
-                    }
-                    balance={balance}
-                    perc={perc}
-                  />
+                  <View style={styles.card}>
+                    <NameBalanceContainer
+                      Name={
+                        type === 'bank' || type === 'cash'
+                          ? item?.bank_name
+                          : type === 'payable'
+                          ? item?.supp_name
+                          : type === 'receivable'
+                          ? item?.name
+                          : ''
+                      }
+                      balance={balance}
+                      perc={perc}
+                    />
+                  </View>
                 );
               }}
             />
           </View>
         </View>
       </ScrollView>
-    </View>
+    </LinearGradient>
   );
 };
 
 export default MoreDetail;
 
 const styles = StyleSheet.create({
+  chartTitle: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: COLORS.WHITE,
+  },
   headerContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     marginTop: 20,
+  },
+  card: {
+    backgroundColor: 'rgba(255,255,255,0.05)',
+    padding: 12,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)',
   },
 });
