@@ -14,13 +14,13 @@ import axios from 'axios';
 import SimpleHeader from '../../../../components/SimpleHeader';
 import * as Animatable from 'react-native-animatable';
 
-const GrnAgainst = ({navigation}) => {
+const GrnAgainst = ({navigation, route}) => {
   const [fromDate, setFromDate] = useState(null);
   const [toDate, setToDate] = useState(null);
   const [showFromPicker, setShowFromPicker] = useState(false);
   const [showToPicker, setShowToPicker] = useState(false);
 
-  const [customers, setCustomers] = useState([]); // supplier dropdown
+  const [customers, setCustomers] = useState([]);
   const [locations, setLocations] = useState([]);
   const [selectedCustomer, setSelectedCustomer] = useState(null);
   const [selectedLocation, setSelectedLocation] = useState(null);
@@ -28,15 +28,23 @@ const GrnAgainst = ({navigation}) => {
   const [loading, setLoading] = useState(false);
   const [transactions, setTransactions] = useState([]);
 
-  // supplier list ko memory me bhi save karenge for lookup
   const [supplierList, setSupplierList] = useState([]);
 
+  // 🔹 Fetch supplier, location, and POs on mount
   useEffect(() => {
     fetchCustomers();
     fetchLocations();
-    fetchTransactions(); // default load
+    fetchTransactions();
   }, []);
 
+  // 🔹 Refresh when coming back from GRN
+  useEffect(() => {
+    if (route?.params?.refresh) {
+      fetchTransactions();
+    }
+  }, [route?.params?.refresh]);
+
+  // 🔹 Fetch Suppliers
   const fetchCustomers = async () => {
     try {
       const res = await axios.get(
@@ -44,11 +52,10 @@ const GrnAgainst = ({navigation}) => {
       );
       if (res.data?.status === 'true') {
         setSupplierList(res.data.data);
-
         setCustomers(
           res.data.data.map(c => ({
             label: c.name,
-            value: c.supplier_id, // value = supplier_id
+            value: c.supplier_id,
           })),
         );
       }
@@ -57,6 +64,7 @@ const GrnAgainst = ({navigation}) => {
     }
   };
 
+  // 🔹 Fetch Locations
   const fetchLocations = async () => {
     try {
       const res = await axios.get(
@@ -75,46 +83,43 @@ const GrnAgainst = ({navigation}) => {
     }
   };
 
+  // 🔹 Fetch Pending POs
   const fetchTransactions = async () => {
     try {
       setLoading(true);
-
       const res = await axios.get(
-        'https://e.de2solutions.com/mobile_dash/pending_so.php',
+        'https://e.de2solutions.com/mobile_dash/pending_po.php',
       );
 
-      if (res.data?.status === 'true') {
-        let allData = res.data.data || [];
-        let finalData = allData;
+      if (res.data?.status === 'true' && res.data.data?.length > 0) {
+        let finalData = res.data.data;
 
-        // 🔹 Supplier filter (via supplier_id → person_id)
+        // Supplier Filter
         if (selectedCustomer) {
           const supplier = supplierList.find(
-            s => s.supplier_id.toString() === selectedCustomer.toString(),
+            s => s.supplier_id?.toString() === selectedCustomer?.toString(),
           );
-
           if (supplier) {
             finalData = finalData.filter(
-              item => item.person_id?.toString() === supplier.supplier_id?.toString(),
+              item =>
+                item.supplier_id?.toString() ===
+                supplier.supplier_id?.toString(),
             );
-          } else {
-            finalData = []; // supplier not found
           }
         }
 
-        // 🔹 Location filter
+        // Location Filter
         if (selectedLocation) {
           finalData = finalData.filter(
-            item => item.location?.toString() === selectedLocation.toString(),
+            item => item.location?.toString() === selectedLocation?.toString(),
           );
         }
 
-        // 🔹 Date filter
+        // Date Filter
         if (fromDate && toDate) {
           finalData = finalData.filter(item => {
             if (!item.ord_date) return false;
             const d = new Date(item.ord_date);
-            const dOnly = new Date(d.getFullYear(), d.getMonth(), d.getDate());
             const fromOnly = new Date(
               fromDate.getFullYear(),
               fromDate.getMonth(),
@@ -125,7 +130,7 @@ const GrnAgainst = ({navigation}) => {
               toDate.getMonth(),
               toDate.getDate(),
             );
-            return dOnly >= fromOnly && dOnly <= toOnly;
+            return d >= fromOnly && d <= toOnly;
           });
         }
 
@@ -141,8 +146,9 @@ const GrnAgainst = ({navigation}) => {
     }
   };
 
+  // 🔹 Formatters
   const formatDate = dateStr => {
-    if (!dateStr) return '';
+    if (!dateStr) return '-';
     const d = new Date(dateStr);
     return d.toLocaleDateString('en-GB');
   };
@@ -152,6 +158,7 @@ const GrnAgainst = ({navigation}) => {
     return parseFloat(amt).toLocaleString();
   };
 
+  // 🔹 Each Row
   const renderItem = ({item, index}) => (
     <Animatable.View
       animation="fadeInUp"
@@ -166,7 +173,7 @@ const GrnAgainst = ({navigation}) => {
       <TouchableOpacity
         style={{flex: 1, alignItems: 'center'}}
         onPress={() =>
-          navigation.navigate('DeliveryNote', {
+          navigation.navigate('GrnDeliveryNote', {
             orderId: item.order_no,
             personId: item.person_id,
             locCode: item.location,
@@ -177,12 +184,13 @@ const GrnAgainst = ({navigation}) => {
     </Animatable.View>
   );
 
+  // 🔹 Main UI
   return (
     <View style={styles.container}>
       <SimpleHeader title="GRN Against PO" />
 
       <View style={styles.filterContainer}>
-        {/* Supplier Dropdown */}
+        {/* Supplier */}
         <Dropdown
           style={styles.dropdown}
           placeholderStyle={styles.placeholderStyle}
@@ -198,7 +206,7 @@ const GrnAgainst = ({navigation}) => {
           onChange={item => setSelectedCustomer(item.value)}
         />
 
-        {/* Location Dropdown */}
+        {/* Location */}
         <Dropdown
           style={styles.dropdown}
           placeholderStyle={styles.placeholderStyle}
@@ -214,7 +222,7 @@ const GrnAgainst = ({navigation}) => {
           onChange={item => setSelectedLocation(item.value)}
         />
 
-        {/* From / To / Apply buttons */}
+        {/* Dates + Apply */}
         <View style={styles.dateRow}>
           <TouchableOpacity
             style={styles.morphButton}
@@ -239,7 +247,7 @@ const GrnAgainst = ({navigation}) => {
           </TouchableOpacity>
         </View>
 
-        {/* Date Pickers */}
+        {/* Pickers */}
         {showFromPicker && (
           <DateTimePicker
             value={fromDate || new Date()}
@@ -251,7 +259,6 @@ const GrnAgainst = ({navigation}) => {
             }}
           />
         )}
-
         {showToPicker && (
           <DateTimePicker
             value={toDate || new Date()}
@@ -273,19 +280,22 @@ const GrnAgainst = ({navigation}) => {
         <Text style={[styles.headerCell, {flex: 1}]}>Action</Text>
       </View>
 
-      {/* Transactions List */}
+      {/* Data */}
       {loading ? (
         <ActivityIndicator size="large" color="#1a1c22" />
       ) : transactions.length === 0 ? (
         <View style={{alignItems: 'center', marginTop: 30}}>
-          <Icon name="file-alert" size={40} color="#5a5c6a" />
-          <Text style={{marginTop: 10, color: '#5a5c6a'}}>No Data Found</Text>
+          <Icon name="check-circle-outline" size={40} color="#4CAF50" />
+          <Text style={{marginTop: 10, color: '#4CAF50', fontWeight: '600'}}>
+            All Purchase Orders are completed 🎉
+          </Text>
         </View>
       ) : (
         <FlatList
           data={transactions}
           keyExtractor={(item, index) => index.toString()}
           renderItem={renderItem}
+          showsVerticalScrollIndicator={false}
         />
       )}
     </View>
@@ -343,15 +353,8 @@ const styles = StyleSheet.create({
     shadowRadius: 5,
     elevation: 4,
   },
-  placeholderStyle: {
-    fontSize: 14,
-    color: '#5a5c6a',
-  },
-  selectedTextStyle: {
-    fontSize: 14,
-    color: '#000',
-    fontWeight: '600',
-  },
+  placeholderStyle: {fontSize: 14, color: '#5a5c6a'},
+  selectedTextStyle: {fontSize: 14, color: '#000', fontWeight: '600'},
   tableHeader: {
     flexDirection: 'row',
     backgroundColor: '#1a1c22',
@@ -378,9 +381,5 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 2,
   },
-  cell: {
-    fontSize: 14,
-    color: '#000',
-    textAlign: 'center',
-  },
+  cell: {fontSize: 14, color: '#000', textAlign: 'center'},
 });

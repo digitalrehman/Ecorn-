@@ -5,7 +5,7 @@ import AppText from './AppText';
 const ViewAll = ({onPress}) => {
   return (
     <TouchableOpacity onPress={onPress}>
-      <AppText title="View all" titleSize={2} titleWeight />
+      <AppText titleColor="#fff" title="View all" titleSize={2} titleWeight />
     </TouchableOpacity>
   );
 };

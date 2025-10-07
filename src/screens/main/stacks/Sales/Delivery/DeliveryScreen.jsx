@@ -163,6 +163,8 @@ const DeliveryScreen = ({navigation}) => {
             orderId: item.order_no,
             personId: item.person_id,
             locCode: item.location,
+            price_list: item.price_list,
+            ship_via: item.ship_via,
           })
         }>
         <Icon name="truck-delivery" size={22} color="#1a1c22" />

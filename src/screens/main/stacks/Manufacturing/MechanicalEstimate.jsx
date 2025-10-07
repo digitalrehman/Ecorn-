@@ -5,12 +5,10 @@ import {
   TouchableOpacity,
   StyleSheet,
   FlatList,
-  TextInput,
   ActivityIndicator,
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import LinearGradient from 'react-native-linear-gradient';
-import SelectDropdown from 'react-native-select-dropdown'; // 👈 searchable dropdown
 
 const COLORS = {
   WHITE: '#FFFFFF',
@@ -19,68 +17,64 @@ const COLORS = {
   Secondary: '#5a5c6a',
 };
 
-const MechanicalEstimate = ({navigation}) => {
-  const [items, setItems] = useState([]); // API dropdown data
+const MechanicalEstimate = ({navigation, route}) => {
+  const {requisitionid} = route.params || {};
+
+  const [tableData, setTableData] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  // table data (initial dummy)
-  const [tableData, setTableData] = useState([
-    {id: 1, item: 'Bolt M12', qty: 10, price: 500},
-    {id: 2, item: 'Nut M10', qty: 25, price: 200},
-  ]);
+  // ✅ Utility: truncate description to 6 words
+  const truncateWords = (text, wordLimit = 6) => {
+    if (!text) return '';
+    const words = text.split(' ');
+    if (words.length <= wordLimit) return text;
+    return words.slice(0, wordLimit).join(' ') + '...';
+  };
 
-  // form fields
-  const [selectedItem, setSelectedItem] = useState(null);
-  const [qty, setQty] = useState('');
-  const [price, setPrice] = useState('');
-
-  // Fetch dropdown data
+  // ✅ Fetch API Data
   useEffect(() => {
-    const fetchStock = async () => {
+    const fetchEstimation = async () => {
       setLoading(true);
       try {
+        let formData = new FormData();
+        formData.append('requisitionid', requisitionid);
+
         const res = await fetch(
-          'https://e.de2solutions.com/mobile_dash/stock_master.php',
+          'https://e.de2solutions.com/mobile_dash/get_estimation.php',
+          {
+            method: 'POST',
+            body: formData,
+          },
         );
+
         const json = await res.json();
-        if (json.status === 'true') {
-          setItems(json.data);
+        if (json.status === 'true' && Array.isArray(json.data)) {
+          const mapped = json.data.map((item, idx) => ({
+            id: idx + 1,
+            item: truncateWords(item.description),
+            qty: Number(item.order_quantity || 0),
+            price: Number(item.estimate_price || 0),
+          }));
+          setTableData(mapped);
         }
       } catch (err) {
-        console.log('Dropdown Fetch Error:', err);
+        console.log('API Fetch Error:', err);
       }
       setLoading(false);
     };
-    fetchStock();
+
+    fetchEstimation();
   }, []);
-
-  // Add new row
-  const handleAdd = () => {
-    if (!selectedItem || !qty || !price) return;
-
-    const newRow = {
-      id: Date.now(),
-      item: selectedItem.long_description,
-      stock_id: selectedItem.stock_id,
-      qty: Number(qty),
-      price: Number(price),
-    };
-
-    setTableData(prev => [...prev, newRow]);
-    setSelectedItem(null);
-    setQty('');
-    setPrice('');
-  };
 
   const renderRow = ({item}) => (
     <View style={styles.tableRow}>
-      <Text style={[styles.cell, {flex: 8}]} numberOfLines={1}>
+      <Text style={[styles.cell, {flex: 7}]} numberOfLines={1}>
         {item.item}
       </Text>
       <Text style={[styles.cell, {flex: 1, textAlign: 'center'}]}>
         {item.qty}
       </Text>
-      <Text style={[styles.cell, {flex: 1, textAlign: 'center'}]}>
+      <Text style={[styles.cell, {flex: 2, textAlign: 'center'}]}>
         {item.price}
       </Text>
     </View>
@@ -101,61 +95,28 @@ const MechanicalEstimate = ({navigation}) => {
 
       {/* Table Header */}
       <View style={[styles.tableRow, styles.tableHeader]}>
-        <Text style={[styles.cell, {flex: 8}]}>Item</Text>
-        <Text style={[styles.cell, {flex: 1, textAlign: 'center'}]}>
-          Qty
-        </Text>
-        <Text style={[styles.cell, {flex: 1, textAlign: 'center'}]}>
+        <Text style={[styles.cell, {flex: 7}]}>Item</Text>
+        <Text style={[styles.cell, {flex: 1, textAlign: 'center'}]}>Qty</Text>
+        <Text style={[styles.cell, {flex: 2, textAlign: 'center'}]}>
           Est. Price
         </Text>
       </View>
 
       {/* Table Data */}
-      <FlatList
-        data={tableData}
-        keyExtractor={item => item.id.toString()}
-        renderItem={renderRow}
-        contentContainerStyle={{paddingBottom: 100}}
-      />
-
-      {/* Form */}
-      <View style={styles.form}>
-        {loading ? (
-          <ActivityIndicator color={COLORS.WHITE} />
-        ) : (
-          <SelectDropdown
-            data={items}
-            defaultButtonText="Select Item"
-            onSelect={(selected) => setSelectedItem(selected)}
-            buttonTextAfterSelection={(selected) => selected.long_description}
-            rowTextForSelection={(item) => item.long_description}
-            buttonStyle={styles.dropdownBtn}
-            buttonTextStyle={{color: COLORS.WHITE}}
-            dropdownStyle={{backgroundColor: COLORS.Secondary}}
-          />
-        )}
-
-        <TextInput
-          placeholder="Qty"
-          placeholderTextColor="#aaa"
-          keyboardType="numeric"
-          value={qty}
-          onChangeText={setQty}
-          style={styles.input}
+      {loading ? (
+        <ActivityIndicator
+          size="large"
+          color={COLORS.WHITE}
+          style={{marginTop: 50}}
         />
-        <TextInput
-          placeholder="Est. Price"
-          placeholderTextColor="#aaa"
-          keyboardType="numeric"
-          value={price}
-          onChangeText={setPrice}
-          style={styles.input}
+      ) : (
+        <FlatList
+          data={tableData}
+          keyExtractor={item => item.id.toString()}
+          renderItem={renderRow}
+          contentContainerStyle={{paddingBottom: 100}}
         />
-
-        <TouchableOpacity style={styles.addBtn} onPress={handleAdd}>
-          <Text style={{color: COLORS.WHITE, fontWeight: '600'}}>Add</Text>
-        </TouchableOpacity>
-      </View>
+      )}
     </LinearGradient>
   );
 };
@@ -189,35 +150,5 @@ const styles = StyleSheet.create({
   cell: {
     fontSize: 14,
     color: COLORS.WHITE,
-  },
-  form: {
-    position: 'absolute',
-    bottom: 0,
-    width: '100%',
-    padding: 12,
-    backgroundColor: 'rgba(0,0,0,0.4)',
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: '#555',
-    borderRadius: 8,
-    paddingHorizontal: 10,
-    paddingVertical: 8,
-    marginVertical: 6,
-    color: COLORS.WHITE,
-  },
-  dropdownBtn: {
-    width: '100%',
-    height: 45,
-    backgroundColor: COLORS.Secondary,
-    borderRadius: 8,
-    marginBottom: 8,
-  },
-  addBtn: {
-    marginTop: 8,
-    backgroundColor: COLORS.Secondary,
-    paddingVertical: 12,
-    borderRadius: 8,
-    alignItems: 'center',
   },
 });

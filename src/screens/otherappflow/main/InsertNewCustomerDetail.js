@@ -46,6 +46,13 @@ const InsertNewCustomerDetail = ({navigation, route}) => {
   const [loading, setLoading] = useState(true);
 
   const [submitting, setSubmitting] = useState(false);
+  const provinceOptions = [
+    {label: 'Sindh', value: 'Sindh'},
+    {label: 'Punjab', value: 'Punjab'},
+    {label: 'Balochistan', value: 'Balochistan'},
+    {label: 'Khyber Pakhtunkhwa', value: 'Khyber Pakhtunkhwa'},
+    {label: 'Gilgit-Baltistan', value: 'Gilgit-Baltistan'},
+  ];
 
   // Animated entrance values
   const animValues = useRef([]).current;
@@ -333,7 +340,24 @@ const InsertNewCustomerDetail = ({navigation, route}) => {
             />
           </Animated.View>
 
-          {renderInputAnimated(8, 'Province', Province, setProvince)}
+          <Animated.View
+            style={{
+              transform: [{translateY: animValues[8].translateY}],
+              opacity: animValues[8].opacity,
+            }}>
+            <Dropdown
+              style={styles.dropdown}
+              data={provinceOptions}
+              labelField="label"
+              valueField="value"
+              placeholder="Select Province"
+              placeholderStyle={{color: 'rgba(255,255,255,0.6)'}}
+              value={Province}
+              onChange={item => {
+                setProvince(item.value);
+              }}
+            />
+          </Animated.View>
         </Animated.View>
 
         <Animated.View style={{gap: 12}}>

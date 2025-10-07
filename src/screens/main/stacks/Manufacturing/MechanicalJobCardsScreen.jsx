@@ -133,7 +133,7 @@ const renderRow = ({item}) => (
       {/* 🔹 Estimate Icon */}
       <TouchableOpacity
         style={{alignItems: 'center'}}
-        onPress={() => navigation.navigate('MechanicalEstimate', {id: item.id})}>
+        onPress={() => navigation.navigate('MechanicalEstimate', {id: item.id, requisitionid : item.requisitionid})}>
         <Ionicons name="document-text-outline" size={22} color="#4cafef" />
         <Text style={{color: COLORS.WHITE, fontSize: 8}}>Estimate</Text>
       </TouchableOpacity>

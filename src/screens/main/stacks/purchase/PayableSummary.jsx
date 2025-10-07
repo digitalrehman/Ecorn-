@@ -2,10 +2,9 @@ import {View, Text, StyleSheet, ScrollView, FlatList} from 'react-native';
 import React, {useEffect, useState} from 'react';
 import SimpleHeader from '../../../../components/SimpleHeader';
 import PieChart from 'react-native-pie-chart';
-import AppText from '../../../../components/AppText';
 import NameBalanceContainer from '../../../../components/NameBalanceContainer';
 import ViewAll from '../../../../components/ViewAll';
-import {GetReceivable} from '../../../../global/ChartApisCall';
+import {GetPayable} from '../../../../global/ChartApisCall';
 import LinearGradient from 'react-native-linear-gradient';
 
 const COLORS = {
@@ -15,7 +14,7 @@ const COLORS = {
   Secondary: '#5a5c6a',
 };
 
-const ReceivableScreen = ({navigation}) => {
+const PayableSummary = ({navigation}) => {
   const [dataState, setDataState] = useState(null);
   const [circleData, setCircleData] = useState(null);
 
@@ -40,10 +39,10 @@ const ReceivableScreen = ({navigation}) => {
   }, [navigation]);
 
   const fetchData = async () => {
-    const apiResponse = await GetReceivable();
+    const apiResponse = await GetPayable();
 
-    if (apiResponse?.data_cust_bal) {
-      const circleBar = apiResponse.data_cust_bal.map((item, index) => ({
+    if (apiResponse?.data_supp_bal) {
+      const circleBar = apiResponse.data_supp_bal.map((item, index) => ({
         value:
           parseFloat(Math.round(item.Balance)) < 0
             ? 5
@@ -57,14 +56,14 @@ const ReceivableScreen = ({navigation}) => {
   };
 
   const getListData = () => {
-    return dataState?.data_cust_bal || [];
+    return dataState?.data_supp_bal || [];
   };
 
   return (
     <LinearGradient
       colors={[COLORS.Primary, COLORS.Secondary, COLORS.BLACK]}
       style={{flex: 1}}>
-      <SimpleHeader title="Receivable Balance" />
+      <SimpleHeader title="Payable Balance" />
 
       <ScrollView contentContainerStyle={{flexGrow: 1, paddingBottom: 200}}>
         <View style={{padding: 10}}>
@@ -88,7 +87,7 @@ const ReceivableScreen = ({navigation}) => {
                     alignItems: 'center',
                     justifyContent: 'center',
                   }}>
-                  <Text style={styles.chartTitle}>Receivable Balance</Text>
+                  <Text style={styles.chartTitle}>Payable Balance</Text>
                 </View>
               </>
             )}
@@ -124,7 +123,7 @@ const ReceivableScreen = ({navigation}) => {
                 return (
                   <View style={styles.card}>
                     <NameBalanceContainer
-                      Name={item?.name}
+                      Name={item?.supp_name}
                       balance={balance}
                       perc={perc}
                     />
@@ -139,7 +138,7 @@ const ReceivableScreen = ({navigation}) => {
   );
 };
 
-export default ReceivableScreen;
+export default PayableSummary;
 
 const styles = StyleSheet.create({
   chartTitle: {

@@ -10,7 +10,7 @@ const buttons = [
   {name: 'Add Suppliers', icon: 'account-multiple-plus', screen: 'AddSuppliersScreen'},
   {name: 'GRN AGAINST PO', icon: 'file-clock', screen: 'GrnAgainst'},
   {name: 'PDC Detail', icon: 'file-chart', screen: 'PdcDetailScreen'},
-  {name: 'Payable Summary', icon: 'cash-multiple', screen: 'PayableSummaryScreen'},
+  {name: 'Payable Summary', icon: 'cash-multiple', screen: 'PayableSummary'},
 ];
 
 export default function PurchaseScreen({navigation}) {

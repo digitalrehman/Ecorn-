@@ -204,11 +204,10 @@ const AddSuppliersScreen = ({navigation}) => {
           console.log('Offline visit submitted:', response.data);
         } catch (error) {
           console.log('Error submitting offline visit:', error);
-          return; // Stop further execution if there's an error
+          return;
         }
       }
 
-      // If all visits are submitted successfully, clear the stored data
       await AsyncStorage.removeItem('offlineVisits');
       Toast.show({
         type: 'success',
@@ -424,7 +423,7 @@ const AddSuppliersScreen = ({navigation}) => {
           }}>
           <Text
             style={{color: APPCOLORS.WHITE, fontSize: 20, fontWeight: 'bold'}}>
-            Add new customer
+            Add new supplier
           </Text>
         </LinearGradient>
       </TouchableOpacity>

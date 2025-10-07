@@ -15,12 +15,12 @@ import SimpleHeader from '../../../../../components/SimpleHeader';
 
 const DeliveryNote = ({route}) => {
   const navigation = useNavigation();
-  const {orderId, personId, locCode} = route.params || {};
+  const {orderId, personId, locCode, price_list, ship_via} = route.params || {};
 
   const [driverName, setDriverName] = useState('');
   const [vehicleName, setVehicleName] = useState('');
   const [items, setItems] = useState([]);
-  const [loading, setLoading] = useState(false); // loader state
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const fetchItems = async () => {
@@ -60,10 +60,15 @@ const DeliveryNote = ({route}) => {
             stk_code: item.stk_code,
             description: item.text7 ?? '',
             quantity: parseInt(item.quantity) || 0,
-            deliveredQty: '',
+            pro_qty: item.pro_qty ? parseInt(item.pro_qty) : 0,
+            delivered_qty: parseInt(item.delivered_qty) || 0,
+            out_qty: parseInt(item.delivered_qty) || 0,
+            userDelivered: '',
             unit_price: item.unit_price,
+            po_detail_item: item.po_detail_item ?? '',
             error: '',
           }));
+
           setItems(mapped);
         } else {
           ToastAndroid.show('No pending items found!', ToastAndroid.SHORT);
@@ -90,7 +95,7 @@ const DeliveryNote = ({route}) => {
     }
     setItems(prev =>
       prev.map(item =>
-        item.id === id ? {...item, deliveredQty: text, error: errorMsg} : item,
+        item.id === id ? {...item, userDelivered: text, error: errorMsg} : item,
       ),
     );
   };
@@ -106,12 +111,11 @@ const DeliveryNote = ({route}) => {
       setLoading(true);
 
       const today = new Date();
-      const orderDate = today.toISOString().slice(0, 10); // "2025-09-11"
+      const orderDate = today.toISOString().slice(0, 10);
 
-      // Calculate grand total
       let grandTotal = 0;
       const purchOrderDetails = items.map(itm => {
-        const qty = parseFloat(itm.deliveredQty) || 0;
+        const qty = parseFloat(itm.userDelivered) || 0;
         const price = parseFloat(itm.unit_price) || 0;
         const lineTotal = qty * price;
         grandTotal += lineTotal;
@@ -122,6 +126,7 @@ const DeliveryNote = ({route}) => {
           del_qty: String(qty),
           text7: String(itm.description ?? ''),
           unit_price: String(price),
+          po_detail_item: String(itm.po_detail_item ?? ''),
         };
       });
 
@@ -134,16 +139,16 @@ const DeliveryNote = ({route}) => {
       formData.append('vehicle_no', String(vehicleName));
       formData.append('loc_code', String(locCode));
       formData.append('total', String(grandTotal.toFixed(2)));
-
+      formData.append('price_list', String(price_list));
+      formData.append('ship_via', String(ship_via));
       formData.append('purch_order_details', JSON.stringify(purchOrderDetails));
 
-      const res = await axios.post(
+      console.log('Submitting form data:', formData);
+      await axios.post(
         'https://e.de2solutions.com/mobile_dash/post_service_purch_sale.php',
         formData,
         {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-          },
+          headers: {'Content-Type': 'multipart/form-data'},
         },
       );
 
@@ -161,7 +166,7 @@ const DeliveryNote = ({route}) => {
     <>
       <SimpleHeader title="Delivery Note" />
       <View style={styles.container}>
-        {/* Row: Driver + Vehicle */}
+        {/* Driver + Vehicle Inputs */}
         <View style={styles.row}>
           <TextInput
             style={styles.input}
@@ -179,64 +184,56 @@ const DeliveryNote = ({route}) => {
           />
         </View>
 
-        {/* Heading */}
         <Text style={styles.heading}>Delivery Items</Text>
-
-        {/* Table Header */}
-        <View style={styles.tableHeader}>
-          <Text style={[styles.headerText, {flex: 3}]}>Description</Text>
-          <Text style={[styles.headerText, {flex: 0.8}]}>Qty</Text>
-          <Text style={[styles.headerText, {flex: 0.6}]}>Delv.</Text>
-        </View>
 
         <FlatList
           data={items}
           keyExtractor={item => item.id}
           renderItem={({item}) => (
-            <View style={{marginBottom: 8}}>
-              <View style={styles.tableRow}>
-                {/* Description (editable) */}
-                <TextInput
-                  style={[
-                    styles.cell,
-                    styles.inputCell,
-                    {flex: 3, minHeight: 40},
-                  ]}
-                  placeholder="Enter desc"
-                  placeholderTextColor="#aaa"
-                  value={item.description}
-                  onChangeText={text =>
-                    updateItem(item.id, 'description', text)
-                  }
-                  multiline={true}
-                  textAlignVertical="top"
-                />
+            <View style={styles.card}>
+              {/* Row 1: Description (editable full width) */}
+              <TextInput
+                style={styles.descInput}
+                placeholder="Enter description"
+                placeholderTextColor="#aaa"
+                value={item.description}
+                onChangeText={text => updateItem(item.id, 'description', text)}
+                multiline
+                textAlignVertical="top"
+              />
 
-                {/* Order Quantity */}
-                <Text style={[styles.cell, styles.labelCell, {flex: 0.8}]}>
-                  {item.quantity}
-                </Text>
-
-                {/* Delivered Qty */}
-                <TextInput
-                  style={[
-                    styles.cell,
-                    styles.inputCell,
-                    {
-                      flex: 0.6,
-                      borderColor: item.error ? 'red' : '#ddd',
-                    },
-                  ]}
-                  placeholder="0"
-                  placeholderTextColor="#aaa"
-                  value={item.deliveredQty}
-                  keyboardType="numeric"
-                  maxLength={3}
-                  onChangeText={text =>
-                    handleDeliveredChange(item.id, text, item.quantity)
-                  }
-                />
+              {/* Row 2: 4 Columns */}
+              <View style={styles.dataRow}>
+                <View style={styles.dataBox}>
+                  <Text style={styles.label}>Ord.Qty</Text>
+                  <Text style={styles.value}>{item.quantity}</Text>
+                </View>
+                <View style={styles.dataBox}>
+                  <Text style={styles.label}>Pro.Qty</Text>
+                  <Text style={styles.value}>{item.pro_qty ?? 0}</Text>
+                </View>
+                <View style={styles.dataBox}>
+                  <Text style={styles.label}>Del.Qty</Text>
+                  <Text style={styles.value}>{item.out_qty}</Text>
+                </View>
+                <View style={styles.dataBox}>
+                  <Text style={styles.label}>Out.Qty</Text>
+                  <TextInput
+                    style={[
+                      styles.valueInput,
+                      {borderColor: item.error ? 'red' : '#ddd'},
+                    ]}
+                    placeholder="0"
+                    placeholderTextColor="#aaa"
+                    keyboardType="numeric"
+                    value={item.userDelivered}
+                    onChangeText={text =>
+                      handleDeliveredChange(item.id, text, item.quantity)
+                    }
+                  />
+                </View>
               </View>
+
               {item.error ? (
                 <Text style={styles.errorText}>{item.error}</Text>
               ) : null}
@@ -244,7 +241,6 @@ const DeliveryNote = ({route}) => {
           )}
         />
 
-        {/* Submit Button */}
         <TouchableOpacity
           style={[styles.button, loading && {opacity: 0.7}]}
           onPress={handleSubmit}
@@ -265,7 +261,7 @@ export default DeliveryNote;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#fff',
     padding: 15,
   },
   row: {
@@ -276,11 +272,10 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     backgroundColor: '#F0F0F0',
-    color: '#000000',
-    borderRadius: 12,
+    color: '#000',
+    borderRadius: 10,
     padding: 10,
     marginHorizontal: 5,
-    fontWeight: '600',
     borderWidth: 1,
     borderColor: '#ddd',
   },
@@ -290,64 +285,68 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginVertical: 10,
   },
-  tableHeader: {
-    flexDirection: 'row',
-    backgroundColor: '#000000',
-    borderRadius: 8,
-    padding: 10,
-    marginBottom: 8,
-  },
-  headerText: {
-    color: '#FFFFFF',
-    fontWeight: 'bold',
-    textAlign: 'center',
-    fontSize: 12,
-  },
-  tableRow: {
-    flexDirection: 'row',
+  card: {
     backgroundColor: '#F8F8F8',
-    borderRadius: 8,
-    padding: 5,
+    borderRadius: 10,
     borderWidth: 1,
     borderColor: '#ddd',
+    marginBottom: 12,
+    padding: 10,
   },
-  cell: {
-    textAlign: 'center',
-    padding: 8,
-    color: '#000',
-    fontSize: 13,
-  },
-  inputCell: {
+  descInput: {
     backgroundColor: '#fff',
-    borderRadius: 6,
     borderWidth: 1,
     borderColor: '#ddd',
-    paddingHorizontal: 6,
-    paddingVertical: 6,
-    fontSize: 13,
-    textAlign: 'center',
-  },
-  labelCell: {
+    borderRadius: 8,
     color: '#000',
-    fontWeight: 'bold',
+    padding: 8,
+    fontSize: 13,
+    marginBottom: 6,
+  },
+  dataRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  dataBox: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  label: {
+    fontWeight: '600',
+    fontSize: 12,
+    color: '#333',
+  },
+  value: {
+    fontSize: 13,
+    color: '#000',
+    marginTop: 3,
+  },
+  valueInput: {
+    width: '80%',
+    borderWidth: 1,
+    borderRadius: 6,
     textAlign: 'center',
-    paddingVertical: 10,
+    color: '#000',
+    fontSize: 13,
+    marginTop: 3,
+    backgroundColor: '#fff',
+    paddingVertical: 4,
   },
   errorText: {
     color: 'red',
     fontSize: 11,
-    marginLeft: 6,
-    marginTop: 2,
+    marginTop: 4,
+    marginLeft: 5,
   },
   button: {
-    backgroundColor: '#000000',
+    backgroundColor: '#000',
     padding: 15,
     borderRadius: 12,
     marginTop: 20,
     alignItems: 'center',
   },
   buttonText: {
-    color: '#FFFFFF',
+    color: '#fff',
     fontWeight: 'bold',
     fontSize: 16,
   },

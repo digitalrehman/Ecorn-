@@ -73,6 +73,8 @@ import StockSheetScreen from '../screens/main/stacks/Inventory/StockSheetScreen'
 import ViewItem from '../screens/main/stacks/Inventory/ViewItem';
 import GrnAgainst from '../screens/main/stacks/purchase/GrnAgainst';
 import ApprovalListScreen from '../screens/main/stacks/AppAlerts/ApprovalListScreen';
+import GrnDeliveryNote from '../screens/main/stacks/purchase/GrnDeliveryNote';
+import PayableSummary from '../screens/main/stacks/purchase/PayableSummary';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -182,6 +184,8 @@ const Main = () => {
         <Stack.Screen name="ViewItem" component={ViewItem} />
         <Stack.Screen name="GrnAgainst" component={GrnAgainst} />
         <Stack.Screen name="ApprovalListScreen" component={ApprovalListScreen} />
+        <Stack.Screen name="GrnDeliveryNote" component={GrnDeliveryNote} />
+        <Stack.Screen name="PayableSummary" component={PayableSummary} />
     </Stack.Navigator>
   );
 };
