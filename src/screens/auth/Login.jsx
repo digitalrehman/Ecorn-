@@ -13,7 +13,7 @@ import LinearGradient from 'react-native-linear-gradient';
 import {useDispatch, useSelector} from 'react-redux';
 import {CurrentLogin, setLoader} from '../../redux/AuthSlice';
 import Toast from 'react-native-toast-message';
-import BaseUrl from '../../utils/BaseUrl';
+import {BASEURL} from '../../utils/BaseUrl';
 import {APPCOLORS} from '../../utils/APPCOLORS';
 
 const Login = ({navigation}) => {
@@ -42,7 +42,7 @@ const Login = ({navigation}) => {
     let config = {
       method: 'get',
       maxBodyLength: Infinity,
-      url: `${BaseUrl}users.php`,
+      url: `${BASEURL}users.php`,
       headers: {},
     };
 

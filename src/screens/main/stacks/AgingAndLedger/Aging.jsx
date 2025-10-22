@@ -1,7 +1,7 @@
 import {View, Text, FlatList} from 'react-native';
 import React, {useEffect, useState} from 'react';
 import axios from 'axios';
-import BaseUrl from '../../../../utils/BaseUrl';
+import {BASEURL} from '../../../../utils/BaseUrl';
 import {APPCOLORS} from '../../../../utils/APPCOLORS';
 import AppHeader from '../../../../components/AppHeader';
 import SimpleHeader from '../../../../components/SimpleHeader';
@@ -32,7 +32,7 @@ const Aging = ({navigation, route}) => {
     let config = {
       method: 'post',
       maxBodyLength: Infinity,
-      url: `${BaseUrl}/dash_cust_aging.php`,
+      url: `${BASEURL}/dash_cust_aging.php`,
       headers: {
         'Content-Type': 'multipart/form-data',
       },
@@ -57,7 +57,7 @@ const Aging = ({navigation, route}) => {
     let config = {
       method: 'post',
       maxBodyLength: Infinity,
-      url: `${BaseUrl}/dash_supp_aging.php`,
+      url: `${BASEURL}/dash_supp_aging.php`,
       headers: {
         'Content-Type': 'multipart/form-data',
       },

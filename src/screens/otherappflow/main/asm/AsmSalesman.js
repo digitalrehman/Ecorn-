@@ -3,7 +3,7 @@ import React, {useEffect, useState} from 'react';
 
 import axios from 'axios';
 
-import { BASE_URL_1 } from '../../../../utils/BaseUrl';
+import {BASEURL} from '../../../../utils/BaseUrl';
 import NameandValue from '../../../../components/NameandValue';
 
 const AsmSalesman = ({navigation, route}) => {
@@ -29,7 +29,7 @@ const AsmSalesman = ({navigation, route}) => {
     let config = {
       method: 'post',
       maxBodyLength: Infinity,
-      url: `${BASE_URL_1}asm_wise_salesman.php`,
+      url: `${BASEURL}asm_wise_salesman.php`,
       headers: {
         'Content-Type': 'multipart/form-data',
 

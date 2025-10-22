@@ -12,6 +12,7 @@ import {
 import {useNavigation} from '@react-navigation/native';
 import axios from 'axios';
 import SimpleHeader from '../../../../../components/SimpleHeader';
+import { BASEURL } from '../../../../../utils/BaseUrl';
 
 const DeliveryNote = ({route}) => {
   const navigation = useNavigation();
@@ -29,7 +30,7 @@ const DeliveryNote = ({route}) => {
         formData.append('order_no', orderId);
 
         const res = await axios.post(
-          'https://e.de2solutions.com/mobile_dash/pending_so_item.php',
+          `${BASEURL}pending_so_item.php`,
           formData,
           {
             headers: {
@@ -145,7 +146,7 @@ const DeliveryNote = ({route}) => {
 
       console.log('Submitting form data:', formData);
       await axios.post(
-        'https://e.de2solutions.com/mobile_dash/post_service_purch_sale.php',
+        `${BASEURL}post_service_purch_sale.php`,
         formData,
         {
           headers: {'Content-Type': 'multipart/form-data'},

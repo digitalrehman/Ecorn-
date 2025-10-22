@@ -10,7 +10,7 @@ import axios from 'axios';
 
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import {useSelector} from 'react-redux';
-import { BASE_URL_1 } from '../../../utils/BaseUrl';
+import {BASEURL} from '../../../utils/BaseUrl';
 import { APPCOLORS } from '../../../utils/APPCOLORS';
 
 
@@ -32,7 +32,7 @@ const SalesmanList = ({navigation}) => {
     let config = {
       method: 'post',
       maxBodyLength: Infinity,
-      url: `${BASE_URL_1}salesman.php`,
+      url: `${BASEURL}salesman.php`,
       headers: {
         'Content-Type': 'multipart/form-data',
       },

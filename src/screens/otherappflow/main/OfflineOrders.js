@@ -2,12 +2,11 @@ import {View, Text, TouchableOpacity, TextInput, FlatList, ScrollView, ActivityI
 import React, {useEffect, useState} from 'react';
 
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import AntDesign from 'react-native-vector-icons/AntDesign';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import moment from 'moment';
 import { useDispatch, useSelector } from 'react-redux';
 import axios from 'axios';
-import { BASE_URL_1 } from '../../../utils/BaseUrl';
+import {BASEURL} from '../../../utils/BaseUrl';
 import { APPCOLORS } from '../../../utils/APPCOLORS';
 
 const OfflineOrders = ({navigation}) => {
@@ -69,7 +68,7 @@ const OfflineOrders = ({navigation}) => {
       let config = {
         method: 'post',
         maxBodyLength: Infinity,
-        url: `${BASE_URL_1}post_service_purch_sale.php`,
+        url: `${BASEURL}post_service_purch_sale.php`,
         headers: {
           'Content-Type': 'multipart/form-data',
         },

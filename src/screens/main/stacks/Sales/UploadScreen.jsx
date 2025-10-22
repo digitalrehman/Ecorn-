@@ -21,6 +21,7 @@ import axios from 'axios';
 
 // ✅ Correct import for new package
 import {pick, types} from '@react-native-documents/picker';
+import { BASEURL } from '../../../../utils/BaseUrl';
 
 const UploadScreen = () => {
   const route = useRoute();
@@ -159,7 +160,7 @@ const UploadScreen = () => {
     });
 
     const response = await axios.post(
-      'https://e.de2solutions.com/mobile_dash/dattachment_post.php',
+      `${BASEURL}dattachment_post.php`,
       formData,
       {headers: {'Content-Type': 'multipart/form-data'}},
     );

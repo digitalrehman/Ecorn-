@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import LinearGradient from 'react-native-linear-gradient';
+import { BASEURL } from '../../../../utils/BaseUrl';
 
 const COLORS = {
   WHITE: '#FFFFFF',
@@ -40,7 +41,7 @@ const MechanicalEstimate = ({navigation, route}) => {
         formData.append('requisitionid', requisitionid);
 
         const res = await fetch(
-          'https://e.de2solutions.com/mobile_dash/get_estimation.php',
+          `${BASEURL}get_estimation.php`,
           {
             method: 'POST',
             body: formData,

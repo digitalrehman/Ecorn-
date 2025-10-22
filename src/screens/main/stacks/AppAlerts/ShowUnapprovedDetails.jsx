@@ -4,7 +4,7 @@ import SimpleHeader from '../../../../components/SimpleHeader';
 import {APPCOLORS} from '../../../../utils/APPCOLORS';
 import AppText from '../../../../components/AppText';
 import AppButton from '../../../../components/AppButton';
-import BaseUrl from '../../../../utils/BaseUrl';
+import {BASEURL} from '../../../../utils/BaseUrl';
 import axios from 'axios';
 
 const ShowUnapprovedDetails = ({route, navigation}) => {
@@ -49,7 +49,7 @@ const ShowUnapprovedDetails = ({route, navigation}) => {
     let config = {
       method: 'post',
       maxBodyLength: Infinity,
-      url: `${BaseUrl}dash_approval_post.php`,
+      url: `${BASEURL}dash_approval_post.php`,
       headers: {
         'content-type': 'multipart/form-data',
       },

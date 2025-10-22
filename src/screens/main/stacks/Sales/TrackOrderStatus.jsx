@@ -18,6 +18,7 @@ import axios from 'axios';
 import {Dropdown} from 'react-native-element-dropdown';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import Toast from 'react-native-toast-message';
+import { BASEURL } from '../../../../utils/BaseUrl';
 
 const COLORS = {
   WHITE: '#FFFFFF',
@@ -58,7 +59,7 @@ const TrackOrderStatus = ({navigation}) => {
     try {
       setLoading(true);
       const res = await axios.get(
-        'https://e.de2solutions.com/mobile_dash/track_orders_data.php',
+        `${BASEURL}track_orders_data.php`,
       );
       if (Array.isArray(res.data)) {
         setOrders(res.data);
@@ -79,7 +80,7 @@ const TrackOrderStatus = ({navigation}) => {
   const fetchLocations = async () => {
     try {
       const res = await axios.get(
-        'https://e.de2solutions.com/mobile_dash/locations.php',
+        `${BASEURL}locations.php`,
       );
       if (res.data?.status === 'true') {
         const formatted = res.data.data.map(loc => ({

@@ -4,7 +4,7 @@ import axios from 'axios';
 
 import Ionicons from 'react-native-vector-icons/Ionicons'
 import { APPCOLORS } from '../../../utils/APPCOLORS';
-import { BASE_URL_1 } from '../../../utils/BaseUrl';
+import {BASEURL} from '../../../utils/BaseUrl';
 const TodayOrderDetails = ({route, navigation}) => {
   const {item} = route.params;
 
@@ -24,7 +24,7 @@ const TodayOrderDetails = ({route, navigation}) => {
     let config = {
       method: 'post',
       maxBodyLength: Infinity,
-      url: `${BASE_URL_1}order_details_view.php`,
+      url: `${BASEURL}order_details_view.php`,
       headers: {
         'Content-Type': 'multipart/form-data',
       },

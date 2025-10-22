@@ -10,7 +10,7 @@ import React, {useEffect, useState} from 'react';
 import SimpleHeader from '../../../../components/SimpleHeader';
 import RevenueCards from '../../../../components/RevenueCards';
 import {responsiveHeight, responsiveWidth} from '../../../../utils/Responsive';
-import BaseUrl from '../../../../utils/BaseUrl';
+import {BASEURL} from '../../../../utils/BaseUrl';
 import axios from 'axios';
 import TopTen from '../../../../components/TopTen';
 import {useSelector} from 'react-redux';
@@ -93,7 +93,7 @@ const Detail = ({navigation}) => {
 
     const options = {
       method: 'GET',
-      url: `${BaseUrl}dashboard_view.php`,
+      url: `${BASEURL}dashboard_view.php`,
       headers: {
         'content-type': 'multipart/form-data',
       },
@@ -168,47 +168,53 @@ const Detail = ({navigation}) => {
 
         {/* Revenue Section */}
         <FlatList
-          data={revData.filter(
-            item =>
-              accessData?.[0]?.[item.accessKey] === '1' &&
-              parseFloat(item.Amount) !== 0,
-          )}
+          data={
+            Array.isArray(accessData)
+              ? revData.filter(
+                  item =>
+                    accessData?.[0]?.[item.accessKey] === '1' &&
+                    parseFloat(item.Amount) !== 0,
+                )
+              : []
+          }
           numColumns={2}
-          contentContainerStyle={{alignSelf: 'center', gap: 10, marginTop: 20}}
-          renderItem={({item}) => {
-            return (
-              <RevenueCards
-                title={item?.title}
-                type={item?.type}
-                amount={item?.Amount}
-                prev_title={item?.Prev_title}
-                prev_type={item?.Prev_type}
-                prev_amount={item?.Prev_Amount}
-                gradientTopColor={COLORS.Primary}
-                gradientBottomColor={COLORS.Secondary}
-                IsUp={item?.isUp}
-                onPress={() =>
-                  navigation.navigate('MoreDetail', {
-                    slider_data: AllData,
-                    type: item.accessKey,
-                  })
-                }
-                accessData={accessData}
-              />
-            );
+          contentContainerStyle={{
+            alignSelf: 'center',
+            gap: 10,
+            marginTop: 20,
           }}
+          renderItem={({item}) => (
+            <RevenueCards
+              title={item?.title}
+              type={item?.type}
+              amount={item?.Amount}
+              prev_title={item?.Prev_title}
+              prev_type={item?.Prev_type}
+              prev_amount={item?.Prev_Amount}
+              gradientTopColor={COLORS.Primary}
+              gradientBottomColor={COLORS.Secondary}
+              IsUp={item?.isUp}
+              onPress={() =>
+                navigation.navigate('MoreDetail', {
+                  slider_data: AllData,
+                  type: item.accessKey,
+                })
+              }
+              accessData={accessData}
+            />
+          )}
         />
 
         <View style={{padding: 20, marginTop: 20}}>
           <View style={{gap: 10, marginTop: 10}}>
-            {accessData?.[0]?.profit_loss_d == '1' && (
+            {accessData?.[0]?.profit_loss_d === '1' && (
               <TopTen
                 onPress={() => navigation.navigate('ProfitAndLossScreen')}
                 title="Profit and Loss"
               />
             )}
 
-            {accessData[0]?.what_about == '1' && (
+            {accessData?.[0]?.what_about === '1' && (
               <TopTen
                 onPress={() =>
                   navigation.navigate('Ledger', {name: 'Audit', item: null})

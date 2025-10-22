@@ -14,16 +14,13 @@ import {
   import Ionicons from 'react-native-vector-icons/Ionicons';
   
   import LottieView from 'lottie-react-native';
-  import AsyncStorage from '@react-native-async-storage/async-storage';
 
   import LinearGradient from 'react-native-linear-gradient';
   import AntDesign from 'react-native-vector-icons/AntDesign';
   import Octicons from 'react-native-vector-icons/Octicons';
   import EvilIcons from 'react-native-vector-icons/EvilIcons';
-  import moment from 'moment';
   import {useSelector} from 'react-redux';
-  import {addEventListener} from '@react-native-community/netinfo';
-import { BASE_URL_1 } from '../../../utils/BaseUrl';
+import {BASEURL} from '../../../utils/BaseUrl';
 import { APPCOLORS } from '../../../utils/APPCOLORS';
 
 const SalesmanCustomer = ({ navigation,route}) => {
@@ -59,7 +56,7 @@ const SalesmanCustomer = ({ navigation,route}) => {
       let config = {
         method: 'post',
         maxBodyLength: Infinity,
-        url: `${BASE_URL_1}salesman_wise_cust.php`,
+        url: `${BASEURL}salesman_wise_cust.php`,
         headers: { 
             'Content-Type': 'multipart/form-data'
 

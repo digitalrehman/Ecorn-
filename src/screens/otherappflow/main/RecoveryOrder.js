@@ -4,7 +4,7 @@ import axios from 'axios'
 
 import Ionicons from 'react-native-vector-icons/Ionicons'
 import { useSelector } from 'react-redux'
-import { BASE_URL_1 } from '../../../utils/BaseUrl'
+import {BASEURL} from '../../../utils/BaseUrl'
 import { APPCOLORS } from '../../../utils/APPCOLORS'
 
 
@@ -29,7 +29,7 @@ const RecoveryOrder = ({ navigation }) => {
         let config = {
             method: 'post',
             maxBodyLength: Infinity,
-            url: `${BASE_URL_1}today_recovery_data.php`,
+            url: `${BASEURL}today_recovery_data.php`,
             headers: {
                 'Content-Type': 'multipart/form-data'
             },

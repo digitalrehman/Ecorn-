@@ -15,6 +15,7 @@ import {Dropdown} from 'react-native-element-dropdown';
 import LinearGradient from 'react-native-linear-gradient';
 import axios from 'axios';
 import Toast from 'react-native-toast-message'; // ✅ Toast library
+import { BASEURL } from '../../../../utils/BaseUrl';
 
 const COLORS = {
   WHITE: '#FFFFFF',
@@ -94,37 +95,37 @@ export default function AddItem({navigation}) {
   // Fetch dropdown data
   useEffect(() => {
     fetchData(
-      'https://e.de2solutions.com/mobile_dash/stock_category.php',
+      `${BASEURL}stock_category.php`,
       setCategories,
       'category_id',
       'description',
     );
     fetchData(
-      'https://e.de2solutions.com/mobile_dash/item_tax_types.php',
+      `${BASEURL}item_tax_types.php`,
       setTaxTypes,
       'id',
       'name',
     );
     fetchData(
-      'https://e.de2solutions.com/mobile_dash/item_units.php',
+      `${BASEURL}item_units.php`,
       setUnits,
       'abbr',
       'name',
     );
     fetchData(
-      'https://e.de2solutions.com/mobile_dash/sales_type.php',
+      `${BASEURL}sales_type.php`,
       setSaleTypes,
       'id',
       'sales_type',
     );
     fetchData(
-      'https://e.de2solutions.com/mobile_dash/combo1.php',
+      `${BASEURL}combo1.php`,
       setMakes,
       'combo_code',
       'description',
     );
     fetchData(
-      'https://e.de2solutions.com/mobile_dash/combo2.php',
+      `${BASEURL}combo2.php`,
       setMainGroups,
       'combo_code',
       'description',
@@ -178,7 +179,7 @@ export default function AddItem({navigation}) {
 
     try {
       const res = await axios.post(
-        'https://e.de2solutions.com/mobile_dash/stock_master_post.php',
+        `${BASEURL}stock_master_post.php`,
         formData,
         {
           headers: {

@@ -18,7 +18,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import {addEventListener} from '@react-native-community/netinfo';
 import {useSelector} from 'react-redux';
 import moment from 'moment';
-import {BASE_URL_1} from '../../../../utils/BaseUrl';
+import {BASEURL} from '../../../../utils/BaseUrl';
 import Toast from 'react-native-toast-message';
 import {APPCOLORS} from '../../../../utils/APPCOLORS';
 import {responsiveWidth} from '../../../../utils/Responsive';
@@ -77,7 +77,7 @@ const AddSuppliersScreen = ({navigation}) => {
     let configs = {
       method: 'post',
       maxBodyLength: Infinity,
-      url: `${BASE_URL_1}suppliers.php`,
+      url: `${BASEURL}suppliers.php`,
       headers: {
         'Content-Type': 'multipart/form-data',
       },
@@ -132,7 +132,7 @@ const AddSuppliersScreen = ({navigation}) => {
     let configs = {
       method: 'post',
       maxBodyLength: Infinity,
-      url: `${BASE_URL_1}debtors_master.php`,
+      url: `${BASEURL}debtors_master.php`,
       headers: {
         'Content-Type': 'multipart/form-data',
       },
@@ -192,7 +192,7 @@ const AddSuppliersScreen = ({navigation}) => {
         let config = {
           method: 'post',
           maxBodyLength: Infinity,
-          url: `${BASE_URL_1}debtors_feedback_post.php`,
+          url: `${BASEURL}debtors_feedback_post.php`,
           headers: {
             'content-type': 'multipart/form-data',
           },

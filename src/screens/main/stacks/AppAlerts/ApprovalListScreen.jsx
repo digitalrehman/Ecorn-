@@ -8,6 +8,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import {useSelector} from 'react-redux';
 import Toast from 'react-native-toast-message';
+import { BASEURL } from '../../../../utils/BaseUrl';
 
 const ApprovalListScreen = ({route}) => {
   const {listKey, title} = route.params;
@@ -49,7 +50,7 @@ const ApprovalListScreen = ({route}) => {
     setLoading(true);
     try {
       const res = await axios.get(
-        'https://e.de2solutions.com/mobile_dash/dash_approval.php',
+        `${BASEURL}dash_approval.php`,
       );
 
       const mappedKey = keyMap[listKey];
@@ -73,7 +74,7 @@ const ApprovalListScreen = ({route}) => {
       formData.append('approval', 0);
 
       const res = await axios.post(
-        'https://e.de2solutions.com/mobile_dash/dash_approval_post.php',
+        `${BASEURL}dash_approval_post.php`,
         formData,
         {
           headers: {

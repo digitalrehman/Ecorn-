@@ -14,6 +14,7 @@ import {Dropdown} from 'react-native-element-dropdown';
 import LinearGradient from 'react-native-linear-gradient';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import axios from 'axios';
+import { BASEURL } from '../../../../utils/BaseUrl';
 
 const COLORS = {
   WHITE: '#FFFFFF',
@@ -43,7 +44,7 @@ export default function LocationTransfer({navigation}) {
   // Fetch Locations
   useEffect(() => {
     axios
-      .get('https://e.de2solutions.com/mobile_dash/locations.php')
+      .get(`${BASEURL}locations.php`)
       .then(res => {
         if (res.data.status === 'true') {
           const formatted = res.data.data.map(loc => ({
@@ -61,7 +62,7 @@ export default function LocationTransfer({navigation}) {
   // Fetch Products
   useEffect(() => {
     axios
-      .get('https://e.de2solutions.com/mobile_dash/stock_master.php')
+      .get(`${BASEURL}stock_master.php`)
       .then(res => {
         if (res.data.status === 'true') {
           const formatted = res.data.data.map(p => ({
@@ -125,7 +126,7 @@ export default function LocationTransfer({navigation}) {
       form.append('memo', memo);
 
       const res = await axios.post(
-        'https://e.de2solutions.com/mobile_dash/post_service_purch_sale.php',
+        `${BASEURL}post_service_purch_sale.php`,
         form,
         {
           headers: {'Content-Type': 'multipart/form-data'},

@@ -7,7 +7,7 @@ import AppText from '../../../components/AppText'
 import DatePicker from 'react-native-date-picker'
 import DropButtons from '../../../components/DropButtons'
 import moment from 'moment'
-import BaseUrl from '../../../utils/BaseUrl'
+import {BASEURL} from '../../../utils/BaseUrl'
 
 const NotificationScreen = () => {
   const [fromDate, setFromDate] = useState(new Date())
@@ -33,7 +33,7 @@ const NotificationScreen = () => {
 
     const options = {
       method: 'GET',
-      url: `${BaseUrl}dashboard_view.php`,
+      url: `${BASEURL}dashboard_view.php`,
       headers: {
         'content-type': 'multipart/form-data',
       },

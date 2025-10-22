@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import LinearGradient from 'react-native-linear-gradient';
+import { BASEURL } from '../../../../utils/BaseUrl';
 
 const COLORS = {
   WHITE: '#FFFFFF',
@@ -44,7 +45,7 @@ const ViewLeads = ({navigation}) => {
     const fetchLeads = async () => {
       try {
         const res = await fetch(
-          'https://e.de2solutions.com/mobile_dash/leads.php',
+          `${BASEURL}leads.php`,
         );
         const json = await res.json();
         if (json.status === 'true') {

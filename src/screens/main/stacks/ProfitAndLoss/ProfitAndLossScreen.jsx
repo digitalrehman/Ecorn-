@@ -9,7 +9,7 @@ import {
 import SimpleHeader from '../../../../components/SimpleHeader';
 import AppText from '../../../../components/AppText';
 import { responsiveHeight, responsiveWidth } from '../../../../utils/Responsive';
-import BaseUrl from '../../../../utils/BaseUrl';
+import {BASEURL} from '../../../../utils/BaseUrl';
 import moment from 'moment';
 import axios from 'axios';
 import LinearGradient from 'react-native-linear-gradient';
@@ -44,7 +44,7 @@ const ProfitAndLossScreen = ({ navigation }) => {
 
       const options = {
         method: 'GET',
-        url: `${BaseUrl}dashboard_view.php`,
+        url: `${BASEURL}dashboard_view.php`,
         headers: {
           'content-type': 'multipart/form-data',
         },

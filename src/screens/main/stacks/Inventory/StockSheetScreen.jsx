@@ -12,6 +12,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import {Dropdown} from 'react-native-element-dropdown';
 import LinearGradient from 'react-native-linear-gradient';
 import axios from 'axios';
+import { BASEURL } from '../../../../utils/BaseUrl';
 
 const COLORS = {
   WHITE: '#FFFFFF',
@@ -31,7 +32,7 @@ export default function StockSheetScreen({navigation}) {
   // Fetch Locations
   useEffect(() => {
     fetchData(
-      'https://e.de2solutions.com/mobile_dash/locations.php',
+      `${BASEURL}locations.php`,
       setLocations,
       'loc_code',
       'location_name',
@@ -41,7 +42,7 @@ export default function StockSheetScreen({navigation}) {
   // Fetch Categories
   useEffect(() => {
     fetchData(
-      'https://e.de2solutions.com/mobile_dash/stock_category.php',
+      `${BASEURL}stock_category.php`,
       setCategories,
       'category_id',
       'description',

@@ -28,7 +28,7 @@ import {addEventListener} from '@react-native-community/netinfo';
 import {fetch} from '@react-native-community/netinfo';
 import moment from 'moment';
 import NetInfo from '@react-native-community/netinfo';
-import {BASE_URL_1} from '../../../utils/BaseUrl';
+import {BASEURL} from '../../../utils/BaseUrl';
 import {APPCOLORS} from '../../../utils/APPCOLORS';
 import {responsiveWidth} from '../../../utils/Responsive';
 
@@ -211,7 +211,7 @@ const AddItems = ({navigation, route}) => {
           let config = {
             method: 'post',
             maxBodyLength: Infinity,
-            url: `${BASE_URL_1}post_service_purch_sale.php`,
+            url: `${BASEURL}post_service_purch_sale.php`,
             headers: {
               'Content-Type': 'multipart/form-data',
             },

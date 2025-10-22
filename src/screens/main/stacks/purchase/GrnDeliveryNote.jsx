@@ -13,6 +13,7 @@ import {useNavigation} from '@react-navigation/native';
 import axios from 'axios';
 import SimpleHeader from '../../../../components/SimpleHeader';
 import {useSelector} from 'react-redux';
+import { BASEURL } from '../../../../utils/BaseUrl';
 
 const GrnDeliveryNote = ({route}) => {
   const navigation = useNavigation();
@@ -30,7 +31,7 @@ const GrnDeliveryNote = ({route}) => {
         formData.append('order_no', orderId);
 
         const res = await axios.post(
-          'https://e.de2solutions.com/mobile_dash/pending_po_item.php',
+          `${BASEURL}pending_po_item.php`,
           formData,
           {
             headers: {'Content-Type': 'multipart/form-data'},
@@ -132,7 +133,7 @@ const GrnDeliveryNote = ({route}) => {
       formData.append('purch_order_details', JSON.stringify(purchOrderDetails));
 
       await axios.post(
-        'https://e.de2solutions.com/mobile_dash/post_service_purch_sale.php',
+        `${BASEURL}post_service_purch_sale.php`,
         formData,
         {
           headers: {'Content-Type': 'multipart/form-data'},

@@ -1,6 +1,5 @@
 import React from 'react';
-import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
-import {createStackNavigator} from '@react-navigation/stack';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
 import Dashboard from '../screens/main/Dashboard';
 import Detail from '../screens/main/stacks/DetailScreens/Detail';
@@ -76,17 +75,7 @@ import ApprovalListScreen from '../screens/main/stacks/AppAlerts/ApprovalListScr
 import GrnDeliveryNote from '../screens/main/stacks/purchase/GrnDeliveryNote';
 import PayableSummary from '../screens/main/stacks/purchase/PayableSummary';
 
-const Stack = createStackNavigator();
-const Tab = createBottomTabNavigator();
-const StackScreens = () => {
-  return (
-    <Tab.Navigator screenOptions={{headerShown: false}}>
-      <Tab.Screen name="Dashboard" component={Dashboard} />
-      <Tab.Screen name="Profile" component={Dashboard} />
-    </Tab.Navigator>
-  );
-};
-
+const Stack = createNativeStackNavigator();
 const Main = () => {
   return (
     <Stack.Navigator

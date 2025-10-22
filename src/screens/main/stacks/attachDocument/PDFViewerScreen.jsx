@@ -10,6 +10,7 @@ import {
 import Pdf from 'react-native-pdf';
 import RNFetchBlob from 'react-native-blob-util';
 import FileViewer from 'react-native-file-viewer';
+import { BASEURL } from '../../../../utils/BaseUrl';
 
 const FileViewerScreen = ({route}) => {
   const {type, trans_no} = route.params;
@@ -60,7 +61,7 @@ const FileViewerScreen = ({route}) => {
 
       // Step 1: hit POST API to get file URL
       const response = await fetch(
-        'https://e.de2solutions.com/mobile_dash/dattachment_view.php',
+        `${BASEURL}dattachment_view.php`,
         {method: 'POST', body: formData},
       );
       const data = await response.json();

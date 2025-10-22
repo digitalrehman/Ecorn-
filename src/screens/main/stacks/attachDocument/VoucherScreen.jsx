@@ -18,6 +18,7 @@ import SimpleHeader from '../../../../components/SimpleHeader';
 import {APPCOLORS} from '../../../../utils/APPCOLORS';
 import RNFetchBlob from 'react-native-blob-util';
 import {useFocusEffect, useRoute} from '@react-navigation/native';
+import { BASEURL } from '../../../../utils/BaseUrl';
 
 export default function VoucherScreen({navigation}) {
   const [allData, setAllData] = useState([]);
@@ -48,7 +49,7 @@ export default function VoucherScreen({navigation}) {
     setLoading(true);
     try {
       const res = await axios.get(
-        'https://e.de2solutions.com/mobile_dash/dash_upload.php',
+        `${BASEURL}dash_upload.php`,
       );
       let result = res.data?.data_cust_age || [];
       setAllData(result);
@@ -118,7 +119,7 @@ const downloadFile = async (trans_no, type) => {
       },
     }).fetch(
       'POST',
-      'https://e.de2solutions.com/mobile_dash/dattachment_download.php',
+      `${BASEURL}dattachment_download.php`,
       {
         'Content-Type': 'application/x-www-form-urlencoded',
       },

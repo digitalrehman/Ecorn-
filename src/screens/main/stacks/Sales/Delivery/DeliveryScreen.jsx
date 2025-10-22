@@ -13,6 +13,7 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import axios from 'axios';
 import SimpleHeader from '../../../../../components/SimpleHeader';
 import * as Animatable from 'react-native-animatable';
+import { BASEURL } from '../../../../../utils/BaseUrl';
 
 const DeliveryScreen = ({navigation}) => {
   const [fromDate, setFromDate] = useState(null);
@@ -37,7 +38,7 @@ const DeliveryScreen = ({navigation}) => {
   const fetchCustomers = async () => {
     try {
       const res = await axios.get(
-        'https://e.de2solutions.com/mobile_dash/debtors_master.php',
+        `${BASEURL}debtors_master.php`,
       );
       if (res.data?.status === 'true') {
         setCustomers(
@@ -55,7 +56,7 @@ const DeliveryScreen = ({navigation}) => {
   const fetchLocations = async () => {
     try {
       const res = await axios.get(
-        'https://e.de2solutions.com/mobile_dash/locations.php',
+        `${BASEURL}locations.php`,
       );
       if (res.data?.status === 'true') {
         setLocations(
@@ -75,7 +76,7 @@ const DeliveryScreen = ({navigation}) => {
       setLoading(true);
 
       const res = await axios.get(
-        'https://e.de2solutions.com/mobile_dash/pending_so.php',
+        `${BASEURL}pending_so.php`,
       );
 
       if (res.data?.status === 'true') {

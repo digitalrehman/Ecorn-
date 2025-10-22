@@ -6,20 +6,6 @@ import {responsiveFontSize, responsiveWidth} from '../utils/Responsive';
 import {APPCOLORS} from '../utils/APPCOLORS';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 
-type props = {
-  title?: string;
-  type?: string;
-  amount?: Number;
-  gradientTopColor?: any;
-  gradientBottomColor?: any;
-  IsUp?: boolean;
-  onPress?: () => void;
-  prev_title?: string;
-  prev_type?: string;
-  prev_amount?: Number;
-  accessData?: any;
-};
-
 const RevenueCards = ({
   amount,
   gradientBottomColor,
@@ -28,9 +14,7 @@ const RevenueCards = ({
   IsUp,
   onPress,
   accessData,
-}: props) => {
-  console.log('accessData', accessData);
-
+}) => {
   return (
     <TouchableOpacity onPress={onPress}>
       <LinearGradient

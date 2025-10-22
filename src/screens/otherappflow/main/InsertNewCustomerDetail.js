@@ -16,6 +16,7 @@ import {Dropdown} from 'react-native-element-dropdown';
 import axios from 'axios';
 import LinearGradient from 'react-native-linear-gradient'; // install if not present
 import Toast from 'react-native-toast-message';
+import { BASEURL } from '../../../utils/BaseUrl';
 
 // Local color set (uses the values you gave)
 const COLORS = {
@@ -92,7 +93,7 @@ const InsertNewCustomerDetail = ({navigation, route}) => {
     const fetchDropdownData = async () => {
       try {
         const taxRes = await axios.get(
-          'https://e.de2solutions.com/mobile_dash/tax_groups.php',
+          `${BASEURL}tax_groups.php`,
         );
         if (
           taxRes.data &&
@@ -106,7 +107,7 @@ const InsertNewCustomerDetail = ({navigation, route}) => {
         }
 
         const salesRes = await axios.get(
-          'https://e.de2solutions.com/mobile_dash/salesman.php',
+          `${BASEURL}salesman.php`,
         );
         if (
           salesRes.data &&
@@ -177,7 +178,7 @@ const InsertNewCustomerDetail = ({navigation, route}) => {
       form.append('poc_email', POCEmail);
 
       const res = await axios.post(
-        'https://e.de2solutions.com/mobile_dash/debtors_master_post.php',
+        `${BASEURL}debtors_master_post.php`,
         form,
         {headers: {'Content-Type': 'multipart/form-data'}, timeout: 20000},
       );

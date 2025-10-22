@@ -16,6 +16,7 @@ import {Dropdown} from 'react-native-element-dropdown';
 import axios from 'axios';
 import LinearGradient from 'react-native-linear-gradient';
 import Toast from 'react-native-toast-message';
+import { BASEURL } from '../../../../utils/BaseUrl';
 
 const COLORS = {
   WHITE: '#FFFFFF',
@@ -84,7 +85,7 @@ const UploadSuppliers = ({navigation, route}) => {
     const fetchDropdownData = async () => {
       try {
         const taxRes = await axios.get(
-          'https://e.de2solutions.com/mobile_dash/tax_groups.php',
+          `${BASEURL}tax_groups.php`,
         );
         if (
           taxRes.data &&
@@ -97,19 +98,6 @@ const UploadSuppliers = ({navigation, route}) => {
           setTaxOptions(formattedTax);
         }
 
-        // const salesRes = await axios.get(
-        //   'https://e.de2solutions.com/mobile_dash/salesman.php',
-        // );
-        // if (
-        //   salesRes.data &&
-        //   (salesRes.data.status === 'true' || salesRes.data.status === true)
-        // ) {
-        //   const formattedSales = salesRes.data.data.map(item => ({
-        //     label: item.salesman_name,
-        //     value: item.salesman_code,
-        //   }));
-        //   setSalesmanOptions(formattedSales);
-        // }
       } catch (err) {
         console.log('Dropdown fetch error:', err);
         Alert.alert('Error', 'Unable to fetch dropdown data');
@@ -169,7 +157,7 @@ const UploadSuppliers = ({navigation, route}) => {
       form.append('poc_email', POCEmail);
 
       const res = await axios.post(
-        'https://e.de2solutions.com/mobile_dash/supplier_post.php',
+        `${BASEURL}supplier_post.php`,
         form,
         {headers: {'Content-Type': 'multipart/form-data'}, timeout: 20000},
       );

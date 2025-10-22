@@ -7,7 +7,7 @@ import { setLogout } from '../../../../redux/AuthSlice';
 import { useSelector, useDispatch } from 'react-redux';
 import moment from 'moment';
 import { APPCOLORS } from '../../../../utils/APPCOLORS';
-import { BASE_URL_1 } from '../../../../utils/BaseUrl';
+import {BASEURL} from '../../../../utils/BaseUrl';
 import NameandValue from '../../../../components/NameandValue';
 
 
@@ -33,7 +33,7 @@ const AsmDimension = ({navigation}) => {
     let config = {
       method: 'post',
       maxBodyLength: Infinity,
-      url: `${BASE_URL_1}asm_wise_dimension.php`,
+      url: `${BASEURL}asm_wise_dimension.php`,
       headers: {
         'Content-Type': 'multipart/form-data',
       },
@@ -72,7 +72,7 @@ const AsmDimension = ({navigation}) => {
       let config = {
         method: 'post',
         maxBodyLength: Infinity,
-        url: `${BASE_URL_1}user_attendance_post.php`,
+        url: `${BASEURL}user_attendance_post.php`,
         headers: {
             'Content-Type': 'multipart/form-data'
 

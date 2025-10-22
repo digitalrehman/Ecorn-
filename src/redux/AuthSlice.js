@@ -3,17 +3,14 @@ import axios from 'axios';
 import Toast from 'react-native-toast-message';
 import CryptoJS from 'crypto-js';
 
-
 export const CurrentLogin = createAsyncThunk(
   'user',
   async ({config, username, password}) => {
     return axios(config)
       .then(data => {
-        console.log('first.>>>>>>>>>>>>>', config, username, password);
         const user = data?.data?.data?.find(user => user.user_id === username);
         if (user) {
           const hashedPassword = CryptoJS.MD5(password).toString();
-
 
           if (hashedPassword === user.password) {
             console.log('Login successful');
@@ -50,7 +47,7 @@ export const AuthSlice = createSlice({
     GrandCartTotalPrice: '0',
     Loading: false,
     AllProduct: [],
-    accessData: []
+    accessData: [],
   },
   reducers: {
     setLoader: (state, action) => {
@@ -71,8 +68,8 @@ export const AuthSlice = createSlice({
     setAllProducts: (state, action) => {
       state.AllProduct = action.payload;
     },
-     setUserAccess: (state, action) => {
-      state.accessData = action.payload
+    setUserAccess: (state, action) => {
+      state.accessData = action.payload;
     },
 
     setLogout: state => {
@@ -87,16 +84,7 @@ export const AuthSlice = createSlice({
         if (action.payload) {
           state.currentData = action.payload;
           state.token = action.payload.password;
-        } else {
-          // Toast.show({
-          //   type: 'error',
-          //   text1: 'Your username or password is incorrect',
-          // });
         }
-        console.log('first', action.payload);
-
-        // state.currentData = action.payload.data
-        // state.token = action.payload.data.token
       })
       .addCase(CurrentLogin.rejected, (state, action) => {
         state.Loading = false;
@@ -104,7 +92,6 @@ export const AuthSlice = createSlice({
   },
 });
 
-// Action creators are generated for each case reducer function
 export const {
   setMyData,
   setToken,
@@ -113,10 +100,7 @@ export const {
   setCartData,
   setGrandCartTotalPrice,
   setAllProducts,
-  setUserAccess
+  setUserAccess,
 } = AuthSlice.actions;
 
 export default AuthSlice.reducer;
-
-// export const getCurrentUser = state => state.UsersData.currentData
-// export const getToken = state => state.UsersData.currentData

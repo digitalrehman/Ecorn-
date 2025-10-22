@@ -1,5 +1,5 @@
 import axios from 'axios';
-import BaseUrl from '../utils/BaseUrl';
+import {BASEURL} from '../utils/BaseUrl';
 
 
 export const GetBankBalance = async () => {
@@ -7,7 +7,7 @@ export const GetBankBalance = async () => {
   let config = {
     method: 'get',
     maxBodyLength: Infinity,
-    url: `${BaseUrl}dash_banks.php`,
+    url: `${BASEURL}dash_banks.php`,
     headers: {},
   };
 
@@ -24,7 +24,7 @@ export const GetSalesman = async () => {
   let config = {
     method: 'get',
     maxBodyLength: Infinity,
-    url: `${BaseUrl}dash_salesman.php`,
+    url: `${BASEURL}dash_salesman.php`,
     headers: {},
   };
 
@@ -39,7 +39,7 @@ export const GetItemBalance = async () => {
   let config = {
     method: 'get',
     maxBodyLength: Infinity,
-    url: `${BaseUrl}dash_items.php`,
+    url: `${BASEURL}dash_items.php`,
     headers: {},
   };
 
@@ -53,7 +53,7 @@ export const GetPayable = async () => {
   let config = {
     method: 'get',
     maxBodyLength: Infinity,
-    url: `${BaseUrl}dash_payable.php`,
+    url: `${BASEURL}dash_payable.php`,
     headers: {},
   };
 
@@ -68,7 +68,7 @@ export const GetReceivable = async () => {
   let config = {
     method: 'get',
     maxBodyLength: Infinity,
-    url: `${BaseUrl}dash_receivable.php`,
+    url: `${BASEURL}dash_receivable.php`,
     headers: {},
   };
 

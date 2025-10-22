@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import React, {useEffect, useState} from 'react';
 import SimpleHeader from '../../../../../components/SimpleHeader';
-import BaseUrl from '../../../../../utils/BaseUrl';
+import {BASEURL} from '../../../../../utils/BaseUrl';
 import axios from 'axios';
 import AppText from '../../../../../components/AppText';
 import NameBalanceContainer from '../../../../../components/NameBalanceContainer';

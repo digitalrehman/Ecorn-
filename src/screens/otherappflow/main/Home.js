@@ -13,7 +13,7 @@ import {useDispatch, useSelector} from 'react-redux';
 // import {setAllProducts, setLoader} from '../../redux/AuthSlice';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { BASE_URL_1 } from '../../../utils/BaseUrl';
+import {BASEURL} from '../../../utils/BaseUrl';
 import { APPCOLORS } from '../../../utils/APPCOLORS';
 const Home = ({navigation, route}) => {
   const currentData = useSelector(state => state.Data.currentData);
@@ -58,7 +58,7 @@ const Home = ({navigation, route}) => {
     let config = {
       method: 'post',
       maxBodyLength: Infinity,
-      url: `${BASE_URL_1}stock_master.php`,
+      url: `${BASEURL}stock_master.php`,
       headers: {
         'Content-Type': 'multipart/form-data',
       },
@@ -90,7 +90,7 @@ const Home = ({navigation, route}) => {
     let config = {
       method: 'post',
       maxBodyLength: Infinity,
-      url: `${BASE_URL_1}today_recovery_data.php`,
+      url: `${BASEURL}today_recovery_data.php`,
       headers: {
         'Content-Type': 'multipart/form-data',
       },
@@ -119,7 +119,7 @@ const Home = ({navigation, route}) => {
     let config = {
       method: 'post',
       maxBodyLength: Infinity,
-      url: `${BASE_URL_1}today_orders_data.php`,
+      url: `${BASEURL}today_orders_data.php`,
       headers: {
         'Content-Type': 'multipart/form-data',
       },
@@ -153,7 +153,7 @@ const Home = ({navigation, route}) => {
     let config = {
       method: 'post',
       maxBodyLength: Infinity,
-      url: `${BASE_URL_1}salesman_commision.php`,
+      url: `${BASEURL}salesman_commision.php`,
       headers: {
         'Content-Type': 'multipart/form-data',
       },

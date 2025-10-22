@@ -10,6 +10,7 @@ import SimpleHeader from '../../../../components/SimpleHeader';
 import AlertCards from '../../../../components/AlertCards';
 import {APPCOLORS} from '../../../../utils/APPCOLORS';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { BASEURL } from '../../../../utils/BaseUrl';
 
 const AlertScreen = ({navigation}) => {
   const [AllData, setAllData] = useState({});
@@ -38,7 +39,7 @@ const AlertScreen = ({navigation}) => {
     setLoading(true);
     try {
       const res = await axios.get(
-        'https://e.de2solutions.com/mobile_dash/dash_approval.php',
+        `${BASEURL}dash_approval.php`,
       );
 
       const newData = res.data?.approval_data || {};

@@ -17,7 +17,7 @@ import Modal from 'react-native-modal'
 
 import NetInfo from '@react-native-community/netinfo';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { BASE_URL_1 } from '../../../utils/BaseUrl';
+import {BASEURL} from '../../../utils/BaseUrl';
 import { APPCOLORS } from '../../../utils/APPCOLORS';
 
 const Visit = ({navigation, route}) => {
@@ -63,7 +63,7 @@ const Visit = ({navigation, route}) => {
     let config = {
       method: 'get',
       maxBodyLength: Infinity,
-      url: `${BASE_URL_1}all_data.php`,
+      url: `${BASEURL}all_data.php`,
       headers: { }
     };
     
@@ -119,7 +119,7 @@ const Visit = ({navigation, route}) => {
         let config = {
           method: 'post',
           maxBodyLength: Infinity,
-          url: `${BASE_URL_1}debtors_feedback_post.php`,
+          url: `${BASEURL}debtors_feedback_post.php`,
           headers: {
             'content-type': 'multipart/form-data',
           },

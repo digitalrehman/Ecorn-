@@ -7,9 +7,21 @@ import {APPCOLORS} from '../../../../utils/APPCOLORS';
 import * as Animatable from 'react-native-animatable';
 
 const buttons = [
-  {name: 'Electrical Job Cards', icon: 'flash', screen: 'ElectricalJobCardsScreen'},
-  {name: 'Mechanical Job Cards', icon: 'cog', screen: 'MechanicalJobCardsScreen'},
-  {name: 'Product Options', icon: 'cube-outline', screen: 'ProductOptionsScreen'},
+  {
+    name: 'Electrical Job Cards',
+    icon: 'flash',
+    screen: 'ElectricalJobCardsScreen',
+  },
+  {
+    name: 'Mechanical Job Cards',
+    icon: 'cog',
+    screen: 'MechanicalJobCardsScreen',
+  },
+  {
+    name: 'Product Options',
+    icon: 'cube-outline',
+    screen: 'ProductOptionsScreen',
+  },
   {name: 'VOM', icon: 'playlist-check', screen: 'VOMScreen'},
   {name: 'Track Material', icon: 'cube-scan', screen: 'TrackMaterialScreen'},
 ];

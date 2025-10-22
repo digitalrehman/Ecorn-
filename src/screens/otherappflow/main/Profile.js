@@ -22,7 +22,7 @@ import {useSelector} from 'react-redux';
 import moment from 'moment';
 import axios from 'axios';
 import Toast from 'react-native-toast-message';
-import { BASE_URL_1 } from '../../../utils/BaseUrl';
+import {BASEURL} from '../../../utils/BaseUrl';
 import { APPCOLORS } from '../../../utils/APPCOLORS';
 
 const Profile = ({navigation}) => {
@@ -42,7 +42,7 @@ const Profile = ({navigation}) => {
     let config = {
       method: 'post',
       maxBodyLength: Infinity,
-      url: `${BASE_URL_1}user_attendance_post.php`,
+      url: `${BASEURL}user_attendance_post.php`,
       headers: {
         'Content-Type': 'multipart/form-data',
       },
@@ -72,7 +72,7 @@ const Profile = ({navigation}) => {
     let config = {
       method: 'post',
       maxBodyLength: Infinity,
-      url: `${BASE_URL_1}user_attendance_post.php`,
+      url: `${BASEURL}user_attendance_post.php`,
       headers: {
         'Content-Type': 'multipart/form-data',
       },
@@ -107,7 +107,7 @@ const Profile = ({navigation}) => {
     let config = {
       method: 'post',
       maxBodyLength: Infinity,
-      url: `${BASE_URL_1}user_attendance_post.php`,
+      url: `${BASEURL}user_attendance_post.php`,
       headers: {
         'Content-Type': 'multipart/form-data',
       },

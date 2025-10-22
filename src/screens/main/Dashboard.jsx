@@ -6,6 +6,7 @@ import {
   ScrollView,
   Touchable,
   TouchableOpacity,
+  ActivityIndicator,
 } from 'react-native';
 import React, {useEffect, useState} from 'react';
 import {APPCOLORS} from '../../utils/APPCOLORS';
@@ -22,7 +23,7 @@ import AppHeader from '../../components/AppHeader';
 import {AppImages} from '../../assets/images/AppImages';
 import Modal from 'react-native-modal';
 import AntDesign from 'react-native-vector-icons/AntDesign';
-import BaseUrl from '../../utils/BaseUrl';
+import {BASEURL} from '../../utils/BaseUrl';
 import axios from 'axios';
 import moment from 'moment';
 import GetUserAccessData from '../../global/GetUserAccessData';
@@ -33,9 +34,9 @@ const Dashboard = ({navigation}) => {
   const [visible, setVisible] = useState(false);
   const userData = useSelector(state => state.Data.currentData);
   const [showAll, setShowAll] = useState(false);
-  const [slider_data, setslider_data] = useState();
   const [AllData, setAllData] = useState();
   const [Type, setType] = useState();
+  const [firstLoad, setFirstLoad] = useState(true);
 
   const [loader, setLoader] = useState(false);
   const dispatch = useDispatch();
@@ -115,12 +116,12 @@ const Dashboard = ({navigation}) => {
   ];
 
   useEffect(() => {
-    const unsubscribe = navigation.addListener('focus', () => {
+    if (firstLoad) {
       getMoneyData();
       getUserAccess();
-    });
-    return unsubscribe;
-  }, [navigation]);
+      setFirstLoad(false)
+    }
+  }, [firstLoad]);
 
   const getMoneyData = async () => {
     setLoader(true);
@@ -134,7 +135,7 @@ const Dashboard = ({navigation}) => {
 
     const options = {
       method: 'GET',
-      url: `${BaseUrl}dashboard_view.php`,
+      url: `${BASEURL}dashboard_view.php`,
       headers: {
         'content-type': 'multipart/form-data',
       },
@@ -144,7 +145,6 @@ const Dashboard = ({navigation}) => {
     try {
       const {data} = await axios.request(options);
 
-      setslider_data(data?.slider_data);
       setAllData(data);
       setLoader(false);
     } catch (error) {
@@ -155,7 +155,6 @@ const Dashboard = ({navigation}) => {
 
   const getUserAccess = async () => {
     const res = await GetUserAccessData(userData.id);
-
     dispatch(setUserAccess(res.data));
   };
   return (
@@ -166,6 +165,23 @@ const Dashboard = ({navigation}) => {
           setVisible(true), setType(res);
         }}
       />
+      {loader && (
+        <View
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0,0,0,0.4)',
+            justifyContent: 'center',
+            alignItems: 'center',
+            zIndex: 1000,
+          }}>
+          <ActivityIndicator size="large" color={APPCOLORS.WHITE} />
+        </View>
+      )}
+
       <ScrollView
         contentContainerStyle={{paddingBottom: 20}}
         showsVerticalScrollIndicator={false}>

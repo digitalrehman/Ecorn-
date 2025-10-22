@@ -13,6 +13,7 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import axios from 'axios';
 import SimpleHeader from '../../../../components/SimpleHeader';
 import * as Animatable from 'react-native-animatable';
+import { BASEURL } from '../../../../utils/BaseUrl';
 
 const GrnAgainst = ({navigation, route}) => {
   const [fromDate, setFromDate] = useState(null);
@@ -48,7 +49,7 @@ const GrnAgainst = ({navigation, route}) => {
   const fetchCustomers = async () => {
     try {
       const res = await axios.get(
-        'https://e.de2solutions.com/mobile_dash/suppliers.php',
+        `${BASEURL}suppliers.php`,
       );
       if (res.data?.status === 'true') {
         setSupplierList(res.data.data);
@@ -68,7 +69,7 @@ const GrnAgainst = ({navigation, route}) => {
   const fetchLocations = async () => {
     try {
       const res = await axios.get(
-        'https://e.de2solutions.com/mobile_dash/locations.php',
+        `${BASEURL}locations.php`,
       );
       if (res.data?.status === 'true') {
         setLocations(
@@ -88,7 +89,7 @@ const GrnAgainst = ({navigation, route}) => {
     try {
       setLoading(true);
       const res = await axios.get(
-        'https://e.de2solutions.com/mobile_dash/pending_po.php',
+        `${BASEURL}pending_po.php`,
       );
 
       if (res.data?.status === 'true' && res.data.data?.length > 0) {

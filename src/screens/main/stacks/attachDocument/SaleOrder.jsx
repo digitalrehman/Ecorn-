@@ -18,6 +18,7 @@ import SimpleHeader from '../../../../components/SimpleHeader';
 import {APPCOLORS} from '../../../../utils/APPCOLORS';
 import RNFetchBlob from 'react-native-blob-util';
 import {useFocusEffect, useRoute} from '@react-navigation/native';
+import { BASEURL } from '../../../../utils/BaseUrl';
 
 export default function SaleOrder({navigation}) {
   const [allData, setAllData] = useState([]);
@@ -47,7 +48,7 @@ export default function SaleOrder({navigation}) {
   setLoading(true);
   try {
     const res = await axios.get(
-      'https://e.de2solutions.com/mobile_dash/dash_upload_sale.php',
+      `${BASEURL}dash_upload_sale.php`,
     );
     let result = res.data?.data_cust_age || [];
     setAllData(result);
@@ -64,11 +65,8 @@ export default function SaleOrder({navigation}) {
       return {...item, jsDate: new Date(year, month - 1, day)};
     });
 
-    // 🔹 Latest date find karne ki zarurat nahi (agar sirf 30 records chahiye)
-    // bas sorted list le kar slice kar lo
     const sorted = parsed.sort((a, b) => b.jsDate - a.jsDate);
 
-    // 🔹 Sirf last 30 records
     setData(sorted.slice(0, 30));
   } catch (error) {
     console.log('Error fetching data:', error);
@@ -113,7 +111,7 @@ export default function SaleOrder({navigation}) {
         appendExt: 'tmp', // temporary extension
       }).fetch(
         'POST',
-        'https://e.de2solutions.com/mobile_dash/dattachment_download.php',
+        `${BASEURL}dattachment_download.php`,
         {
           'Content-Type': 'application/x-www-form-urlencoded',
         },
@@ -169,7 +167,6 @@ export default function SaleOrder({navigation}) {
 
       Alert.alert('Download Successful', `File saved to: ${path}`);
     } catch (err) {
-      console.log('Download Error:', err);
       Alert.alert('Download Failed', 'Could not download the file.');
     }
   };

@@ -12,7 +12,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import { setLoader } from '../../../redux/AuthSlice'
 import Toast from 'react-native-toast-message'
 import DateTimePickerModal from "react-native-modal-datetime-picker";
-import { BASE_URL_1 } from '../../../utils/BaseUrl'
+import {BASEURL} from '../../../utils/BaseUrl'
 import { APPCOLORS } from '../../../utils/APPCOLORS'
 
 
@@ -85,7 +85,7 @@ const PaymentScreen = ({ navigation, route }) => {
                 let config = {
                     method: 'post',
                     maxBodyLength: Infinity,
-                    url: `${BASE_URL_1}post_service_payments.php`,
+                    url: `${BASEURL}post_service_payments.php`,
                     headers: {
                         'Content-Type': 'multipart/form-data'
                     },
@@ -140,7 +140,7 @@ const PaymentScreen = ({ navigation, route }) => {
                 let config = {
                     method: 'post',
                     maxBodyLength: Infinity,
-                    url: `${BASE_URL_1}post_service_payments.php`,
+                    url: `${BASEURL}post_service_payments.php`,
                     headers: {
                         'Content-Type': 'multipart/form-data'
                     },
@@ -184,7 +184,7 @@ const PaymentScreen = ({ navigation, route }) => {
         let config = {
             method: 'get',
             maxBodyLength: Infinity,
-            url: `${BASE_URL_1}all_data.php`,
+            url: `${BASEURL}all_data.php`,
             headers: {
             },
             data: getAccdata

@@ -13,6 +13,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import {Dropdown} from 'react-native-element-dropdown';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import axios from 'axios';
+import {BASEURL} from '../../../../utils/BaseUrl';
 
 const COLORS = {
   WHITE: '#FFFFFF',
@@ -47,9 +48,7 @@ const MechanicalJobCardsScreen = ({navigation}) => {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const res = await axios.get(
-        'https://e.de2solutions.com/mobile_dash/mechnical_job_cards.php',
-      );
+      const res = await axios.get(`${BASEURL}mechanical_job_cards.php`);
       if (res.data?.status === 'true') {
         const rows = res.data.data;
         setAllData(rows);
@@ -68,9 +67,7 @@ const MechanicalJobCardsScreen = ({navigation}) => {
 
   const fetchLocations = async () => {
     try {
-      const res = await axios.get(
-        'https://e.de2solutions.com/mobile_dash/locations.php',
-      );
+      const res = await axios.get(`${BASEURL}locations.php`);
       if (res.data?.status === 'true') {
         const formatted = res.data.data.map(loc => ({
           label: loc.location_name,
@@ -115,40 +112,46 @@ const MechanicalJobCardsScreen = ({navigation}) => {
     setFiltered(rows.slice(-30));
   };
 
- // 📌 Render table row
-const renderRow = ({item}) => (
-  <View style={styles.row}>
-    <Text style={styles.cell}>{item.reference}</Text>
-    <Text style={styles.cell}>{formatDate(item.bulk_entry_date)}</Text>
+  // 📌 Render table row
+  const renderRow = ({item}) => (
+    <View style={styles.row}>
+      <Text style={styles.cell}>{item.reference}</Text>
+      <Text style={styles.cell}>{formatDate(item.bulk_entry_date)}</Text>
 
-    {/* 🔹 Order No column = Location name */}
-    <Text style={styles.cell}>{locationMap[item.location] || item.ref}</Text>
+      {/* 🔹 Order No column = Location name */}
+      <Text style={styles.cell}>{locationMap[item.location] || item.ref}</Text>
 
-    <Text style={styles.cell}>{item.entry_by}</Text>
-    <View
-      style={[
-        styles.cell,
-        {flexDirection: 'row', justifyContent: 'space-around'},
-      ]}>
-      {/* 🔹 Estimate Icon */}
-      <TouchableOpacity
-        style={{alignItems: 'center'}}
-        onPress={() => navigation.navigate('MechanicalEstimate', {id: item.id, requisitionid : item.requisitionid})}>
-        <Ionicons name="document-text-outline" size={22} color="#4cafef" />
-        <Text style={{color: COLORS.WHITE, fontSize: 8}}>Estimate</Text>
-      </TouchableOpacity>
+      <Text style={styles.cell}>{item.entry_by}</Text>
+      <View
+        style={[
+          styles.cell,
+          {flexDirection: 'row', justifyContent: 'space-around'},
+        ]}>
+        {/* 🔹 Estimate Icon */}
+        <TouchableOpacity
+          style={{alignItems: 'center'}}
+          onPress={() =>
+            navigation.navigate('MechanicalEstimate', {
+              id: item.id,
+              requisitionid: item.requisitionid,
+            })
+          }>
+          <Ionicons name="document-text-outline" size={22} color="#4cafef" />
+          <Text style={{color: COLORS.WHITE, fontSize: 8}}>Estimate</Text>
+        </TouchableOpacity>
 
-      {/* 🔹 Produce Icon */}
-      <TouchableOpacity
-        style={{alignItems: 'center'}}
-        onPress={() => navigation.navigate('MechanicalProduce', {id: item.id})}>
-        <Ionicons name="hammer-outline" size={22} color="#ff9800" />
-        <Text style={{color: COLORS.WHITE, fontSize: 8}}>Produce</Text>
-      </TouchableOpacity>
+        {/* 🔹 Produce Icon */}
+        <TouchableOpacity
+          style={{alignItems: 'center'}}
+          onPress={() =>
+            navigation.navigate('MechanicalProduce', {id: item.id})
+          }>
+          <Ionicons name="hammer-outline" size={22} color="#ff9800" />
+          <Text style={{color: COLORS.WHITE, fontSize: 8}}>Produce</Text>
+        </TouchableOpacity>
+      </View>
     </View>
-  </View>
-);
-
+  );
 
   return (
     <LinearGradient

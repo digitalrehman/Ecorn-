@@ -13,6 +13,7 @@ import LinearGradient from 'react-native-linear-gradient';
 import axios from 'axios';
 import {Dropdown} from 'react-native-element-dropdown';
 import {saveLargeData, loadLargeData} from '../../../../utils/storage';
+import { BASEURL } from '../../../../utils/BaseUrl';
 const COLORS = {
   WHITE: '#FFFFFF',
   BLACK: '#000000',
@@ -41,7 +42,7 @@ const ViewItem = ({navigation}) => {
     const fetchCategories = async () => {
       try {
         const res = await axios.get(
-          'https://e.de2solutions.com/mobile_dash/stock_category.php',
+          `${BASEURL}stock_category.php`,
         );
         if (res.data?.status === 'true') {
           const mapped = res.data.data.map(c => ({
@@ -70,7 +71,7 @@ const ViewItem = ({navigation}) => {
         }
 
         const res = await axios.get(
-          'https://e.de2solutions.com/mobile_dash/stock_master.php',
+          `${BASEURL}stock_master.php`,
         );
 
         if (res.data?.status === 'true') {

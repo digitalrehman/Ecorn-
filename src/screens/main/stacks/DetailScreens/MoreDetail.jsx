@@ -8,7 +8,6 @@ import {
 import React, {useEffect, useState} from 'react';
 import SimpleHeader from '../../../../components/SimpleHeader';
 import PieChart from 'react-native-pie-chart';
-import AppText from '../../../../components/AppText';
 import NameBalanceContainer from '../../../../components/NameBalanceContainer';
 import ViewAll from '../../../../components/ViewAll';
 import LinearGradient from 'react-native-linear-gradient';

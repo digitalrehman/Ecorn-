@@ -14,6 +14,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import {Dropdown, MultiSelect} from 'react-native-element-dropdown';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import Toast from 'react-native-toast-message';
+import {BASEURL} from '../../../../utils/BaseUrl';
 const COLORS = {
   WHITE: '#FFFFFF',
   BLACK: '#000000',
@@ -72,25 +73,25 @@ const AddLeadScreen = ({navigation, route}) => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const jobTypes = await fetch(
-          'https://e.de2solutions.com/mobile_dash/lead_job_type.php',
-        ).then(res => res.json());
+        const jobTypes = await fetch(`${BASEURL}lead_job_type.php`).then(res =>
+          res.json(),
+        );
 
-        const components = await fetch(
-          'https://e.de2solutions.com/mobile_dash/lead_components.php',
-        ).then(res => res.json());
+        const components = await fetch(`${BASEURL}lead_components.php`).then(
+          res => res.json(),
+        );
 
-        const enclosures = await fetch(
-          'https://e.de2solutions.com/mobile_dash/lead_enclosure.php',
-        ).then(res => res.json());
+        const enclosures = await fetch(`${BASEURL}lead_enclosure.php`).then(
+          res => res.json(),
+        );
 
-        const salesPersons = await fetch(
-          'https://e.de2solutions.com/mobile_dash/salesman.php',
-        ).then(res => res.json());
+        const salesPersons = await fetch(`${BASEURL}salesman.php`).then(res =>
+          res.json(),
+        );
 
-        const estimators = await fetch(
-          'https://e.de2solutions.com/mobile_dash/lead_estimator.php',
-        ).then(res => res.json());
+        const estimators = await fetch(`${BASEURL}lead_estimator.php`).then(
+          res => res.json(),
+        );
 
         setDropdownData({
           jobTypes: jobTypes.data || [],
@@ -107,7 +108,6 @@ const AddLeadScreen = ({navigation, route}) => {
     fetchData();
   }, []);
 
-  // --- Agar update mode hai to lead_edit.php call karke data auto-fill karo ---
   useEffect(() => {
     if (form.id > 0) {
       const fetchLead = async () => {
@@ -115,13 +115,10 @@ const AddLeadScreen = ({navigation, route}) => {
           const formData = new FormData();
           formData.append('id', form.id);
 
-          const response = await fetch(
-            'https://e.de2solutions.com/mobile_dash/lead_edit.php',
-            {
-              method: 'POST',
-              body: formData,
-            },
-          );
+          const response = await fetch(`${BASEURL}lead_edit.php`, {
+            method: 'POST',
+            body: formData,
+          });
 
           const result = await response.json();
 
@@ -189,17 +186,16 @@ const AddLeadScreen = ({navigation, route}) => {
         }
       });
 
-      // id hamesha bhejna
       formData.append('id', form.id || 0);
 
-      const url = 'https://e.de2solutions.com/mobile_dash/lead_post.php';
+      const url = `${BASEURL}lead_post.php`;
 
       const response = await fetch(url, {
         method: 'POST',
         body: formData,
       });
 
-      const raw = await response.text(); // 👈 pehle text lo
+      const raw = await response.text();
       console.log('Submit Raw Response:', raw);
 
       let result;

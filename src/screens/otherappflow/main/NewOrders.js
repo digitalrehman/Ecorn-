@@ -13,9 +13,8 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import {useSelector} from 'react-redux';
 
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import AntDesign from 'react-native-vector-icons/AntDesign';
 import { APPCOLORS } from '../../../utils/APPCOLORS';
-import { BASE_URL_1 } from '../../../utils/BaseUrl';
+import {BASEURL} from '../../../utils/BaseUrl';
 const NewOrders = ({navigation}) => {
   const CurrentUser = useSelector(state => state.Data.currentData);
 
@@ -41,7 +40,7 @@ const NewOrders = ({navigation}) => {
     let config = {
       method: 'post',
       maxBodyLength: Infinity,
-      url: `${BASE_URL_1}today_orders_data.php`,
+      url: `${BASEURL}today_orders_data.php`,
       headers: {
         'Content-Type': 'multipart/form-data',
       },
@@ -82,7 +81,7 @@ const NewOrders = ({navigation}) => {
     let config = {
       method: 'post',
       maxBodyLength: Infinity,
-      url: `${BASE_URL_1}post_service_purch_sale.php`,
+      url: `${BASEURL}post_service_purch_sale.php`,
       headers: {
         'Content-Type': 'multipart/form-data',
       },
@@ -122,7 +121,7 @@ const NewOrders = ({navigation}) => {
 //     let config = {
 //       method: 'post',
 //       maxBodyLength: Infinity,
-//       url: `${BASE_URL_1}mobile/post_service_purch_sale.php`,
+//       url: `${BASEURL}mobile/post_service_purch_sale.php`,
 //       headers: {
 //         'Content-Type': 'multipart/form-data',
 //       },
