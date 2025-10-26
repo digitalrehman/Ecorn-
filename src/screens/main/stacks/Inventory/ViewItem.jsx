@@ -216,6 +216,8 @@ const ViewItem = ({navigation}) => {
             setPage(1);
             setVisibleItems(filteredItems.slice(0, ITEMS_PER_PAGE));
           }}
+          search
+          searchPlaceholder="Search category..."
         />
 
         <View style={styles.searchRow}>

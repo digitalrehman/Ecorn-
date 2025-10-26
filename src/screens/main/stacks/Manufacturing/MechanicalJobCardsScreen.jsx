@@ -132,7 +132,8 @@ const MechanicalJobCardsScreen = ({navigation}) => {
           style={{alignItems: 'center'}}
           onPress={() =>
             navigation.navigate('MechanicalEstimate', {
-              id: item.id,
+              job_id: item.job_id,
+              project_id: item.sale_order,
               requisitionid: item.requisitionid,
             })
           }>
