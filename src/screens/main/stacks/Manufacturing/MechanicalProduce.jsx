@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {
   View,
   Text,
@@ -7,11 +7,15 @@ import {
   StyleSheet,
   ScrollView,
   Platform,
+  ActivityIndicator,
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import {Dropdown} from 'react-native-element-dropdown';
 import LinearGradient from 'react-native-linear-gradient';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import Toast from 'react-native-toast-message';
+import {useSelector} from 'react-redux';
+import {BASEURL} from '../../../../utils/BaseUrl';
 
 const COLORS = {
   WHITE: '#FFFFFF',
@@ -20,23 +24,127 @@ const COLORS = {
   Secondary: '#5a5c6a',
 };
 
-// Temporary dropdown data
-const dropdownOptions = [
-  {label: 'Option 1', value: '1'},
-  {label: 'Option 2', value: '2'},
-  {label: 'Option 3', value: '3'},
-];
+export default function MechanicalProduce({navigation, route}) {
+  const {sales_order} = route.params || {};
 
-export default function MechanicalProduce({navigation}) {
-  const [saleOrder, setSaleOrder] = useState('');
-  const [item, setItem] = useState('');
   const [allItem, setAllItem] = useState(null);
+  const [allItemList, setAllItemList] = useState([]);
   const [reference, setReference] = useState('');
   const [date, setDate] = useState(new Date());
   const [showDate, setShowDate] = useState(false);
-  const [type, setType] = useState(null);
   const [qty, setQty] = useState('');
   const [memo, setMemo] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [posting, setPosting] = useState(false);
+
+  // Redux user
+  const user = useSelector(state => state.Data.currentData);
+  console.log('Sales Order from route:', sales_order, user.id);
+
+  const formatDate = d => d.toISOString().split('T')[0];
+
+  // 🟩 Fetch All Items from API
+  const fetchItems = async () => {
+    setLoading(true);
+    try {
+      const formData = new FormData();
+      formData.append('sales_order', sales_order);
+
+      const res = await fetch(`${BASEURL}stock_master_produce.php`, {
+        method: 'POST',
+        body: formData,
+      });
+      const json = await res.json();
+      console.log('Stock Master Produce:', json);
+
+      if (json.status === 'true' && Array.isArray(json.data)) {
+        const formatted = json.data.map(item => ({
+          label: item.items,
+          value: item.woid,
+          prod_qty: item.prod_qty,
+          stock_id: item.stock_id,
+          loc_code: item.loc_code,
+          order_det_id: item.ord_detail_id,
+          reference: item.reference,
+          order_no: item.order_no,
+        }));
+        setAllItemList(formatted);
+      } else {
+        Toast.show({type: 'error', text1: 'No items found'});
+      }
+    } catch (err) {
+      console.log('Fetch Error:', err);
+      Toast.show({type: 'error', text1: 'Failed to load items'});
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchItems();
+  }, []);
+
+  // 🟩 When item changes, auto-fill reference + qty
+  const handleSelectItem = val => {
+    setAllItem(val);
+    setReference(val.reference || '');
+    setQty(val.prod_qty || '');
+  };
+
+  // 🟩 Submit to API
+  const handleProcess = async () => {
+    if (!allItem || !qty) {
+      Toast.show({type: 'error', text1: 'Please select item and quantity'});
+      return;
+    }
+
+    setPosting(true);
+    try {
+      const formData = new FormData();
+      formData.append('trans_type', 29);
+      formData.append('ord_date', formatDate(date));
+      formData.append('order_no', allItem.order_no);
+      formData.append('woid', allItem.value);
+      formData.append('prod_qty', qty);
+      formData.append('user_id', user?.id || 12);
+      formData.append('stock_id', allItem.stock_id);
+      formData.append('loc_code', allItem.loc_code);
+      formData.append('order_det_id', allItem.order_det_id);
+      formData.append('memo', memo);
+
+      const res = await fetch(`${BASEURL}post_service_purch_sale.php`, {
+        method: 'POST',
+        body: formData,
+      });
+
+      const text = await res.text();
+      console.log('Raw POST Response:', text);
+      const match = text.match(/\{.*\}/s);
+      const json = match ? JSON.parse(match[0]) : {status: false};
+
+      if (json.status === 'true' || json.status === true) {
+        Toast.show({type: 'success', text1: 'Processed Successfully!'});
+
+        // 🟢 reset form
+        setAllItem(null);
+        setReference('');
+        setQty('');
+        setMemo('');
+        setDate(new Date());
+
+        setTimeout(() => {
+          navigation.navigate('MechanicalJobCardsScreen');
+        }, 800);
+      } else {
+        Toast.show({type: 'error', text1: 'Failed to process'});
+      }
+    } catch (err) {
+      console.log('Submit Error:', err);
+      Toast.show({type: 'error', text1: 'Something went wrong'});
+    } finally {
+      setPosting(false);
+    }
+  };
 
   return (
     <LinearGradient
@@ -52,54 +160,40 @@ export default function MechanicalProduce({navigation}) {
       </View>
 
       <ScrollView contentContainerStyle={{padding: 20, paddingBottom: 100}}>
-        {/* Sale Order No */}
-        <TextInput
-          style={styles.textInput}
-          placeholder="Sale Order No"
-          placeholderTextColor="rgba(255,255,255,0.6)"
-          value={saleOrder}
-          onChangeText={setSaleOrder}
-        />
+        {/* All Item Dropdown */}
+        {loading ? (
+          <ActivityIndicator color={COLORS.WHITE} style={{marginTop: 10}} />
+        ) : (
+          <Dropdown
+            style={styles.dropdown}
+            data={allItemList}
+            labelField="label"
+            valueField="value"
+            placeholder="Select Item"
+            placeholderStyle={{color: 'rgba(255,255,255,0.6)'}}
+            selectedTextStyle={{color: COLORS.WHITE}}
+            itemTextStyle={{color: COLORS.BLACK}}
+            search
+            searchPlaceholder="Search item..."
+            value={allItem?.value}
+            onChange={handleSelectItem}
+          />
+        )}
 
-        {/* Item */}
+        {/* Reference (auto-filled) */}
         <TextInput
-          style={styles.textInput}
-          placeholder="Item"
-          placeholderTextColor="rgba(255,255,255,0.6)"
-          value={item}
-          onChangeText={setItem}
-        />
-
-        {/* All Item (Dropdown) */}
-        <Dropdown
-          style={styles.dropdown}
-          data={dropdownOptions}
-          labelField="label"
-          valueField="value"
-          placeholder="All Item"
-          placeholderStyle={{color: 'rgba(255,255,255,0.6)'}}
-          selectedTextStyle={{color: COLORS.WHITE}}
-          itemTextStyle={{color: COLORS.BLACK}}
-          value={allItem}
-          onChange={val => setAllItem(val.value)}
-        />
-
-        {/* Reference */}
-        <TextInput
-          style={styles.textInput}
+          style={[styles.textInput, {opacity: 0.8}]}
           placeholder="Reference"
           placeholderTextColor="rgba(255,255,255,0.6)"
           value={reference}
-          onChangeText={setReference}
+          editable={false}
         />
 
         {/* Date Picker */}
         <TouchableOpacity
           style={[styles.textInput, {justifyContent: 'center'}]}
           onPress={() => setShowDate(true)}>
-          <Text style={{color: COLORS.WHITE}}>
-            {date.toISOString().split('T')[0]}
-          </Text>
+          <Text style={{color: COLORS.WHITE}}>{formatDate(date)}</Text>
         </TouchableOpacity>
         {showDate && (
           <DateTimePicker
@@ -113,31 +207,17 @@ export default function MechanicalProduce({navigation}) {
           />
         )}
 
-        {/* Type (Dropdown) */}
-        <Dropdown
-          style={styles.dropdown}
-          data={dropdownOptions}
-          labelField="label"
-          valueField="value"
-          placeholder="Type"
-          placeholderStyle={{color: 'rgba(255,255,255,0.6)'}}
-          selectedTextStyle={{color: COLORS.WHITE}}
-          itemTextStyle={{color: COLORS.BLACK}}
-          value={type}
-          onChange={val => setType(val.value)}
-        />
-
-        {/* Quantity */}
+        {/* Quantity (editable) */}
         <TextInput
           style={styles.textInput}
           placeholder="Quantity"
           placeholderTextColor="rgba(255,255,255,0.6)"
           keyboardType="numeric"
-          value={qty}
+          value={qty?.toString()}
           onChangeText={setQty}
         />
 
-        {/* Memo / Description */}
+        {/* Memo */}
         <TextInput
           style={[
             styles.textInput,
@@ -151,12 +231,21 @@ export default function MechanicalProduce({navigation}) {
         />
       </ScrollView>
 
-      {/* Fixed Bottom Button */}
+      {/* Bottom Button */}
       <View style={styles.bottomBar}>
-        <TouchableOpacity style={styles.submitBtn}>
-          <Text style={{color: COLORS.WHITE, fontSize: 18}}>Process</Text>
+        <TouchableOpacity
+          disabled={posting}
+          onPress={handleProcess}
+          style={styles.submitBtn}>
+          {posting ? (
+            <ActivityIndicator color={COLORS.WHITE} />
+          ) : (
+            <Text style={{color: COLORS.WHITE, fontSize: 18}}>Process</Text>
+          )}
         </TouchableOpacity>
       </View>
+
+      <Toast />
     </LinearGradient>
   );
 }

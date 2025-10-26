@@ -13,7 +13,7 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import axios from 'axios';
 import SimpleHeader from '../../../../components/SimpleHeader';
 import * as Animatable from 'react-native-animatable';
-import { BASEURL } from '../../../../utils/BaseUrl';
+import {BASEURL} from '../../../../utils/BaseUrl';
 
 const GrnAgainst = ({navigation, route}) => {
   const [fromDate, setFromDate] = useState(null);
@@ -28,29 +28,32 @@ const GrnAgainst = ({navigation, route}) => {
 
   const [loading, setLoading] = useState(false);
   const [transactions, setTransactions] = useState([]);
-
   const [supplierList, setSupplierList] = useState([]);
 
-  // 🔹 Fetch supplier, location, and POs on mount
+  // 🔹 Auto set default dates + initial fetch
   useEffect(() => {
+    const today = new Date();
+    const lastMonth = new Date();
+    lastMonth.setMonth(today.getMonth() - 1);
+    setFromDate(lastMonth);
+    setToDate(today);
+
     fetchCustomers();
     fetchLocations();
-    fetchTransactions();
+    fetchTransactions(lastMonth, today);
   }, []);
 
   // 🔹 Refresh when coming back from GRN
   useEffect(() => {
     if (route?.params?.refresh) {
-      fetchTransactions();
+      fetchTransactions(fromDate, toDate);
     }
   }, [route?.params?.refresh]);
 
   // 🔹 Fetch Suppliers
   const fetchCustomers = async () => {
     try {
-      const res = await axios.get(
-        `${BASEURL}suppliers.php`,
-      );
+      const res = await axios.get(`${BASEURL}suppliers.php`);
       if (res.data?.status === 'true') {
         setSupplierList(res.data.data);
         setCustomers(
@@ -68,9 +71,7 @@ const GrnAgainst = ({navigation, route}) => {
   // 🔹 Fetch Locations
   const fetchLocations = async () => {
     try {
-      const res = await axios.get(
-        `${BASEURL}locations.php`,
-      );
+      const res = await axios.get(`${BASEURL}locations.php`);
       if (res.data?.status === 'true') {
         setLocations(
           res.data.data.map(l => ({
@@ -84,63 +85,56 @@ const GrnAgainst = ({navigation, route}) => {
     }
   };
 
-  // 🔹 Fetch Pending POs
-  const fetchTransactions = async () => {
+  // 🔹 Fetch Pending POs (POST version — React Native safe)
+  const fetchTransactions = async (fDate = fromDate, tDate = toDate) => {
     try {
       setLoading(true);
-      const res = await axios.get(
-        `${BASEURL}pending_po.php`,
-      );
 
-      if (res.data?.status === 'true' && res.data.data?.length > 0) {
-        let finalData = res.data.data;
+      const format = d => {
+        if (!d) return '';
+        const year = d.getFullYear();
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+      };
 
-        // Supplier Filter
-        if (selectedCustomer) {
-          const supplier = supplierList.find(
-            s => s.supplier_id?.toString() === selectedCustomer?.toString(),
-          );
-          if (supplier) {
-            finalData = finalData.filter(
-              item =>
-                item.supplier_id?.toString() ===
-                supplier.supplier_id?.toString(),
-            );
-          }
-        }
+      // 🔸 Prepare POST data
+      const formData = new FormData();
+      formData.append('from_date', format(fDate));
+      formData.append('to_date', format(tDate));
+      formData.append('loc_code', selectedLocation || '');
+      formData.append('customer_id', selectedCustomer || ''); // supplier_id value
 
-        // Location Filter
-        if (selectedLocation) {
-          finalData = finalData.filter(
-            item => item.location?.toString() === selectedLocation?.toString(),
-          );
-        }
+      console.log('📤 Sending FormData:');
+      console.log({
+        from_date: format(fDate),
+        to_date: format(tDate),
+        loc_code: selectedLocation,
+        customer_id: selectedCustomer,
+      });
 
-        // Date Filter
-        if (fromDate && toDate) {
-          finalData = finalData.filter(item => {
-            if (!item.ord_date) return false;
-            const d = new Date(item.ord_date);
-            const fromOnly = new Date(
-              fromDate.getFullYear(),
-              fromDate.getMonth(),
-              fromDate.getDate(),
-            );
-            const toOnly = new Date(
-              toDate.getFullYear(),
-              toDate.getMonth(),
-              toDate.getDate(),
-            );
-            return d >= fromOnly && d <= toOnly;
-          });
-        }
+      // 🔸 POST request
+      const res = await axios.post(`${BASEURL}pending_po.php`, formData, {
+        headers: {'Content-Type': 'multipart/form-data'},
+      });
 
-        setTransactions(finalData);
+      console.log('📥 RESPONSE:', res.data);
+
+      // 🧠 Handle extra junk text
+      if (typeof res.data === 'string') {
+        const match = res.data.match(/\{.*\}/s);
+        if (match) res.data = JSON.parse(match[0]);
+      }
+
+      // ✅ Success condition
+      if (res.data?.status === 'true' && Array.isArray(res.data.data)) {
+        setTransactions(res.data.data);
       } else {
+        console.log('⚠️ Invalid response:', res.data);
         setTransactions([]);
       }
     } catch (err) {
-      console.log('Transactions API Error:', err);
+      console.log('❌ Transactions API Error:', err);
       setTransactions([]);
     } finally {
       setLoading(false);
@@ -196,6 +190,8 @@ const GrnAgainst = ({navigation, route}) => {
           style={styles.dropdown}
           placeholderStyle={styles.placeholderStyle}
           selectedTextStyle={styles.selectedTextStyle}
+          itemTextStyle={{color: '#000'}}
+          inputSearchStyle={{color: '#000'}}
           data={customers}
           search
           maxHeight={300}
@@ -212,6 +208,8 @@ const GrnAgainst = ({navigation, route}) => {
           style={styles.dropdown}
           placeholderStyle={styles.placeholderStyle}
           selectedTextStyle={styles.selectedTextStyle}
+          itemTextStyle={{color: '#000'}}
+          inputSearchStyle={{color: '#000'}}
           data={locations}
           search
           maxHeight={300}
@@ -243,7 +241,7 @@ const GrnAgainst = ({navigation, route}) => {
 
           <TouchableOpacity
             style={[styles.morphButton, {backgroundColor: '#1a1c22'}]}
-            onPress={fetchTransactions}>
+            onPress={() => fetchTransactions()}>
             <Text style={{color: '#fff', fontWeight: 'bold'}}>Apply</Text>
           </TouchableOpacity>
         </View>

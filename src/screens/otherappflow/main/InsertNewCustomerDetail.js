@@ -16,7 +16,7 @@ import {Dropdown} from 'react-native-element-dropdown';
 import axios from 'axios';
 import LinearGradient from 'react-native-linear-gradient'; // install if not present
 import Toast from 'react-native-toast-message';
-import { BASEURL } from '../../../utils/BaseUrl';
+import {BASEURL} from '../../../utils/BaseUrl';
 
 // Local color set (uses the values you gave)
 const COLORS = {
@@ -48,11 +48,13 @@ const InsertNewCustomerDetail = ({navigation, route}) => {
 
   const [submitting, setSubmitting] = useState(false);
   const provinceOptions = [
-    {label: 'Sindh', value: 'Sindh'},
-    {label: 'Punjab', value: 'Punjab'},
-    {label: 'Balochistan', value: 'Balochistan'},
-    {label: 'Khyber Pakhtunkhwa', value: 'Khyber Pakhtunkhwa'},
-    {label: 'Gilgit-Baltistan', value: 'Gilgit-Baltistan'},
+    {label: 'Sindh', value: 8},
+    {label: 'Punjab', value: 7},
+    {label: 'Balochistan', value: 2},
+    {label: 'Khyber Pakhtunkhwa', value: 6},
+    {label: 'Gilgit-Baltistan', value: 9},
+    {label: 'Azad Jammu and Kashmir', value: 5},
+    {label: 'Capital Territory', value: 5},
   ];
 
   // Animated entrance values
@@ -92,9 +94,7 @@ const InsertNewCustomerDetail = ({navigation, route}) => {
   useEffect(() => {
     const fetchDropdownData = async () => {
       try {
-        const taxRes = await axios.get(
-          `${BASEURL}tax_groups.php`,
-        );
+        const taxRes = await axios.get(`${BASEURL}tax_groups.php`);
         if (
           taxRes.data &&
           (taxRes.data.status === 'true' || taxRes.data.status === true)
@@ -106,9 +106,7 @@ const InsertNewCustomerDetail = ({navigation, route}) => {
           setTaxOptions(formattedTax);
         }
 
-        const salesRes = await axios.get(
-          `${BASEURL}salesman.php`,
-        );
+        const salesRes = await axios.get(`${BASEURL}salesman.php`);
         if (
           salesRes.data &&
           (salesRes.data.status === 'true' || salesRes.data.status === true)
@@ -121,7 +119,6 @@ const InsertNewCustomerDetail = ({navigation, route}) => {
         }
       } catch (err) {
         console.log('Dropdown fetch error:', err);
-        Alert.alert('Error', 'Unable to fetch dropdown data');
       } finally {
         setLoading(false);
       }
@@ -177,11 +174,10 @@ const InsertNewCustomerDetail = ({navigation, route}) => {
       form.append('poc_contact', POCContact);
       form.append('poc_email', POCEmail);
 
-      const res = await axios.post(
-        `${BASEURL}debtors_master_post.php`,
-        form,
-        {headers: {'Content-Type': 'multipart/form-data'}, timeout: 20000},
-      );
+      const res = await axios.post(`${BASEURL}debtors_master_post.php`, form, {
+        headers: {'Content-Type': 'multipart/form-data'},
+        timeout: 20000,
+      });
 
       console.log('API Response:', res.data);
 
@@ -317,6 +313,9 @@ const InsertNewCustomerDetail = ({navigation, route}) => {
                 setTaxValue(item.value);
               }}
               selectedTextProps={{numberOfLines: 1}}
+              selectedTextStyle={{color: '#FFFFFF'}}
+              itemTextStyle={{color: '#000'}}
+              inputSearchStyle={{color: '#FFFFFF'}}
             />
           </Animated.View>
 
@@ -338,6 +337,9 @@ const InsertNewCustomerDetail = ({navigation, route}) => {
               onChange={item => {
                 setSalesmanValue(item.value);
               }}
+              selectedTextStyle={{color: '#FFFFFF'}}
+              itemTextStyle={{color: '#000'}}
+              inputSearchStyle={{color: '#FFFFFF'}}
             />
           </Animated.View>
 
@@ -357,6 +359,9 @@ const InsertNewCustomerDetail = ({navigation, route}) => {
               onChange={item => {
                 setProvince(item.value);
               }}
+              selectedTextStyle={{color: '#FFFFFF'}}
+              itemTextStyle={{color: '#000'}}
+              inputSearchStyle={{color: '#FFFFFF'}}
             />
           </Animated.View>
         </Animated.View>

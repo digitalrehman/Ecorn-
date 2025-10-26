@@ -9,7 +9,6 @@ import * as Animatable from 'react-native-animatable';
 const buttons = [
   { name: 'Add Customer', icon: 'account-plus', navigate: "AddNewCustomer" },
   { name: 'Delivery', icon: 'truck-delivery', navigate: "DeliveryScreen" },
-  { name: 'View and Downloads', icon: 'file-download', navigate: "AddNewCustomer" },
   { name: 'Track Order Status', icon: 'map-marker-path', navigate: "TrackOrderStatus" },
   { name: 'Receivable', icon: 'format-list-bulleted', navigate: "ReceivableScreen" },
 ];

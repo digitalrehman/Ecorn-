@@ -36,7 +36,6 @@ const MechanicalJobCardsScreen = ({navigation}) => {
   const [showFromPicker, setShowFromPicker] = useState(false);
   const [showToPicker, setShowToPicker] = useState(false);
 
-  // 📌 Format date dd/mm/yy
   const formatDate = d => {
     const date = new Date(d);
     return `${String(date.getDate()).padStart(2, '0')}/${String(
@@ -145,7 +144,9 @@ const MechanicalJobCardsScreen = ({navigation}) => {
         <TouchableOpacity
           style={{alignItems: 'center'}}
           onPress={() =>
-            navigation.navigate('MechanicalProduce', {id: item.id})
+            navigation.navigate('MechanicalProduce', {
+              sales_order: item.sale_order,
+            })
           }>
           <Ionicons name="hammer-outline" size={22} color="#ff9800" />
           <Text style={{color: COLORS.WHITE, fontSize: 8}}>Produce</Text>

@@ -13,7 +13,7 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import axios from 'axios';
 import SimpleHeader from '../../../../../components/SimpleHeader';
 import * as Animatable from 'react-native-animatable';
-import { BASEURL } from '../../../../../utils/BaseUrl';
+import {BASEURL} from '../../../../../utils/BaseUrl';
 
 const DeliveryScreen = ({navigation}) => {
   const [fromDate, setFromDate] = useState(null);
@@ -23,28 +23,34 @@ const DeliveryScreen = ({navigation}) => {
 
   const [customers, setCustomers] = useState([]);
   const [locations, setLocations] = useState([]);
-  const [selectedCustomer, setSelectedCustomer] = useState(null); // ✅ null instead of ''
+  const [selectedCustomer, setSelectedCustomer] = useState(null);
   const [selectedLocation, setSelectedLocation] = useState(null);
 
   const [loading, setLoading] = useState(false);
   const [transactions, setTransactions] = useState([]);
 
+  // 🔹 On mount → default dates (previous month → today)
   useEffect(() => {
+    const today = new Date();
+    const lastMonth = new Date();
+    lastMonth.setMonth(today.getMonth() - 1);
+
+    setFromDate(lastMonth);
+    setToDate(today);
+
     fetchCustomers();
     fetchLocations();
-    fetchTransactions(); // default load
+    fetchTransactions(lastMonth, today, '', '');
   }, []);
 
   const fetchCustomers = async () => {
     try {
-      const res = await axios.get(
-        `${BASEURL}debtors_master.php`,
-      );
+      const res = await axios.get(`${BASEURL}debtors_master.php`);
       if (res.data?.status === 'true') {
         setCustomers(
           res.data.data.map(c => ({
             label: c.name,
-            value: c.name, // ✅ filter by customer name
+            value: c.debtor_no,
           })),
         );
       }
@@ -55,9 +61,7 @@ const DeliveryScreen = ({navigation}) => {
 
   const fetchLocations = async () => {
     try {
-      const res = await axios.get(
-        `${BASEURL}locations.php`,
-      );
+      const res = await axios.get(`${BASEURL}locations.php`);
       if (res.data?.status === 'true') {
         setLocations(
           res.data.data.map(l => ({
@@ -71,60 +75,54 @@ const DeliveryScreen = ({navigation}) => {
     }
   };
 
-  const fetchTransactions = async () => {
+  // 🔹 POST request for pending_so
+  const fetchTransactions = async (
+    from = fromDate,
+    to = toDate,
+    loc = selectedLocation,
+    person = selectedCustomer,
+  ) => {
     try {
       setLoading(true);
 
-      const res = await axios.get(
-        `${BASEURL}pending_so.php`,
+      // ✅ format yyyy/mm/dd
+      const formatDate = date => {
+        const yyyy = date.getFullYear();
+        const mm = String(date.getMonth() + 1).padStart(2, '0');
+        const dd = String(date.getDate()).padStart(2, '0');
+        return `${yyyy}/${mm}/${dd}`;
+      };
+
+      const postData = {
+        from_date: formatDate(from),
+        to_date: formatDate(to),
+        loc_code: loc || '',
+        person_id: person || '',
+      };
+
+      console.log('📤 POST BODY:', postData);
+
+      const res = await axios.post(`${BASEURL}pending_so.php`, postData, {
+        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+      });
+
+      console.log(
+        `📥 RESPONSE: ${postData.from_date}---${postData.to_date}`,
+        res.data,
       );
 
-      if (res.data?.status === 'true') {
-        let allData = res.data.data || [];
-        let finalData = allData;
+      // 🧠 Extract JSON if extra text exists
+      if (typeof res.data === 'string') {
+        const match = res.data.match(/\{.*\}/s);
+        if (match) res.data = JSON.parse(match[0]);
+      }
 
-        // 🔹 Customer filter (by name)
-        if (selectedCustomer) {
-          finalData = finalData.filter(
-            item => item.name?.toLowerCase() === selectedCustomer.toLowerCase(),
-          );
-        }
-
-        // 🔹 Location filter
-        if (selectedLocation) {
-          finalData = finalData.filter(
-            item => item.location?.toString() === selectedLocation.toString(),
-          );
-        }
-
-        // 🔹 Date filter (ord_date)
-        if (fromDate && toDate) {
-          finalData = finalData.filter(item => {
-            if (!item.ord_date) return false;
-
-            // API date string ko Date object me convert karo
-            const d = new Date(item.ord_date);
-
-            // Sirf yyyy-mm-dd format ka support ho to ensure UTC offset issue na ho
-            const dOnly = new Date(d.getFullYear(), d.getMonth(), d.getDate());
-
-            const fromOnly = new Date(
-              fromDate.getFullYear(),
-              fromDate.getMonth(),
-              fromDate.getDate(),
-            );
-            const toOnly = new Date(
-              toDate.getFullYear(),
-              toDate.getMonth(),
-              toDate.getDate(),
-            );
-
-            return dOnly >= fromOnly && dOnly <= toOnly;
-          });
-        }
-
-        setTransactions(finalData);
+      if (res.data?.status === 'true' && Array.isArray(res.data.data)) {
+        const cleanData = [...res.data.data];
+        console.log('🧾 Transactions Count:', cleanData.length);
+        setTransactions(cleanData);
       } else {
+        console.log('⚠️ No valid data array received', res.data);
         setTransactions([]);
       }
     } catch (err) {
@@ -135,11 +133,8 @@ const DeliveryScreen = ({navigation}) => {
     }
   };
 
-  const formatDate = dateStr => {
-    if (!dateStr) return '';
-    const d = new Date(dateStr);
-    return d.toLocaleDateString('en-GB');
-  };
+  const formatDisplayDate = date =>
+    date ? date.toLocaleDateString('en-GB') : 'Date';
 
   const formatAmount = amt => {
     if (!amt) return '0';
@@ -155,7 +150,9 @@ const DeliveryScreen = ({navigation}) => {
       <Text style={[styles.cell, {flex: 1}]}>
         {item.reference?.slice(0, 6) + '..' || '-'}
       </Text>
-      <Text style={[styles.cell, {flex: 1}]}>{formatDate(item.ord_date)}</Text>
+      <Text style={[styles.cell, {flex: 1}]}>
+        {new Date(item.ord_date).toLocaleDateString('en-GB')}
+      </Text>
       <Text style={[styles.cell, {flex: 1}]}>{formatAmount(item.total)}</Text>
       <TouchableOpacity
         style={{flex: 1, alignItems: 'center'}}
@@ -178,7 +175,7 @@ const DeliveryScreen = ({navigation}) => {
       <SimpleHeader title="Delivery" />
 
       <View style={styles.filterContainer}>
-        {/* Customer Dropdown */}
+        {/* 🔹 Customer Dropdown */}
         <Dropdown
           style={styles.dropdown}
           placeholderStyle={styles.placeholderStyle}
@@ -192,9 +189,11 @@ const DeliveryScreen = ({navigation}) => {
           searchPlaceholder="Search..."
           value={selectedCustomer}
           onChange={item => setSelectedCustomer(item.value)}
+          // selectedTextStyle={{color: '#000'}}
+          itemTextStyle={{color: '#000'}}
         />
 
-        {/* Location Dropdown */}
+        {/* 🔹 Location Dropdown */}
         <Dropdown
           style={styles.dropdown}
           placeholderStyle={styles.placeholderStyle}
@@ -208,29 +207,36 @@ const DeliveryScreen = ({navigation}) => {
           searchPlaceholder="Search..."
           value={selectedLocation}
           onChange={item => setSelectedLocation(item.value)}
+          // selectedTextStyle={{color: '#000'}}
+          itemTextStyle={{color: '#000'}}
         />
 
-        {/* From / To / Apply buttons */}
+        {/* 🔹 Date Pickers + Apply */}
         <View style={styles.dateRow}>
           <TouchableOpacity
             style={styles.morphButton}
             onPress={() => setShowFromPicker(true)}>
             <Text style={styles.dateText}>
-              From: {fromDate ? fromDate.toLocaleDateString() : 'Date'}
+              From: {formatDisplayDate(fromDate)}
             </Text>
           </TouchableOpacity>
 
           <TouchableOpacity
             style={styles.morphButton}
             onPress={() => setShowToPicker(true)}>
-            <Text style={styles.dateText}>
-              To: {toDate ? toDate.toLocaleDateString() : 'Date'}
-            </Text>
+            <Text style={styles.dateText}>To: {formatDisplayDate(toDate)}</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
             style={[styles.morphButton, {backgroundColor: '#1a1c22'}]}
-            onPress={fetchTransactions}>
+            onPress={() =>
+              fetchTransactions(
+                fromDate,
+                toDate,
+                selectedLocation,
+                selectedCustomer,
+              )
+            }>
             <Text style={{color: '#fff', fontWeight: 'bold'}}>Apply</Text>
           </TouchableOpacity>
         </View>
@@ -247,7 +253,6 @@ const DeliveryScreen = ({navigation}) => {
             }}
           />
         )}
-
         {showToPicker && (
           <DateTimePicker
             value={toDate || new Date()}
@@ -269,7 +274,7 @@ const DeliveryScreen = ({navigation}) => {
         <Text style={[styles.headerCell, {flex: 1}]}>Action</Text>
       </View>
 
-      {/* Transactions List */}
+      {/* Transactions */}
       {loading ? (
         <ActivityIndicator size="large" color="#1a1c22" />
       ) : transactions.length === 0 ? (
@@ -280,7 +285,9 @@ const DeliveryScreen = ({navigation}) => {
       ) : (
         <FlatList
           data={transactions}
-          keyExtractor={(item, index) => index.toString()}
+          keyExtractor={item =>
+            item.order_no?.toString() || Math.random().toString()
+          }
           renderItem={renderItem}
         />
       )}
@@ -316,38 +323,19 @@ const styles = StyleSheet.create({
     backgroundColor: '#e0e0e0',
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: {width: 2, height: 2},
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
     elevation: 3,
   },
-  dateText: {
-    color: '#000',
-    fontWeight: '600',
-    textAlign: 'center',
-  },
+  dateText: {color: '#000', fontWeight: '600', textAlign: 'center'},
   dropdown: {
     height: 50,
     borderRadius: 12,
     paddingHorizontal: 8,
     marginBottom: 12,
     backgroundColor: '#e0e0e0',
-    shadowColor: '#000',
-    shadowOffset: {width: 4, height: 4},
-    shadowOpacity: 0.2,
-    shadowRadius: 5,
     elevation: 4,
   },
-  placeholderStyle: {
-    fontSize: 14,
-    color: '#5a5c6a',
-  },
-  selectedTextStyle: {
-    fontSize: 14,
-    color: '#000',
-    fontWeight: '600',
-  },
+  placeholderStyle: {fontSize: 14, color: '#5a5c6a'},
+  selectedTextStyle: {fontSize: 14, color: '#000', fontWeight: '600'},
   tableHeader: {
     flexDirection: 'row',
     backgroundColor: '#1a1c22',
@@ -356,11 +344,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     marginBottom: 6,
   },
-  headerCell: {
-    color: '#fff',
-    fontWeight: 'bold',
-    textAlign: 'center',
-  },
+  headerCell: {color: '#fff', fontWeight: 'bold', textAlign: 'center'},
   row: {
     flexDirection: 'row',
     padding: 12,
@@ -368,15 +352,7 @@ const styles = StyleSheet.create({
     marginVertical: 4,
     borderRadius: 12,
     backgroundColor: '#f5f5f5',
-    shadowColor: '#000',
-    shadowOffset: {width: 3, height: 3},
-    shadowOpacity: 0.15,
-    shadowRadius: 4,
     elevation: 2,
   },
-  cell: {
-    fontSize: 14,
-    color: '#000',
-    textAlign: 'center',
-  },
+  cell: {fontSize: 14, color: '#000', textAlign: 'center'},
 });
