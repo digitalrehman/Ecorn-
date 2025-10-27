@@ -43,11 +43,13 @@ const Detail = ({navigation}) => {
     {
       id: 6,
       title: 'Cash',
-      accessKey: 'bank',
+      accessKey: 'cash',
       Amount: slider_data?.cur_m_cash,
       Prev_title: 'Previous Month',
       Prev_Amount: slider_data?.pre_m_cash,
-      isUp: slider_data?.cur_m_cash > slider_data?.pre_m_cash,
+      isUp:
+        parseFloat(slider_data?.cur_m_cash || 0) >
+        parseFloat(slider_data?.pre_m_cash || 0),
     },
     {
       id: 7,
@@ -56,7 +58,9 @@ const Detail = ({navigation}) => {
       Amount: slider_data?.cur_m_bank,
       Prev_title: 'Previous Month',
       Prev_Amount: slider_data?.pre_m_bank,
-      isUp: slider_data?.cur_m_bank > slider_data?.pre_m_bank,
+      isUp:
+        parseFloat(slider_data?.cur_m_bank || 0) >
+        parseFloat(slider_data?.pre_m_bank || 0),
     },
     {
       id: 8,
@@ -65,7 +69,9 @@ const Detail = ({navigation}) => {
       Amount: slider_data?.cur_m_receivable,
       Prev_title: 'Previous Month',
       Prev_Amount: slider_data?.pre_m_receivable,
-      isUp: slider_data?.cur_m_receivable > slider_data?.pre_m_receivable,
+      isUp:
+        parseFloat(slider_data?.cur_m_receivable || 0) >
+        parseFloat(slider_data?.pre_m_receivable || 0),
     },
     {
       id: 9,
@@ -74,7 +80,9 @@ const Detail = ({navigation}) => {
       Amount: slider_data?.cur_m_payable,
       Prev_title: 'Previous Month',
       Prev_Amount: slider_data?.pre_m_payable,
-      isUp: slider_data?.cur_m_payable > slider_data?.pre_m_payable,
+      isUp:
+        parseFloat(slider_data?.cur_m_payable || 0) >
+        parseFloat(slider_data?.pre_m_payable || 0),
     },
   ];
 
@@ -102,12 +110,13 @@ const Detail = ({navigation}) => {
 
     try {
       const {data} = await axios.request(options);
+
       setslider_data(data?.slider_data);
       setAllData(data);
       setExpenseData(data?.data_exp_det || []);
       setLoader(false);
     } catch (error) {
-      console.error(error);
+      console.error('❌ [DEBUG] API Error:', error);
       setLoader(false);
     }
   };
@@ -122,6 +131,16 @@ const Detail = ({navigation}) => {
       </Text>
     </View>
   );
+
+  // Filtered data - ab actual data use karenge
+  const filteredData = Array.isArray(accessData)
+    ? revData.filter(item => {
+        const hasAccess = accessData?.[0]?.[item.accessKey] === '1';
+        const hasAmount = parseFloat(item.Amount || 0) !== 0;
+        return hasAccess && hasAmount;
+      })
+    : [];
+
 
   return (
     <LinearGradient
@@ -145,7 +164,11 @@ const Detail = ({navigation}) => {
         </View>
       ) : null}
 
-      <ScrollView contentContainerStyle={{flexGrow: 1, paddingBottom: 100}}>
+      {/* MAIN SCROLLVIEW ADDED */}
+      <ScrollView
+        style={{flex: 1}}
+        contentContainerStyle={styles.scrollContainer}
+        showsVerticalScrollIndicator={true}>
         {/* Income Section */}
         <View style={styles.box}>
           <Text style={styles.boxHeader}>Income</Text>
@@ -153,6 +176,7 @@ const Detail = ({navigation}) => {
             data={incomeData}
             keyExtractor={item => item.id}
             renderItem={renderRow}
+            scrollEnabled={false}
           />
         </View>
 
@@ -163,50 +187,105 @@ const Detail = ({navigation}) => {
             data={expenseData}
             keyExtractor={(item, index) => index.toString()}
             renderItem={renderRow}
+            scrollEnabled={false}
           />
         </View>
 
-        {/* Revenue Section */}
-        <FlatList
-          data={
-            Array.isArray(accessData)
-              ? revData.filter(
-                  item =>
-                    accessData?.[0]?.[item.accessKey] === '1' &&
-                    parseFloat(item.Amount) !== 0,
-                )
-              : []
-          }
-          numColumns={2}
-          contentContainerStyle={{
-            alignSelf: 'center',
-            gap: 10,
-            marginTop: 20,
-          }}
-          renderItem={({item}) => (
-            <RevenueCards
-              title={item?.title}
-              type={item?.type}
-              amount={item?.Amount}
-              prev_title={item?.Prev_title}
-              prev_type={item?.Prev_type}
-              prev_amount={item?.Prev_Amount}
-              gradientTopColor={COLORS.Primary}
-              gradientBottomColor={COLORS.Secondary}
-              IsUp={item?.isUp}
-              onPress={() =>
-                navigation.navigate('MoreDetail', {
-                  slider_data: AllData,
-                  type: item.accessKey,
-                })
-              }
-              accessData={accessData}
-            />
-          )}
-        />
+        {/* Revenue Section - ACTUAL DATA */}
+        {filteredData.length > 0 ? (
+          <View style={styles.revenueSection}>
+            <Text style={styles.sectionTitle}>Financial Overview</Text>
 
-        <View style={{padding: 20, marginTop: 20}}>
-          <View style={{gap: 10, marginTop: 10}}>
+            {/* Alternative: Simple 2-column layout */}
+            {filteredData.length === 4 && (
+              <View style={styles.simpleGrid}>
+                {/* Row 1 */}
+                <View style={styles.gridRow}>
+                  <View style={styles.gridItem}>
+                    <RevenueCards
+                      title={filteredData[0]?.title}
+                      amount={filteredData[0]?.Amount || 0}
+                      prev_title={filteredData[0]?.Prev_title}
+                      prev_amount={filteredData[0]?.Prev_Amount || 0}
+                      gradientTopColor={COLORS.Primary}
+                      gradientBottomColor={COLORS.Secondary}
+                      IsUp={filteredData[0]?.isUp}
+                      onPress={() =>
+                        navigation.navigate('MoreDetail', {
+                          slider_data: AllData,
+                          type: filteredData[0]?.accessKey,
+                        })
+                      }
+                    />
+                  </View>
+                  <View style={styles.gridItem}>
+                    <RevenueCards
+                      title={filteredData[1]?.title}
+                      amount={filteredData[1]?.Amount || 0}
+                      prev_title={filteredData[1]?.Prev_title}
+                      prev_amount={filteredData[1]?.Prev_Amount || 0}
+                      gradientTopColor={COLORS.Primary}
+                      gradientBottomColor={COLORS.Secondary}
+                      IsUp={filteredData[1]?.isUp}
+                      onPress={() =>
+                        navigation.navigate('MoreDetail', {
+                          slider_data: AllData,
+                          type: filteredData[1]?.accessKey,
+                        })
+                      }
+                    />
+                  </View>
+                </View>
+
+                {/* Row 2 */}
+                <View style={styles.gridRow}>
+                  <View style={styles.gridItem}>
+                    <RevenueCards
+                      title={filteredData[2]?.title}
+                      amount={filteredData[2]?.Amount || 0}
+                      prev_title={filteredData[2]?.Prev_title}
+                      prev_amount={filteredData[2]?.Prev_Amount || 0}
+                      gradientTopColor={COLORS.Primary}
+                      gradientBottomColor={COLORS.Secondary}
+                      IsUp={filteredData[2]?.isUp}
+                      onPress={() =>
+                        navigation.navigate('MoreDetail', {
+                          slider_data: AllData,
+                          type: filteredData[2]?.accessKey,
+                        })
+                      }
+                    />
+                  </View>
+                  <View style={styles.gridItem}>
+                    <RevenueCards
+                      title={filteredData[3]?.title}
+                      amount={filteredData[3]?.Amount || 0}
+                      prev_title={filteredData[3]?.Prev_title}
+                      prev_amount={filteredData[3]?.Prev_Amount || 0}
+                      gradientTopColor={COLORS.Primary}
+                      gradientBottomColor={COLORS.Secondary}
+                      IsUp={filteredData[3]?.isUp}
+                      onPress={() =>
+                        navigation.navigate('MoreDetail', {
+                          slider_data: AllData,
+                          type: filteredData[3]?.accessKey,
+                        })
+                      }
+                    />
+                  </View>
+                </View>
+              </View>
+            )}
+          </View>
+        ) : (
+          <View style={styles.noCardsContainer}>
+            <Text style={styles.noCardsText}>No financial cards available</Text>
+          </View>
+        )}
+
+        {/* Bottom Sections */}
+        <View style={{padding: 20}}>
+          <View style={{gap: 10}}>
             {accessData?.[0]?.profit_loss_d === '1' && (
               <TopTen
                 onPress={() => navigation.navigate('ProfitAndLossScreen')}
@@ -232,6 +311,10 @@ const Detail = ({navigation}) => {
 export default Detail;
 
 let styles = StyleSheet.create({
+  scrollContainer: {
+    flexGrow: 1,
+    paddingBottom: 20,
+  },
   box: {
     backgroundColor: 'rgba(255,255,255,0.05)',
     marginHorizontal: 15,
@@ -247,7 +330,6 @@ let styles = StyleSheet.create({
     marginBottom: 10,
     color: COLORS.WHITE,
   },
-
   row: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -257,4 +339,60 @@ let styles = StyleSheet.create({
   },
   rowTitle: {fontSize: 16, color: 'rgba(255,255,255,0.85)'},
   rowAmount: {fontSize: 16, fontWeight: 'bold', color: COLORS.WHITE},
+
+  revenueSection: {
+    marginTop: 20,
+    marginRight: 15,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: COLORS.WHITE,
+    marginLeft: 15,
+    marginBottom: 10,
+  },
+
+  // Manual Grid Layout
+  gridContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    paddingHorizontal: 15,
+    gap: 10,
+  },
+  cardWrapper: {
+    width: '48%', // 2 cards per row with gap
+    marginBottom: 10,
+    minHeight: 120,
+  },
+  leftCard: {
+    marginRight: '1%',
+  },
+  rightCard: {
+    marginLeft: '1%',
+  },
+
+  // Simple Grid Layout
+  simpleGrid: {
+    paddingHorizontal: 15,
+  },
+  gridRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 10,
+  },
+  gridItem: {
+    width: '48%',
+  },
+
+  noCardsContainer: {
+    alignItems: 'center',
+    padding: 20,
+    marginTop: 20,
+  },
+  noCardsText: {
+    color: COLORS.WHITE,
+    fontSize: 16,
+    opacity: 0.7,
+  },
 });

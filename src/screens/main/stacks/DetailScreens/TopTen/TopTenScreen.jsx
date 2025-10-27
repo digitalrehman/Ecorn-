@@ -21,7 +21,6 @@ import {
   GetReceivable,
   GetSalesman,
 } from '../../../../../global/ChartApisCall';
-import AppButton from '../../../../../components/AppButton';
 import {
   responsiveHeight,
   responsiveWidth,
