@@ -12,8 +12,8 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import LinearGradient from 'react-native-linear-gradient';
 import axios from 'axios';
 import {Dropdown} from 'react-native-element-dropdown';
-import {saveLargeData, loadLargeData} from '../../../../utils/storage';
-import { BASEURL } from '../../../../utils/BaseUrl';
+import {BASEURL} from '../../../../utils/BaseUrl';
+
 const COLORS = {
   WHITE: '#FFFFFF',
   BLACK: '#000000',
@@ -32,18 +32,16 @@ const ViewItem = ({navigation}) => {
   const [searchCode, setSearchCode] = useState('');
   const [searchName, setSearchName] = useState('');
 
-  // pagination states
+  // Pagination
   const [visibleItems, setVisibleItems] = useState([]);
   const [page, setPage] = useState(1);
   const [loadingMore, setLoadingMore] = useState(false);
 
-  // Fetch categories
+  // Fetch categories on mount
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const res = await axios.get(
-          `${BASEURL}stock_category.php`,
-        );
+        const res = await axios.get(`${BASEURL}stock_category.php`);
         if (res.data?.status === 'true') {
           const mapped = res.data.data.map(c => ({
             label: c.description,
@@ -56,68 +54,54 @@ const ViewItem = ({navigation}) => {
       }
     };
     fetchCategories();
+    fetchItems(); // initial fetch (empty filters)
   }, []);
 
-  useEffect(() => {
-    const fetchItems = async () => {
-      try {
-        const cached = await loadLargeData('itemsCache');
-        if (cached && cached.length > 0) {
-          setItems(cached);
-          setVisibleItems(cached.slice(0, ITEMS_PER_PAGE));
-          console.log('Loaded from chunked cache');
-          setLoading(false);
-          return;
-        }
+  // 🔹 Fetch Items via POST API
+  const fetchItems = async (filters = {}) => {
+    try {
+      setLoading(true);
 
-        const res = await axios.get(
-          `${BASEURL}stock_master.php`,
-        );
+      const formData = new FormData();
+      formData.append('stock_id', filters.stock_id || '');
+      formData.append('description', filters.description || '');
+      formData.append('category_id', filters.category_id || '');
 
-        if (res.data?.status === 'true') {
-          setItems(res.data.data);
-          setVisibleItems(res.data.data.slice(0, ITEMS_PER_PAGE));
+      const res = await axios.post(
+        'https://ercon.de2solutions.com/mobile_dash/search_items.php',
+        formData,
+        {headers: {'Content-Type': 'multipart/form-data'}},
+      );
 
-          // Save in chunks
-          await saveLargeData('itemsCache', res.data.data);
-          console.log('Loaded from API & saved in chunked cache');
-        } else {
-          console.log('API Error:', res.data);
-        }
-      } catch (err) {
-        console.log('Item Fetch Error:', err);
+      if (res.data?.status === 'true' && Array.isArray(res.data.data)) {
+        setItems(res.data.data);
+        setVisibleItems(res.data.data.slice(0, ITEMS_PER_PAGE));
+      } else {
+        setItems([]);
+        setVisibleItems([]);
       }
+    } catch (err) {
+      console.log('❌ Fetch Error:', err);
+      setItems([]);
+    } finally {
       setLoading(false);
-    };
-
-    fetchItems();
-  }, []);
-
-  // Filtered list (always up to date)
-  const filteredItems = items.filter(it => {
-    const matchCategory = category ? it.category_id === category : true;
-    const matchCode = searchCode
-      ? it.stock_id?.toLowerCase().includes(searchCode.toLowerCase())
-      : true;
-    const matchName = searchName
-      ? it.description?.toLowerCase().includes(searchName.toLowerCase())
-      : true;
-    return matchCategory && matchCode && matchName;
-  });
-
-  // Reset visible items jab items ya filters change ho
-  useEffect(() => {
-    if (items.length > 0) {
-      setPage(1);
-      setVisibleItems(filteredItems.slice(0, ITEMS_PER_PAGE));
     }
-  }, [category, searchCode, searchName, items]);
+  };
 
-  // Load more items
+  // 🔹 Apply Filter
+  const handleApplyFilter = () => {
+    const filters = {
+      stock_id: searchCode.trim(),
+      description: searchName.trim(),
+      category_id: category || '',
+    };
+    fetchItems(filters);
+  };
+
+  // 🔹 Load more (pagination)
   const loadMore = () => {
     if (loadingMore) return;
-
-    const total = filteredItems.length;
+    const total = items.length;
     const nextPage = page + 1;
     const start = (nextPage - 1) * ITEMS_PER_PAGE;
     const end = start + ITEMS_PER_PAGE;
@@ -125,17 +109,17 @@ const ViewItem = ({navigation}) => {
     if (start < total) {
       setLoadingMore(true);
       setTimeout(() => {
-        setVisibleItems(prev => [...prev, ...filteredItems.slice(start, end)]);
+        setVisibleItems(prev => [...prev, ...items.slice(start, end)]);
         setPage(nextPage);
         setLoadingMore(false);
       }, 300);
     }
   };
 
+  // 🔹 Render each card
   const renderCard = ({item}) => {
     const catName =
       categories.find(c => c.value === item.category_id)?.label || '-';
-
     return (
       <View style={styles.card}>
         <View style={styles.kvRow}>
@@ -170,7 +154,6 @@ const ViewItem = ({navigation}) => {
           <Text style={styles.kvKey}>QOH:</Text>
           <Text style={styles.kvValue}>{item.qoh || '-'}</Text>
         </View>
-        {/* Edit button removed */}
       </View>
     );
   };
@@ -193,7 +176,7 @@ const ViewItem = ({navigation}) => {
             setSearchCode('');
             setSearchName('');
             setPage(1);
-            setVisibleItems(items.slice(0, ITEMS_PER_PAGE));
+            fetchItems(); // reset filter
           }}>
           <Ionicons name="close-circle" color={COLORS.WHITE} size={24} />
         </TouchableOpacity>
@@ -211,11 +194,7 @@ const ViewItem = ({navigation}) => {
           selectedTextStyle={{color: COLORS.WHITE}}
           itemTextStyle={{color: COLORS.BLACK}}
           value={category}
-          onChange={item => {
-            setCategory(item.value);
-            setPage(1);
-            setVisibleItems(filteredItems.slice(0, ITEMS_PER_PAGE));
-          }}
+          onChange={item => setCategory(item.value)}
           search
           searchPlaceholder="Search category..."
         />
@@ -226,23 +205,23 @@ const ViewItem = ({navigation}) => {
             placeholder="Search by Code"
             placeholderTextColor="rgba(255,255,255,0.6)"
             value={searchCode}
-            onChangeText={txt => {
-              setSearchCode(txt);
-              setPage(1);
-              setVisibleItems(filteredItems.slice(0, ITEMS_PER_PAGE));
-            }}
+            onChangeText={txt => setSearchCode(txt)}
           />
+        </View>
+
+        <View style={[styles.searchRow, {alignItems: 'center', marginTop: 12}]}>
           <TextInput
-            style={styles.searchInput}
+            style={[styles.searchInput, {flex: 0.75}]}
             placeholder="Search by Name"
             placeholderTextColor="rgba(255,255,255,0.6)"
             value={searchName}
-            onChangeText={txt => {
-              setSearchName(txt);
-              setPage(1);
-              setVisibleItems(filteredItems.slice(0, ITEMS_PER_PAGE));
-            }}
+            onChangeText={txt => setSearchName(txt)}
           />
+          <TouchableOpacity
+            onPress={handleApplyFilter}
+            style={styles.applyButton}>
+            <Text style={{color: COLORS.WHITE, fontWeight: '700'}}>Apply</Text>
+          </TouchableOpacity>
         </View>
       </View>
 
@@ -323,6 +302,16 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.1)',
     color: COLORS.WHITE,
+  },
+  applyButton: {
+    height: 48,
+    flex: 0.25,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: COLORS.Primary,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)',
   },
   card: {
     borderRadius: 16,

@@ -29,7 +29,6 @@ const DeliveryScreen = ({navigation}) => {
   const [loading, setLoading] = useState(false);
   const [transactions, setTransactions] = useState([]);
 
-  // 🔹 On mount → default dates (previous month → today)
   useEffect(() => {
     const today = new Date();
     const lastMonth = new Date();
@@ -100,16 +99,11 @@ const DeliveryScreen = ({navigation}) => {
         person_id: person || '',
       };
 
-      console.log('📤 POST BODY:', postData);
 
       const res = await axios.post(`${BASEURL}pending_so.php`, postData, {
         headers: {'Content-Type': 'application/x-www-form-urlencoded'},
       });
 
-      console.log(
-        `📥 RESPONSE: ${postData.from_date}---${postData.to_date}`,
-        res.data,
-      );
 
       // 🧠 Extract JSON if extra text exists
       if (typeof res.data === 'string') {

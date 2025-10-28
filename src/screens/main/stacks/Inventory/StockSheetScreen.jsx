@@ -12,7 +12,8 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import {Dropdown} from 'react-native-element-dropdown';
 import LinearGradient from 'react-native-linear-gradient';
 import axios from 'axios';
-import { BASEURL } from '../../../../utils/BaseUrl';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import {BASEURL} from '../../../../utils/BaseUrl';
 
 const COLORS = {
   WHITE: '#FFFFFF',
@@ -27,21 +28,18 @@ export default function StockSheetScreen({navigation}) {
   const [locations, setLocations] = useState([]);
   const [category, setCategory] = useState(null);
   const [categories, setCategories] = useState([]);
+  const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  // Fetch Locations
+  // 🔹 Fetch dropdowns
   useEffect(() => {
-    fetchData(
+    fetchDropdownData(
       `${BASEURL}locations.php`,
       setLocations,
       'loc_code',
       'location_name',
     );
-  }, []);
-
-  // Fetch Categories
-  useEffect(() => {
-    fetchData(
+    fetchDropdownData(
       `${BASEURL}stock_category.php`,
       setCategories,
       'category_id',
@@ -49,36 +47,88 @@ export default function StockSheetScreen({navigation}) {
     );
   }, []);
 
-  const fetchData = async (url, setState, valueField, labelField) => {
+  const fetchDropdownData = async (url, setState, valueField, labelField) => {
     try {
-      setLoading(true);
       const {data} = await axios.get(url);
-      if (data?.status === 'true' && Array.isArray(data.data)) {
-        const mapped = data.data.map(item => ({
-          label: item[labelField],
-          value: item[valueField],
+      if (data?.status === 'true') {
+        const mapped = data.data.map(i => ({
+          label: i[labelField],
+          value: i[valueField],
         }));
         setState(mapped);
       }
-    } catch (error) {
-      console.error('Error fetching:', url, error);
+    } catch (e) {
+      console.log('Dropdown Fetch Error:', e);
+    }
+  };
+
+  const fetchStockData = async (filters = {}, forceRefresh = false) => {
+    try {
+      setLoading(true);
+      const payload = new FormData();
+      payload.append('description', filters.search || '');
+      payload.append('loc_code', filters.location || '');
+      payload.append('category_id', filters.category || '');
+
+      const cacheKey = `stockSheetCache_${filters.search}_${filters.location}_${filters.category}`;
+
+      // ✅ Only use cache if not forcing refresh
+      if (!forceRefresh) {
+        const cached = await AsyncStorage.getItem(cacheKey);
+        if (cached) {
+          const parsed = JSON.parse(cached);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            console.log('✅ Loaded from cache');
+            setData(parsed);
+            setLoading(false);
+            return;
+          } else {
+            console.log('⚠️ Cache invalid, refetching...');
+            await AsyncStorage.removeItem(cacheKey);
+          }
+        }
+      }
+
+      // ✅ Fetch fresh data
+      const res = await axios.post(
+        'https://ercon.de2solutions.com/mobile_dash/stock_check_sheet.php',
+        payload,
+        {headers: {'Content-Type': 'multipart/form-data'}},
+      );
+
+      console.log('📡 Response:', res.data);
+
+      if (res.data?.status === 'true' && Array.isArray(res.data.data)) {
+        setData(res.data.data);
+        await AsyncStorage.setItem(cacheKey, JSON.stringify(res.data.data));
+        console.log('✅ Loaded from API');
+      } else {
+        setData([]);
+      }
+    } catch (err) {
+      console.error('❌ Fetch Stock Error:', err);
+      setData([]);
     } finally {
       setLoading(false);
     }
   };
 
-  const clearFilters = () => {
+  useEffect(() => {
+    fetchStockData({}, true);
+  }, []);
+
+  const applyFilters = () => {
+    fetchStockData({search, location, category});
+  };
+
+  const clearFilters = async () => {
     setSearch('');
     setLocation(null);
     setCategory(null);
+    setData([]);
+    await AsyncStorage.clear();
+    fetchStockData({}, true);
   };
-
-  // Temporary random table data
-  const tableData = [
-    {id: 1, description: 'Copper Wire', unit: 'Roll', qty: 50},
-    {id: 2, description: 'PVC Pipe', unit: 'Meter', qty: 200},
-    {id: 3, description: 'Switch Board', unit: 'PCS', qty: 75},
-  ];
 
   return (
     <LinearGradient
@@ -96,20 +146,17 @@ export default function StockSheetScreen({navigation}) {
       </View>
 
       <ScrollView contentContainerStyle={{padding: 16}}>
-        {/* Search Bar */}
-        <View style={styles.glassInput}>
-          <TextInput
-            style={styles.textInput}
-            placeholder="Search Item Name"
-            placeholderTextColor={'rgba(255,255,255,0.6)'}
-            value={search}
-            onChangeText={setSearch}
-          />
-        </View>
-
-        {/* Dropdowns Row */}
-        <View style={{flexDirection: 'row', gap: 12, marginTop: 12}}>
-          {/* Location */}
+        {/* Row 1: Search + Location */}
+        <View style={{flexDirection: 'row', gap: 12}}>
+          <View style={[styles.glassInput, {flex: 1}]}>
+            <TextInput
+              style={styles.textInput}
+              placeholder="Search by Name"
+              placeholderTextColor={'rgba(255,255,255,0.6)'}
+              value={search}
+              onChangeText={setSearch}
+            />
+          </View>
           <Dropdown
             style={[styles.dropdown, {flex: 1}]}
             data={locations}
@@ -123,8 +170,10 @@ export default function StockSheetScreen({navigation}) {
             value={location}
             onChange={item => setLocation(item.value)}
           />
+        </View>
 
-          {/* Category */}
+        {/* Row 2: Category + Apply */}
+        <View style={{flexDirection: 'row', gap: 12, marginTop: 12}}>
           <Dropdown
             style={[styles.dropdown, {flex: 1}]}
             data={categories}
@@ -138,26 +187,42 @@ export default function StockSheetScreen({navigation}) {
             value={category}
             onChange={item => setCategory(item.value)}
           />
+
+          <TouchableOpacity onPress={applyFilters} style={styles.applyButton}>
+            <Text style={{color: COLORS.WHITE, fontWeight: '700'}}>Apply</Text>
+          </TouchableOpacity>
         </View>
 
-        {/* Table Header */}
-        <View style={styles.tableHeader}>
-          <Text style={[styles.tableHeaderText, {flex: 6, textAlign: 'left'}]}>Description</Text>
-          <Text style={[styles.tableHeaderText, {flex: 2, textAlign: 'left'}]}>Unit</Text>
-          <Text style={[styles.tableHeaderText, {flex: 2, textAlign: 'right'}]}>Qty</Text>
-        </View>
-
-        {/* Table Rows */}
+        {/* Cards */}
         {loading ? (
-          <ActivityIndicator size="large" color={COLORS.WHITE} style={{marginTop: 20}} />
-        ) : (
-          tableData.map(row => (
-            <View key={row.id} style={styles.tableRow}>
-              <Text style={[styles.tableText, {flex: 6, textAlign: 'left'}]}>{row.description}</Text>
-              <Text style={[styles.tableText, {flex: 2, textAlign: 'left'}]}>{row.unit}</Text>
-              <Text style={[styles.tableText, {flex: 2, textAlign: 'right'}]}>{row.qty}</Text>
+          <ActivityIndicator
+            size="large"
+            color={COLORS.WHITE}
+            style={{marginTop: 30}}
+          />
+        ) : data.length > 0 ? (
+          data.map((item, index) => (
+            <View key={index} style={styles.card}>
+              <Text style={styles.cardTitle}>{item.description}</Text>
+              <View style={styles.cardRow}>
+                <Text style={styles.cardKey}>Stock ID:</Text>
+                <Text style={styles.cardValue}>{item.stock_id}</Text>
+              </View>
+              <View style={styles.cardRow}>
+                <Text style={styles.cardKey}>Part Code:</Text>
+                <Text style={styles.cardValue}>{item.text1 || '-'}</Text>
+              </View>
+              <View style={styles.cardRow}>
+                <Text style={styles.cardKey}>Qty:</Text>
+                <Text style={styles.cardValue}>{item.qoh}</Text>
+              </View>
             </View>
           ))
+        ) : (
+          <Text
+            style={{color: COLORS.WHITE, textAlign: 'center', marginTop: 30}}>
+            No records found
+          </Text>
         )}
       </ScrollView>
     </LinearGradient>
@@ -172,8 +237,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 16,
     backgroundColor: 'rgba(255,255,255,0.05)',
-    borderBottomWidth: 0.5,
-    borderBottomColor: 'rgba(255,255,255,0.1)',
   },
   headerTitle: {color: '#fff', fontSize: 20, fontWeight: '700'},
   glassInput: {
@@ -185,10 +248,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.1)',
   },
-  textInput: {
-    color: '#fff',
-    fontSize: 16,
-  },
+  textInput: {color: '#fff', fontSize: 16},
   dropdown: {
     height: 52,
     borderRadius: 10,
@@ -197,26 +257,33 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.1)',
   },
-  tableHeader: {
-    flexDirection: 'row',
-    backgroundColor: 'rgba(255,255,255,0.1)',
-    padding: 10,
-    borderRadius: 8,
-    marginTop: 16,
+  applyButton: {
+    backgroundColor: '#3b3f51',
+    borderRadius: 10,
+    height: 52,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 16,
   },
-  tableHeaderText: {
+  card: {
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    borderRadius: 16,
+    padding: 16,
+    marginTop: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)',
+  },
+  cardTitle: {
     color: COLORS.WHITE,
     fontWeight: '700',
-    textAlign: 'center',
+    fontSize: 15,
+    marginBottom: 8,
   },
-  tableRow: {
+  cardRow: {
     flexDirection: 'row',
-    padding: 10,
-    borderBottomWidth: 0.5,
-    borderBottomColor: 'rgba(255,255,255,0.2)',
+    justifyContent: 'space-between',
+    marginBottom: 4,
   },
-  tableText: {
-    color: COLORS.WHITE,
-    textAlign: 'center',
-  },
+  cardKey: {color: 'rgba(255,255,255,0.7)', fontWeight: '600'},
+  cardValue: {color: COLORS.WHITE, textAlign: 'right', flexShrink: 1},
 });

@@ -103,22 +103,12 @@ const GrnAgainst = ({navigation, route}) => {
       formData.append('from_date', format(fDate));
       formData.append('to_date', format(tDate));
       formData.append('loc_code', selectedLocation || '');
-      formData.append('customer_id', selectedCustomer || ''); // supplier_id value
-
-      console.log('📤 Sending FormData:');
-      console.log({
-        from_date: format(fDate),
-        to_date: format(tDate),
-        loc_code: selectedLocation,
-        customer_id: selectedCustomer,
-      });
+      formData.append('customer_id', selectedCustomer || '');
 
       // 🔸 POST request
       const res = await axios.post(`${BASEURL}pending_po.php`, formData, {
         headers: {'Content-Type': 'multipart/form-data'},
       });
-
-      console.log('📥 RESPONSE:', res.data);
 
       // 🧠 Handle extra junk text
       if (typeof res.data === 'string') {

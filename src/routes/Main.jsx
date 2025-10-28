@@ -74,6 +74,7 @@ import GrnAgainst from '../screens/main/stacks/purchase/GrnAgainst';
 import ApprovalListScreen from '../screens/main/stacks/AppAlerts/ApprovalListScreen';
 import GrnDeliveryNote from '../screens/main/stacks/purchase/GrnDeliveryNote';
 import PayableSummary from '../screens/main/stacks/purchase/PayableSummary';
+import PdcDetailScreen from '../screens/main/stacks/purchase/PdcDetailScreen';
 
 const Stack = createNativeStackNavigator();
 const Main = () => {
@@ -175,38 +176,10 @@ const Main = () => {
         <Stack.Screen name="ApprovalListScreen" component={ApprovalListScreen} />
         <Stack.Screen name="GrnDeliveryNote" component={GrnDeliveryNote} />
         <Stack.Screen name="PayableSummary" component={PayableSummary} />
+        <Stack.Screen name="PdcDetailScreen" component={PdcDetailScreen} />
     </Stack.Navigator>
   );
 };
 
-const OtherApp = () => {
-  return (
-    <Stack.Navigator
-      initialRouteName="Home"
-      screenOptions={{headerShown: false}}>
-      <Stack.Screen name="Home" component={Home} />
-      <Stack.Screen name="AddNewCustomer" component={AddNewCustomer} />
-      <Stack.Screen
-        name="InsertNewCustomerDetail"
-        component={InsertNewCustomerDetail}
-      />
-      <Stack.Screen name="Incentive" component={Incentive} />
-      <Stack.Screen name="AddItems" component={AddItems} />
-      <Stack.Screen name="ItemList" component={ItemList} />
-      <Stack.Screen name="PaymentScreen" component={PaymentScreen} />
-      <Stack.Screen name="Profile" component={Profile} />
-      <Stack.Screen name="NewOrders" component={NewOrders} />
-      <Stack.Screen name="RecoveryOrder" component={RecoveryOrder} />
-      <Stack.Screen name="Visit" component={Visit} />
-      <Stack.Screen name="OfflineOrders" component={OfflineOrders} />
-      <Stack.Screen name="SalesmanList" component={SalesmanList} />
-      <Stack.Screen name="SalesmanCustomer" component={SalesmanCustomer} />
-      <Stack.Screen name="AsmSalesman" component={AsmSalesman} />
-      <Stack.Screen name="AsmDimension" component={AsmDimension} />
-      <Stack.Screen name="TodayOrderDetails" component={TodayOrderDetails} />
-      <Stack.Screen name="SupplierHome" component={SupplierHome} />
-    </Stack.Navigator>
-  );
-};
 
 export default Main;

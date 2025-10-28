@@ -65,12 +65,12 @@ const Dashboard = ({navigation}) => {
       icon: 'shopping-bag',
       onPress: () => navigation.navigate('PurchaseScreen'),
     },
-    {
-      id: 5,
-      name: 'HR & Payroll',
-      icon: 'users',
-      onPress: () => navigation.navigate('PayrollScreen'),
-    },
+    // {
+    //   id: 5,
+    //   name: 'HR & Payroll',
+    //   icon: 'users',
+    //   onPress: () => navigation.navigate('PayrollScreen'),
+    // },
     {
       id: 6,
       name: 'Inventory',
