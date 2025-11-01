@@ -39,11 +39,9 @@ export default function MechanicalProduce({navigation, route}) {
 
   // Redux user
   const user = useSelector(state => state.Data.currentData);
-  console.log('Sales Order from route:', sales_order, user.id);
 
   const formatDate = d => d.toISOString().split('T')[0];
 
-  // 🟩 Fetch All Items from API
   const fetchItems = async () => {
     setLoading(true);
     try {
@@ -55,7 +53,6 @@ export default function MechanicalProduce({navigation, route}) {
         body: formData,
       });
       const json = await res.json();
-      console.log('Stock Master Produce:', json);
 
       if (json.status === 'true' && Array.isArray(json.data)) {
         const formatted = json.data.map(item => ({

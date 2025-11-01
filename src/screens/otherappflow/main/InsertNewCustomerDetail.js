@@ -179,7 +179,6 @@ const InsertNewCustomerDetail = ({navigation, route}) => {
         timeout: 20000,
       });
 
-      console.log('API Response:', res.data);
 
       if (res.data && res.data.status === true) {
         Toast.show({

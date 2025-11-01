@@ -28,7 +28,6 @@ const GrnAgainst = ({navigation, route}) => {
 
   const [loading, setLoading] = useState(false);
   const [transactions, setTransactions] = useState([]);
-  const [supplierList, setSupplierList] = useState([]);
 
   // 🔹 Auto set default dates + initial fetch
   useEffect(() => {
@@ -55,7 +54,6 @@ const GrnAgainst = ({navigation, route}) => {
     try {
       const res = await axios.get(`${BASEURL}suppliers.php`);
       if (res.data?.status === 'true') {
-        setSupplierList(res.data.data);
         setCustomers(
           res.data.data.map(c => ({
             label: c.name,
@@ -120,7 +118,6 @@ const GrnAgainst = ({navigation, route}) => {
       if (res.data?.status === 'true' && Array.isArray(res.data.data)) {
         setTransactions(res.data.data);
       } else {
-        console.log('⚠️ Invalid response:', res.data);
         setTransactions([]);
       }
     } catch (err) {
@@ -143,29 +140,37 @@ const GrnAgainst = ({navigation, route}) => {
     return parseFloat(amt).toLocaleString();
   };
 
-  // 🔹 Each Row
   const renderItem = ({item, index}) => (
     <Animatable.View
       animation="fadeInUp"
       duration={600}
       delay={index * 100}
       style={styles.row}>
-      <Text style={[styles.cell, {flex: 1}]}>
-        {item.reference?.slice(0, 6) + '..' || '-'}
-      </Text>
-      <Text style={[styles.cell, {flex: 1}]}>{formatDate(item.ord_date)}</Text>
-      <Text style={[styles.cell, {flex: 1}]}>{formatAmount(item.total)}</Text>
-      <TouchableOpacity
-        style={{flex: 1, alignItems: 'center'}}
-        onPress={() =>
-          navigation.navigate('GrnDeliveryNote', {
-            orderId: item.order_no,
-            personId: item.person_id,
-            locCode: item.location,
-          })
-        }>
-        <Icon name="truck-delivery" size={22} color="#1a1c22" />
-      </TouchableOpacity>
+      <View style={styles.cellWrapper}>
+        <Text style={styles.cell}>{item.reference || '-'}</Text>
+      </View>
+
+      <View style={styles.cellWrapper}>
+        <Text style={styles.cell}>{formatDate(item.ord_date)}</Text>
+      </View>
+
+      <View style={styles.cellWrapper}>
+        <Text style={styles.cell}>{formatAmount(item.total)}</Text>
+      </View>
+
+      <View style={[styles.cellWrapper, {borderRightWidth: 0}]}>
+        <TouchableOpacity
+          style={{alignItems: 'center'}}
+          onPress={() =>
+            navigation.navigate('GrnDeliveryNote', {
+              orderId: item.order_no,
+              personId: item.person_id,
+              locCode: item.location,
+            })
+          }>
+          <Icon name="truck-delivery" size={22} color="#1a1c22" />
+        </TouchableOpacity>
+      </View>
     </Animatable.View>
   );
 
@@ -370,5 +375,14 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 2,
   },
-  cell: {fontSize: 14, color: '#000', textAlign: 'center'},
+  cell: {fontSize: 12, color: '#000', textAlign: 'center'},
+  cellWrapper: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRightWidth: 1,
+    borderRightColor: '#d1d1d1',
+    paddingHorizontal: 4,
+  },
 });

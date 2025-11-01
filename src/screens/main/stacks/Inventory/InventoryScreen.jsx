@@ -12,7 +12,6 @@ const buttons = [
   {name: 'Item Movement', icon: 'swap-horizontal', screen: 'MovementScreen'},
   {name: 'Location Transfer', icon: 'map-marker-multiple', screen: 'LocationTransfer'},
   {name: 'Inventory Ajustment', icon: 'playlist-edit', screen: 'InventoryAjustment'},
-  {name: 'Project Wise Report', icon: 'file-chart-outline', screen: 'ReportScreen'},
   {name: 'Dated Stock Sheet', icon: 'calendar-text', screen: 'StockSheetScreen'},
   {name: 'Costed Inventory Movement', icon: 'finance', screen: 'InventoryMovementScreen'},
 ];

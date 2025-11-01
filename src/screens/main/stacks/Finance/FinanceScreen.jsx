@@ -7,11 +7,19 @@ import {APPCOLORS} from '../../../../utils/APPCOLORS';
 import * as Animatable from 'react-native-animatable';
 
 const buttons = [
-  {name: 'View Ledger', icon: 'book-open-page-variant'},
-  {name: 'Finance Approval', icon: 'check-decagram'},
-  {name: 'Upload Payment Document', icon: 'file-upload'},
-  {name: 'View Cash Summary', icon: 'cash-multiple'},
-  {name: 'Expense Claim Submission', icon: 'file-document-edit'},
+  {name: 'View Ledger', icon: 'book-open-page-variant', screen: 'ViewLedger'},
+  {name: 'Finance Approval', icon: 'check-decagram', screen: 'FinanceApproval'},
+  {
+    name: 'Upload Payment Document',
+    icon: 'file-upload',
+    screen: 'UploadPayment',
+  },
+  {name: 'View Cash Summary', icon: 'cash-multiple', screen: 'CashSummary'},
+  {
+    name: 'Expense Claim Submission',
+    icon: 'file-document-edit',
+    screen: 'ExpenseClaim',
+  },
 ];
 
 export default function FinanceScreen({navigation}) {
@@ -23,7 +31,7 @@ export default function FinanceScreen({navigation}) {
       style={styles.buttonWrapper}>
       <TouchableOpacity
         activeOpacity={0.85}
-        onPress={() => navigation.navigate('Dashboard')}>
+        onPress={() => navigation.navigate(item.screen)}>
         <LinearGradient
           colors={['rgba(255,255,255,0.08)', 'rgba(255,255,255,0.02)']}
           style={styles.buttonContainer}>

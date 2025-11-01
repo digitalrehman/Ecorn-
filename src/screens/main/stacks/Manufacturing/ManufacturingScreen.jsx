@@ -21,9 +21,7 @@ const buttons = [
     name: 'Product Options',
     icon: 'cube-outline',
     screen: 'ProductOptionsScreen',
-  },
-  {name: 'VOM', icon: 'playlist-check', screen: 'VOMScreen'},
-  {name: 'Track Material', icon: 'cube-scan', screen: 'TrackMaterialScreen'},
+  }
 ];
 
 export default function ManufacturingScreen({navigation}) {

@@ -75,6 +75,7 @@ import ApprovalListScreen from '../screens/main/stacks/AppAlerts/ApprovalListScr
 import GrnDeliveryNote from '../screens/main/stacks/purchase/GrnDeliveryNote';
 import PayableSummary from '../screens/main/stacks/purchase/PayableSummary';
 import PdcDetailScreen from '../screens/main/stacks/purchase/PdcDetailScreen';
+import ViewLedger from '../screens/main/stacks/Finance/ViewLedger';
 
 const Stack = createNativeStackNavigator();
 const Main = () => {
@@ -177,6 +178,7 @@ const Main = () => {
         <Stack.Screen name="GrnDeliveryNote" component={GrnDeliveryNote} />
         <Stack.Screen name="PayableSummary" component={PayableSummary} />
         <Stack.Screen name="PdcDetailScreen" component={PdcDetailScreen} />
+        <Stack.Screen name="ViewLedger" component={ViewLedger} />
     </Stack.Navigator>
   );
 };

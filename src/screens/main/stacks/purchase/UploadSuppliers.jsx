@@ -16,7 +16,7 @@ import {Dropdown} from 'react-native-element-dropdown';
 import axios from 'axios';
 import LinearGradient from 'react-native-linear-gradient';
 import Toast from 'react-native-toast-message';
-import { BASEURL } from '../../../../utils/BaseUrl';
+import {BASEURL} from '../../../../utils/BaseUrl';
 
 const COLORS = {
   WHITE: '#FFFFFF',
@@ -40,16 +40,14 @@ const UploadSuppliers = ({navigation, route}) => {
 
   // Dropdown states
   const [taxOptions, setTaxOptions] = useState([]);
-  // const [salesmanOptions, setSalesmanOptions] = useState([]);
   const [taxValue, setTaxValue] = useState(null);
-  const [salesmanValue, setSalesmanValue] = useState(null);
   const [loading, setLoading] = useState(true);
 
   const [submitting, setSubmitting] = useState(false);
 
   // Animated entrance values
   const animValues = useRef([]).current;
-  const inputsCount = 13; // number of animated input containers (approx)
+  const inputsCount = 13;
   if (animValues.length === 0) {
     for (let i = 0; i < inputsCount; i++) {
       animValues.push({
@@ -60,7 +58,6 @@ const UploadSuppliers = ({navigation, route}) => {
   }
 
   useEffect(() => {
-    // Staggered entrance animation
     const anims = animValues.map((av, idx) =>
       Animated.parallel([
         Animated.timing(av.translateY, {
@@ -84,9 +81,7 @@ const UploadSuppliers = ({navigation, route}) => {
   useEffect(() => {
     const fetchDropdownData = async () => {
       try {
-        const taxRes = await axios.get(
-          `${BASEURL}tax_groups.php`,
-        );
+        const taxRes = await axios.get(`${BASEURL}tax_groups.php`);
         if (
           taxRes.data &&
           (taxRes.data.status === 'true' || taxRes.data.status === true)
@@ -97,7 +92,6 @@ const UploadSuppliers = ({navigation, route}) => {
           }));
           setTaxOptions(formattedTax);
         }
-
       } catch (err) {
         console.log('Dropdown fetch error:', err);
         Alert.alert('Error', 'Unable to fetch dropdown data');
@@ -126,14 +120,6 @@ const UploadSuppliers = ({navigation, route}) => {
       });
       return false;
     }
-    // if (!salesmanValue) {
-    //   Toast.show({
-    //     type: 'error',
-    //     text1: 'Validation',
-    //     text2: 'Salesperson is required',
-    //   });
-    //   return false;
-    // }
     return true;
   };
 
@@ -150,19 +136,15 @@ const UploadSuppliers = ({navigation, route}) => {
       form.append('ntn', NTN);
       form.append('cnic', CNIC);
       form.append('tax_group_id', taxValue);
-      // form.append('salesman_code', salesmanValue);
       form.append('province', Province);
       form.append('poc_name', POCName);
       form.append('poc_contact', POCContact);
       form.append('poc_email', POCEmail);
 
-      const res = await axios.post(
-        `${BASEURL}supplier_post.php`,
-        form,
-        {headers: {'Content-Type': 'multipart/form-data'}, timeout: 20000},
-      );
-
-      console.log('API Response:', res.data);
+      const res = await axios.post(`${BASEURL}supplier_post.php`, form, {
+        headers: {'Content-Type': 'multipart/form-data'},
+        timeout: 20000,
+      });
 
       if (res.data && res.data.status === true) {
         Toast.show({
@@ -321,7 +303,34 @@ const UploadSuppliers = ({navigation, route}) => {
             />
           </Animated.View> */}
 
-          {renderInputAnimated(8, 'Province', Province, setProvince)}
+          <Animated.View
+            style={{
+              transform: [{translateY: animValues[8].translateY}],
+              opacity: animValues[8].opacity,
+            }}>
+            <Dropdown
+              style={styles.dropdown}
+              data={[
+                {label: 'Sindh', value: 8},
+                {label: 'Punjab', value: 7},
+                {label: 'Balochistan', value: 2},
+                {label: 'Khyber Pakhtunkhwa', value: 6},
+                {label: 'Gilgit-Baltistan', value: 9},
+                {label: 'Azad Jammu and Kashmir', value: 5},
+                {label: 'Capital Territory', value: 5},
+              ]}
+              labelField="label"
+              valueField="value"
+              placeholder="Select Province"
+              placeholderStyle={{color: 'rgba(255,255,255,0.6)'}}
+              selectedTextStyle={{color: COLORS.WHITE}}
+              itemTextStyle={{color: COLORS.BLACK}}
+              search
+              searchPlaceholder="Search province..."
+              value={Province}
+              onChange={item => setProvince(item.value)}
+            />
+          </Animated.View>
         </Animated.View>
 
         <Animated.View style={{gap: 12}}>

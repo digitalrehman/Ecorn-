@@ -127,11 +127,14 @@ const ElectricalJobCardsScreen = ({navigation}) => {
           styles.cell,
           {flexDirection: 'row', justifyContent: 'space-around'},
         ]}>
-        {/* 🔹 Estimate Icon */}
         <TouchableOpacity
           style={{alignItems: 'center'}}
           onPress={() =>
-            navigation.navigate('EstimationScreen', {id: item.id})
+            navigation.navigate('MechanicalEstimate', {
+              job_id: item.job_id,
+              project_id: item.sale_order,
+              requisitionid: item.requisitionid,
+            })
           }>
           <Ionicons name="document-text-outline" size={22} color="#4cafef" />
           <Text style={{color: COLORS.WHITE, fontSize: 8}}>Estimate</Text>
@@ -140,7 +143,11 @@ const ElectricalJobCardsScreen = ({navigation}) => {
         {/* 🔹 Produce Icon */}
         <TouchableOpacity
           style={{alignItems: 'center'}}
-          onPress={() => navigation.navigate('ProduceScreen', {id: item.id})}>
+          onPress={() =>
+            navigation.navigate('MechanicalProduce', {
+              sales_order: item.sale_order,
+            })
+          }>
           <Ionicons name="hammer-outline" size={22} color="#ff9800" />
           <Text style={{color: COLORS.WHITE, fontSize: 8}}>Produce</Text>
         </TouchableOpacity>
