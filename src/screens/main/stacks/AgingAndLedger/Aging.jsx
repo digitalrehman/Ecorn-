@@ -10,7 +10,6 @@ import AppText from '../../../../components/AppText';
 const Aging = ({navigation, route}) => {
   const {name, item} = route.params;
 
-  console.log('name, item', name, item);
   const [aging, setAgingData] = useState([]);
 
   useEffect(() => {

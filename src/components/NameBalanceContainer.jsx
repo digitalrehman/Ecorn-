@@ -11,8 +11,6 @@ const NameBalanceContainer = ({
   Name,
   type,
   balance,
-  percent,
-  onPress,
   item,
 }) => {
 
@@ -38,12 +36,6 @@ const NameBalanceContainer = ({
               titleWeight
               titleColor={APPCOLORS.WHITE}
             />
-            {/* <AppText
-              title="%"
-              titleSize={1.6}
-              titleWeight
-              titleColor={APPCOLORS.WHITE}
-            /> */}
           </View>
         </View>
 
