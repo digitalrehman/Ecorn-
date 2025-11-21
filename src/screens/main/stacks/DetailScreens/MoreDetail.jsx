@@ -46,10 +46,12 @@ const MoreDetail = ({navigation, route}) => {
 
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
-      fetchData();
+      if (!dataState) {
+        fetchData();
+      }
     });
     return unsubscribe;
-  }, [navigation]);
+  }, [navigation, dataState]);
 
   const fetchData = async () => {
     setLoading(true);
@@ -271,6 +273,7 @@ const MoreDetail = ({navigation, route}) => {
                       item.bank_name || item.supp_name || item.name || 'item'
                     }`
                   }
+                  // In MoreDetail.jsx - Update the FlatList renderItem section
                   renderItem={({item, index}) => {
                     const balance =
                       type === 'bank' || type === 'cash'
@@ -301,6 +304,23 @@ const MoreDetail = ({navigation, route}) => {
                           )
                         : 0;
 
+                    // Determine the type for NameBalanceContainer
+                    let containerType = '';
+                    switch (type) {
+                      case 'bank':
+                      case 'cash':
+                        containerType = 'Banks';
+                        break;
+                      case 'payable':
+                        containerType = 'Suppliers';
+                        break;
+                      case 'receivable':
+                        containerType = 'Customer';
+                        break;
+                      default:
+                        containerType = '';
+                    }
+
                     return (
                       <View
                         style={[
@@ -321,6 +341,8 @@ const MoreDetail = ({navigation, route}) => {
                               : 'Unknown'
                           }
                           balance={balance}
+                          type={containerType} // Pass the type here
+                          item={item} // Pass the complete item object
                           perc={perc}
                         />
                       </View>

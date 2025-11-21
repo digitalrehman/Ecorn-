@@ -1,8 +1,0 @@
-'order_no', '57'
-'person_id', '103'
-;trans_type', '25'
-'ord_date', '2025-10-04'
-'loc_code', 'P.KM1933/08-R02'
-'total', '17136.00'
-'user_id', 'adminn'
-'po_detail_item', '[{..},{..}]'
