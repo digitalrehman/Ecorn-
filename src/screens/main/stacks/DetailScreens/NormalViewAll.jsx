@@ -7,7 +7,7 @@ import {
 } from 'react-native';
 import React, {useState, useEffect} from 'react';
 import LinearGradient from 'react-native-linear-gradient';
-import Icon from 'react-native-vector-icons/Ionicons'; // 👈 icon for search
+import Icon from 'react-native-vector-icons/Ionicons';
 import SimpleHeader from '../../../../components/SimpleHeader';
 import NameBalanceContainer from '../../../../components/NameBalanceContainer';
 import {responsiveHeight, responsiveWidth} from '../../../../utils/Responsive';
@@ -74,33 +74,26 @@ const NormalViewAll = ({navigation, route}) => {
     }
   };
 
+  // Check if ledger is available for this dataname
+  const hasLedger = (dataname) => {
+    return ['Customer', 'Supplier', 'Bank', 'Payable', 'Receivable'].includes(dataname);
+  };
+
+  // Handle ledger navigation
+  const handleLedgerPress = (item) => {
+    const ledgerParams = {
+      name: dataname,
+      item: item
+    };
+    
+    navigation.navigate('Ledger', ledgerParams);
+  };
+
   return (
     <LinearGradient
       colors={['#f6f7fb', '#dfe9f3']}
       style={{flex: 1, paddingBottom: 10}}>
       <SimpleHeader title="View All" />
-
-      {dataname === 'Customer' || dataname === 'Supplier' ? (
-        <View
-          style={{
-            alignItems: 'center',
-            gap: 5,
-            marginTop: 10,
-            flexDirection: 'row',
-            justifyContent: 'center',
-          }}>
-          <AppButton
-            title="Aging"
-            onPress={() => navigation.navigate('PdfScreen')}
-            btnWidth={44}
-          />
-          <AppButton
-            title="Ledger"
-            onPress={() => navigation.navigate('PdfScreen')}
-            btnWidth={44}
-          />
-        </View>
-      ) : null}
 
       {/* Search Bar */}
       <View
@@ -144,7 +137,19 @@ const NormalViewAll = ({navigation, route}) => {
         }}
         renderItem={({item}) => {
           const {Name, Balance} = getNameAndBalance(item, dataname);
-          return <NameBalanceContainer Name={Name} balance={Balance} />;
+          
+          return (
+            <View style={{marginBottom: 12}}>
+              <NameBalanceContainer 
+                Name={Name} 
+                balance={Balance}
+                type={dataname}
+                item={item}
+              />
+              
+            
+            </View>
+          );
         }}
       />
     </LinearGradient>

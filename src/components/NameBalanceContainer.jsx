@@ -3,8 +3,6 @@ import React from 'react';
 import AppText from './AppText';
 import {APPCOLORS} from '../utils/APPCOLORS';
 import LinearGradient from 'react-native-linear-gradient';
-import {responsiveWidth} from '../utils/Responsive';
-import AppButton from './AppButton';
 import {useNavigation} from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 
