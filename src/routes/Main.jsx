@@ -78,6 +78,7 @@ import PdcDetailScreen from '../screens/main/stacks/purchase/PdcDetailScreen';
 import ViewLedger from '../screens/main/stacks/Finance/ViewLedger';
 import StockMovements from '../screens/main/stacks/Inventory/StockMovements';
 import ViewDetailsScreen from '../screens/main/stacks/AppAlerts/ViewDetailsScreen ';
+import ExpenseClaim from '../screens/main/stacks/Finance/ExpenseClaim';
 
 const Stack = createNativeStackNavigator();
 const Main = () => {
@@ -183,6 +184,7 @@ const Main = () => {
       <Stack.Screen name="ViewLedger" component={ViewLedger} />
       <Stack.Screen name="StockMovements" component={StockMovements} />
       <Stack.Screen name="ViewDetailsScreen" component={ViewDetailsScreen} />
+      <Stack.Screen name="ExpenseClaim" component={ExpenseClaim} />
     </Stack.Navigator>
   );
 };

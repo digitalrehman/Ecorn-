@@ -113,8 +113,8 @@ const ApprovalCard = ({
       // Create a new PDF document
       const pdfDoc = await PDFDocument.create();
 
-      // Add a page
-      let page = pdfDoc.addPage([600, 800]);
+      // Add a page with A4 size
+      let page = pdfDoc.addPage([595, 842]);
       const {width, height} = page.getSize();
 
       // Embed fonts
@@ -123,41 +123,51 @@ const ApprovalCard = ({
 
       let yPosition = height - 50;
 
-      // Title
-      page.drawText(`${header?.type || 'Document'} - ${reference}`, {
+      // Title - Use type from header data
+      const documentType = header?.type || 'Document';
+      page.drawText(`${documentType} - ${reference}`, {
         x: 50,
         y: yPosition,
-        size: 18,
+        size: 16,
         font: boldFont,
-        color: rgb(0, 0, 0),
+        color: rgb(0.2, 0.4, 0.6),
       });
-      yPosition -= 30;
+      yPosition -= 40;
 
-      // Header Information
-      page.drawText('Header Information:', {
+      // Header Information - Simple and clean
+      page.drawText('Document Information', {
         x: 50,
         y: yPosition,
         size: 14,
         font: boldFont,
-        color: rgb(0, 0, 0),
+        color: rgb(0.2, 0.4, 0.6),
       });
-      yPosition -= 20;
+      yPosition -= 25;
 
       const headerFields = [
         {label: 'Reference:', value: header?.reference},
         {label: 'Date:', value: header?.trans_date},
         {label: 'Due Date:', value: header?.due_date},
+        {label: 'Type:', value: header?.type},
         {label: 'Customer:', value: header?.name},
         {label: 'Location:', value: header?.location_name},
         {label: 'Salesman:', value: header?.salesman},
         {label: 'Payment Terms:', value: header?.payment_terms},
-        {label: 'Total:', value: header?.total},
+        {label: 'Total Amount:', value: header?.total},
       ];
 
       headerFields.forEach(field => {
         if (field.value) {
-          page.drawText(`${field.label} ${field.value}`, {
+          page.drawText(`${field.label}`, {
             x: 50,
+            y: yPosition,
+            size: 10,
+            font: boldFont,
+            color: rgb(0.3, 0.3, 0.3),
+          });
+
+          page.drawText(field.value.toString(), {
+            x: 150,
             y: yPosition,
             size: 10,
             font: font,
@@ -173,180 +183,249 @@ const ApprovalCard = ({
         page.drawText('Comments:', {
           x: 50,
           y: yPosition,
-          size: 12,
+          size: 11,
           font: boldFont,
-          color: rgb(0, 0, 0),
+          color: rgb(0.2, 0.4, 0.6),
         });
         yPosition -= 15;
 
         const comments = header.comments;
-        const words = comments.split(' ');
-        let line = '';
-        for (const word of words) {
-          const testLine = line + word + ' ';
-          if (testLine.length > 80) {
-            page.drawText(line, {
-              x: 50,
-              y: yPosition,
-              size: 10,
-              font: font,
-              color: rgb(0, 0, 0),
-            });
-            yPosition -= 12;
-            line = word + ' ';
-          } else {
-            line = testLine;
+        const lines = wrapText(comments, 80); // Wrap text to 80 characters
+
+        lines.forEach(line => {
+          if (yPosition < 100) {
+            page = pdfDoc.addPage([595, 842]);
+            yPosition = height - 50;
           }
-        }
-        if (line) {
+
           page.drawText(line, {
             x: 50,
             y: yPosition,
-            size: 10,
+            size: 9,
             font: font,
             color: rgb(0, 0, 0),
           });
-          yPosition -= 12;
-        }
+          yPosition -= 10;
+        });
+
+        yPosition -= 10;
       }
 
       yPosition -= 20;
 
-      // Items Details
+      // Items Details with better handling for long descriptions
       if (details.length > 0) {
-        page.drawText('Items Details:', {
+        page.drawText('Items Details', {
           x: 50,
           y: yPosition,
           size: 14,
           font: boldFont,
-          color: rgb(0, 0, 0),
+          color: rgb(0.2, 0.4, 0.6),
         });
-        yPosition -= 20;
+        yPosition -= 30;
 
         details.forEach((item, index) => {
-          // Check if we need a new page
+          // Check if we need a new page before starting new item
           if (yPosition < 150) {
-            page = pdfDoc.addPage([600, 800]);
+            page = pdfDoc.addPage([595, 842]);
             yPosition = height - 50;
           }
 
+          // Item header
           page.drawText(`Item ${index + 1}:`, {
             x: 50,
             y: yPosition,
             size: 12,
             font: boldFont,
-            color: rgb(0, 0, 0),
+            color: rgb(0.2, 0.4, 0.6),
           });
-          yPosition -= 15;
+          yPosition -= 20;
 
-          const itemFields = [
+          // Basic item information in two columns
+          const leftColumn = [
             {label: 'Description:', value: item.description},
             {label: 'Stock ID:', value: item.stock_id},
             {label: 'Quantity:', value: item.quantity},
+          ];
+
+          const rightColumn = [
             {label: 'Unit Price:', value: item.unit_price},
             {
               label: 'Discount:',
-              value: item.discount_percent ? `${item.discount_percent}%` : null,
+              value: item.discount_percent ? `${item.discount_percent}%` : '0%',
+            },
+            {
+              label: 'Total:',
+              value: (
+                parseFloat(item.quantity) * parseFloat(item.unit_price)
+              ).toFixed(2),
             },
           ];
 
-          itemFields.forEach(field => {
+          // Draw left column
+          leftColumn.forEach(field => {
             if (field.value) {
-              page.drawText(`${field.label} ${field.value}`, {
-                x: 70,
+              page.drawText(`${field.label}`, {
+                x: 60,
                 y: yPosition,
-                size: 10,
-                font: font,
-                color: rgb(0, 0, 0),
+                size: 9,
+                font: boldFont,
+                color: rgb(0.3, 0.3, 0.3),
               });
-              yPosition -= 12;
-            }
-          });
 
-          // Long Description
-          if (item.long_description) {
-            yPosition -= 5;
-            page.drawText('Description:', {
-              x: 70,
-              y: yPosition,
-              size: 10,
-              font: boldFont,
-              color: rgb(0, 0, 0),
-            });
-            yPosition -= 12;
-
-            const longDesc = item.long_description;
-            const descWords = longDesc.split(' ');
-            let descLine = '';
-            for (const word of descWords) {
-              const testDescLine = descLine + word + ' ';
-              if (testDescLine.length > 70) {
-                page.drawText(descLine, {
-                  x: 70,
-                  y: yPosition,
-                  size: 9,
-                  font: font,
-                  color: rgb(0, 0, 0),
-                });
-                yPosition -= 10;
-                descLine = word + ' ';
-              } else {
-                descLine = testDescLine;
-              }
-            }
-            if (descLine) {
-              page.drawText(descLine, {
-                x: 70,
+              page.drawText(field.value.toString(), {
+                x: 120,
                 y: yPosition,
                 size: 9,
                 font: font,
                 color: rgb(0, 0, 0),
               });
-              yPosition -= 10;
+              yPosition -= 14;
             }
+          });
+
+          // Draw right column
+          yPosition += leftColumn.filter(field => field.value).length * 14; // Reset Y position
+          rightColumn.forEach(field => {
+            if (field.value) {
+              page.drawText(`${field.label}`, {
+                x: 300,
+                y: yPosition,
+                size: 9,
+                font: boldFont,
+                color: rgb(0.3, 0.3, 0.3),
+              });
+
+              page.drawText(field.value.toString(), {
+                x: 360,
+                y: yPosition,
+                size: 9,
+                font: font,
+                color: rgb(0, 0, 0),
+              });
+              yPosition -= 14;
+            }
+          });
+
+          yPosition -= 10;
+
+          // Long Description with proper text wrapping
+          if (item.long_description) {
+            page.drawText('Detailed Description:', {
+              x: 60,
+              y: yPosition,
+              size: 9,
+              font: boldFont,
+              color: rgb(0.3, 0.3, 0.3),
+            });
+            yPosition -= 12;
+
+            const longDesc = item.long_description;
+            const descLines = wrapText(longDesc, 100); // Wrap to 100 characters
+
+            descLines.forEach(line => {
+              if (yPosition < 100) {
+                page = pdfDoc.addPage([595, 842]);
+                yPosition = height - 50;
+              }
+
+              page.drawText(line, {
+                x: 70,
+                y: yPosition,
+                size: 8,
+                font: font,
+                color: rgb(0.2, 0.2, 0.2),
+              });
+              yPosition -= 9;
+            });
           }
 
-          yPosition -= 15;
+          yPosition -= 20;
+
+          // Separator line between items (except for last item)
+          if (index < details.length - 1) {
+            page.drawLine({
+              start: {x: 50, y: yPosition},
+              end: {x: width - 50, y: yPosition},
+              thickness: 0.5,
+              color: rgb(0.8, 0.8, 0.8),
+            });
+            yPosition -= 15;
+          }
         });
       }
 
-      // Save PDF to bytes
-      const pdfBytes = await pdfDoc.save();
+      // Footer with page numbers
+      const totalPages = pdfDoc.getPageCount();
+      pdfDoc.getPages().forEach((page, index) => {
+        page.drawText(`Page ${index + 1} of ${totalPages}`, {
+          x: width - 100,
+          y: 30,
+          size: 8,
+          font: font,
+          color: rgb(0.5, 0.5, 0.5),
+        });
 
-      // Get PUBLIC download directory path (not app-specific)
+        page.drawText(`Generated on: ${new Date().toLocaleDateString()}`, {
+          x: 50,
+          y: 30,
+          size: 8,
+          font: font,
+          color: rgb(0.5, 0.5, 0.5),
+        });
+      });
+
+      const pdfBytes = await pdfDoc.save();
       const downloadDir = RNBlobUtil.fs.dirs.DownloadDir;
 
-      // For Android, use the public Downloads folder
       let downloadPath;
       if (Platform.OS === 'android') {
-        // Use the public Downloads directory
         downloadPath = `/storage/emulated/0/Download/${reference}_${Date.now()}.pdf`;
       } else {
-        // For iOS, use the Documents directory
         downloadPath = `${downloadDir}/${reference}_${Date.now()}.pdf`;
       }
 
-      // Convert Uint8Array to base64
       const pdfBase64 = arrayBufferToBase64(pdfBytes);
-
-      // Write file to public download directory
       await RNBlobUtil.fs.writeFile(downloadPath, pdfBase64, 'base64');
 
       Toast.show({
         type: 'success',
-        text1: 'PDF Downloaded',
-        text2: `File saved to Downloads folder`,
+        text1: 'PDF Downloaded Successfully',
+        text2: `File: ${reference}.pdf`,
         visibilityTime: 3000,
       });
 
-      console.log('PDF saved to public folder:', downloadPath);
+      console.log('PDF saved to:', downloadPath);
     } catch (error) {
       console.log('PDF Generation Error:', error);
       throw error;
     }
   };
 
-  // Helper function to convert Uint8Array to base64
+  // Helper function to wrap text
+  const wrapText = (text, maxLineLength) => {
+    const words = text.split(' ');
+    const lines = [];
+    let currentLine = '';
+
+    words.forEach(word => {
+      if ((currentLine + word).length <= maxLineLength) {
+        currentLine += (currentLine === '' ? '' : ' ') + word;
+      } else {
+        if (currentLine !== '') {
+          lines.push(currentLine);
+        }
+        currentLine = word;
+      }
+    });
+
+    if (currentLine !== '') {
+      lines.push(currentLine);
+    }
+
+    return lines;
+  };
+
   const arrayBufferToBase64 = buffer => {
     let binary = '';
     const bytes = new Uint8Array(buffer);
@@ -519,7 +598,7 @@ const styles = StyleSheet.create({
   },
   button: {
     paddingVertical: 10,
-    paddingHorizontal: 12,
+    paddingHorizontal: 10,
     borderRadius: 12,
     alignItems: 'center',
     minHeight: 40,
