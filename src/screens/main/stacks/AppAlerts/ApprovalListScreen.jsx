@@ -8,9 +8,10 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import {useSelector} from 'react-redux';
 import Toast from 'react-native-toast-message';
-import { BASEURL } from '../../../../utils/BaseUrl';
+import {BASEURL} from '../../../../utils/BaseUrl';
 
-const ApprovalListScreen = ({route}) => {
+const ApprovalListScreen = ({route, navigation}) => {
+  // Add navigation here
   const {listKey, title} = route.params;
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -49,9 +50,7 @@ const ApprovalListScreen = ({route}) => {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const res = await axios.get(
-        `${BASEURL}dash_approval.php`,
-      );
+      const res = await axios.get(`${BASEURL}dash_approval.php`);
 
       const mappedKey = keyMap[listKey];
       const newData = res.data?.[mappedKey] || [];
@@ -130,6 +129,9 @@ const ApprovalListScreen = ({route}) => {
               ord_date={item.ord_date}
               name={item.name}
               total={item.total}
+              trans_no={item.trans_no}
+              type={item.type}
+              navigation={navigation} // Pass navigation here
               onApprove={() => handleApprove(item)}
             />
           ))

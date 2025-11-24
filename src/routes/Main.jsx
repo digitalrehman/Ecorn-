@@ -1,5 +1,5 @@
 import React from 'react';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import {createNativeStackNavigator} from '@react-navigation/native-stack';
 
 import Dashboard from '../screens/main/Dashboard';
 import Detail from '../screens/main/stacks/DetailScreens/Detail';
@@ -77,6 +77,7 @@ import PayableSummary from '../screens/main/stacks/purchase/PayableSummary';
 import PdcDetailScreen from '../screens/main/stacks/purchase/PdcDetailScreen';
 import ViewLedger from '../screens/main/stacks/Finance/ViewLedger';
 import StockMovements from '../screens/main/stacks/Inventory/StockMovements';
+import ViewDetailsScreen from '../screens/main/stacks/AppAlerts/ViewDetailsScreen ';
 
 const Stack = createNativeStackNavigator();
 const Main = () => {
@@ -169,21 +170,21 @@ const Main = () => {
       <Stack.Screen
         name="MechanicalJobCardsScreen"
         component={MechanicalJobCardsScreen}
-        />
-        <Stack.Screen name="MechanicalEstimate" component={MechanicalEstimate} />
-        <Stack.Screen name="StockSheetScreen" component={StockSheetScreen} />
-        <Stack.Screen name="MechanicalProduce" component={MechanicalProduce} />
-        <Stack.Screen name="ViewItem" component={ViewItem} />
-        <Stack.Screen name="GrnAgainst" component={GrnAgainst} />
-        <Stack.Screen name="ApprovalListScreen" component={ApprovalListScreen} />
-        <Stack.Screen name="GrnDeliveryNote" component={GrnDeliveryNote} />
-        <Stack.Screen name="PayableSummary" component={PayableSummary} />
-        <Stack.Screen name="PdcDetailScreen" component={PdcDetailScreen} />
-        <Stack.Screen name="ViewLedger" component={ViewLedger} />
-        <Stack.Screen name="StockMovements" component={StockMovements} />
+      />
+      <Stack.Screen name="MechanicalEstimate" component={MechanicalEstimate} />
+      <Stack.Screen name="StockSheetScreen" component={StockSheetScreen} />
+      <Stack.Screen name="MechanicalProduce" component={MechanicalProduce} />
+      <Stack.Screen name="ViewItem" component={ViewItem} />
+      <Stack.Screen name="GrnAgainst" component={GrnAgainst} />
+      <Stack.Screen name="ApprovalListScreen" component={ApprovalListScreen} />
+      <Stack.Screen name="GrnDeliveryNote" component={GrnDeliveryNote} />
+      <Stack.Screen name="PayableSummary" component={PayableSummary} />
+      <Stack.Screen name="PdcDetailScreen" component={PdcDetailScreen} />
+      <Stack.Screen name="ViewLedger" component={ViewLedger} />
+      <Stack.Screen name="StockMovements" component={StockMovements} />
+      <Stack.Screen name="ViewDetailsScreen" component={ViewDetailsScreen} />
     </Stack.Navigator>
   );
 };
-
 
 export default Main;
