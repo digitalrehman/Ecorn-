@@ -4,7 +4,6 @@ import axios from 'axios';
 import SimpleHeader from '../../../../components/SimpleHeader';
 import ApprovalCard from './ApprovalCard';
 import {APPCOLORS} from '../../../../utils/APPCOLORS';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import {useSelector} from 'react-redux';
 import Toast from 'react-native-toast-message';
@@ -29,23 +28,9 @@ const ApprovalListScreen = ({route, navigation}) => {
     mechanical_job_cards: 'data_Mechanical_job_cards',
   };
 
-  const CACHE_KEY = `approval_list_${listKey}`;
-
   useEffect(() => {
-    loadCachedData();
     fetchData();
   }, []);
-
-  const loadCachedData = async () => {
-    try {
-      const cached = await AsyncStorage.getItem(CACHE_KEY);
-      if (cached) {
-        setData(JSON.parse(cached));
-      }
-    } catch (err) {
-      console.log('Cache Error:', err);
-    }
-  };
 
   const fetchData = async () => {
     setLoading(true);
@@ -56,8 +41,6 @@ const ApprovalListScreen = ({route, navigation}) => {
       const newData = res.data?.[mappedKey] || [];
 
       setData(newData);
-
-      await AsyncStorage.setItem(CACHE_KEY, JSON.stringify(newData));
     } catch (err) {
       console.log('API Error:', err);
     }
@@ -91,7 +74,6 @@ const ApprovalListScreen = ({route, navigation}) => {
         });
 
         setData(prev => prev.filter(d => d.trans_no !== item.trans_no));
-        await AsyncStorage.setItem(CACHE_KEY, JSON.stringify(data));
       } else {
         Toast.show({
           type: 'error',

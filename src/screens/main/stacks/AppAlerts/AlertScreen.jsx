@@ -9,7 +9,6 @@ import axios from 'axios';
 import SimpleHeader from '../../../../components/SimpleHeader';
 import AlertCards from '../../../../components/AlertCards';
 import {APPCOLORS} from '../../../../utils/APPCOLORS';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { BASEURL } from '../../../../utils/BaseUrl';
 
 const AlertScreen = ({navigation}) => {
@@ -17,23 +16,9 @@ const AlertScreen = ({navigation}) => {
   const [Loading, setLoading] = useState(false);
   const [Refreshing, setRefreshing] = useState(false);
 
-  const CACHE_KEY = 'alert_data_cache';
-
   useEffect(() => {
-    loadCachedData();
     getAllData();
   }, []);
-
-  const loadCachedData = async () => {
-    try {
-      const cached = await AsyncStorage.getItem(CACHE_KEY);
-      if (cached) {
-        setAllData(JSON.parse(cached));
-      }
-    } catch (err) {
-      console.log('Cache Error:', err);
-    }
-  };
 
   const getAllData = async () => {
     setLoading(true);
@@ -44,9 +29,6 @@ const AlertScreen = ({navigation}) => {
 
       const newData = res.data?.approval_data || {};
       setAllData(newData);
-
-      // Cache update
-      await AsyncStorage.setItem(CACHE_KEY, JSON.stringify(newData));
     } catch (err) {
       console.log('API Error: ', err);
     }
