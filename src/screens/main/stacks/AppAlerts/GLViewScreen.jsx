@@ -5,10 +5,10 @@ import AppText from '../../../../components/AppText';
 import {APPCOLORS} from '../../../../utils/APPCOLORS';
 import LinearGradient from 'react-native-linear-gradient';
 
-const ViewDetailsScreen = ({route}) => {
-  const {viewData} = route.params;
-  const header = viewData.data_header?.[0];
-  const details = viewData.data_detail || [];
+const GLViewScreen = ({route}) => {
+  const {glData, reference, transNo} = route.params;
+  const header = glData.data_header?.[0];
+  const details = glData.data_detail || [];
 
   // Animation values
   const fadeAnim = new Animated.Value(0);
@@ -29,9 +29,19 @@ const ViewDetailsScreen = ({route}) => {
     ]).start();
   }, []);
 
+  // Format amount display
+  const formatAmount = amount => {
+    if (!amount) return '0.00';
+    const num = parseFloat(amount);
+    return num.toLocaleString('en-PK', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
+  };
+
   return (
     <View style={styles.container}>
-      <SimpleHeader title="View Details" />
+      <SimpleHeader title={`GL View - ${reference}`} />
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
@@ -51,9 +61,8 @@ const ViewDetailsScreen = ({route}) => {
               start={{x: 0, y: 0}}
               end={{x: 1, y: 1}}
               style={styles.card}>
-              {/* Use Type as Heading */}
               <AppText
-                title={header.type || 'Header Information'}
+                title="Transaction Header"
                 titleSize={3}
                 titleColor={APPCOLORS.WHITE}
                 titleWeight
@@ -61,6 +70,32 @@ const ViewDetailsScreen = ({route}) => {
               />
 
               <View style={styles.detailsGrid}>
+                <View style={styles.detailRow}>
+                  <AppText
+                    title="Transaction No:"
+                    titleSize={2}
+                    titleColor={APPCOLORS.WHITE}
+                  />
+                  <AppText
+                    title={header.trans_no || 'N/A'}
+                    titleSize={2}
+                    titleColor={APPCOLORS.WHITE}
+                  />
+                </View>
+
+                <View style={styles.detailRow}>
+                  <AppText
+                    title="Type:"
+                    titleSize={2}
+                    titleColor={APPCOLORS.WHITE}
+                  />
+                  <AppText
+                    title={header.type || 'N/A'}
+                    titleSize={2}
+                    titleColor={APPCOLORS.WHITE}
+                  />
+                </View>
+
                 <View style={styles.detailRow}>
                   <AppText
                     title="Reference:"
@@ -76,33 +111,7 @@ const ViewDetailsScreen = ({route}) => {
 
                 <View style={styles.detailRow}>
                   <AppText
-                    title="Date:"
-                    titleSize={2}
-                    titleColor={APPCOLORS.WHITE}
-                  />
-                  <AppText
-                    title={header.trans_date || 'N/A'}
-                    titleSize={2}
-                    titleColor={APPCOLORS.WHITE}
-                  />
-                </View>
-
-                <View style={styles.detailRow}>
-                  <AppText
-                    title="Due Date:"
-                    titleSize={2}
-                    titleColor={APPCOLORS.WHITE}
-                  />
-                  <AppText
-                    title={header.due_date || 'N/A'}
-                    titleSize={2}
-                    titleColor={APPCOLORS.WHITE}
-                  />
-                </View>
-
-                <View style={styles.detailRow}>
-                  <AppText
-                    title="Customer:"
+                    title="Company:"
                     titleSize={2}
                     titleColor={APPCOLORS.WHITE}
                   />
@@ -115,101 +124,54 @@ const ViewDetailsScreen = ({route}) => {
 
                 <View style={styles.detailRow}>
                   <AppText
-                    title="Location:"
+                    title="Prepared By:"
                     titleSize={2}
                     titleColor={APPCOLORS.WHITE}
                   />
                   <AppText
-                    title={header.location_name || 'N/A'}
+                    title={header.real_name || 'N/A'}
                     titleSize={2}
                     titleColor={APPCOLORS.WHITE}
                   />
                 </View>
 
-                <View style={styles.detailRow}>
-                  <AppText
-                    title="Salesman:"
-                    titleSize={2}
-                    titleColor={APPCOLORS.WHITE}
-                  />
-                  <AppText
-                    title={header.salesman || 'N/A'}
-                    titleSize={2}
-                    titleColor={APPCOLORS.WHITE}
-                  />
-                </View>
+                {/* Conditional Cheque No Display */}
+                {header.cheque_no && (
+                  <View style={styles.detailRow}>
+                    <AppText
+                      title="Cheque No:"
+                      titleSize={2}
+                      titleColor={APPCOLORS.WHITE}
+                    />
+                    <AppText
+                      title={header.cheque_no}
+                      titleSize={2}
+                      titleColor={APPCOLORS.WHITE}
+                    />
+                  </View>
+                )}
 
-                <View style={styles.detailRow}>
-                  <AppText
-                    title="Payment Terms:"
-                    titleSize={2}
-                    titleColor={APPCOLORS.WHITE}
-                  />
-                  <AppText
-                    title={header.payment_terms || 'N/A'}
-                    titleSize={2}
-                    titleColor={APPCOLORS.WHITE}
-                  />
-                </View>
-
-                <View style={[styles.detailRow, styles.totalRow]}>
-                  <AppText
-                    title="Total:"
-                    titleSize={2}
-                    titleColor={APPCOLORS.WHITE}
-                    titleWeight
-                  />
-                  <AppText
-                    title={header.total || '0'}
-                    titleSize={2}
-                    titleColor={APPCOLORS.WHITE}
-                    titleWeight
-                  />
-                </View>
+                {/* Conditional Cheque Date Display */}
+                {header.cheque_date && (
+                  <View style={styles.detailRow}>
+                    <AppText
+                      title="Cheque Date:"
+                      titleSize={2}
+                      titleColor={APPCOLORS.WHITE}
+                    />
+                    <AppText
+                      title={header.cheque_date}
+                      titleSize={2}
+                      titleColor={APPCOLORS.WHITE}
+                    />
+                  </View>
+                )}
               </View>
-
-              {/* Comments Section */}
-              {header.comments && (
-                <View style={styles.section}>
-                  <View style={styles.divider} />
-                  <AppText
-                    title="Comments:"
-                    titleSize={2}
-                    titleColor={APPCOLORS.WHITE}
-                    titleWeight
-                  />
-                  <AppText
-                    title={header.comments}
-                    titleSize={2}
-                    titleColor={APPCOLORS.WHITE}
-                    style={styles.commentsText}
-                  />
-                </View>
-              )}
-
-              {/* Terms & Conditions Section */}
-              {header.term_cond && (
-                <View style={styles.section}>
-                  <View style={styles.divider} />
-                  <AppText
-                    title="Terms & Conditions:"
-                    titleSize={2}
-                    titleColor={APPCOLORS.WHITE}
-                    titleWeight
-                  />
-                  <AppText
-                    title={header.term_cond}
-                    titleSize={2}
-                    titleColor={APPCOLORS.WHITE}
-                    style={styles.termsText}
-                  />
-                </View>
-              )}
             </LinearGradient>
           </Animated.View>
         )}
 
-        {/* Items Details Card */}
+        {/* GL Details Card */}
         {details.length > 0 && (
           <Animated.View
             style={[
@@ -225,18 +187,18 @@ const ViewDetailsScreen = ({route}) => {
               end={{x: 1, y: 1}}
               style={styles.card}>
               <AppText
-                title={`Items (${details.length})`}
+                title={`GL Entries (${details.length})`}
                 titleSize={3}
                 titleColor={APPCOLORS.WHITE}
                 titleWeight
                 style={styles.cardTitle}
               />
 
-              {details.map((item, index) => (
+              {details.map((entry, index) => (
                 <Animated.View
                   key={index}
                   style={[
-                    styles.itemCard,
+                    styles.entryCard,
                     {
                       opacity: fadeAnim,
                       transform: [
@@ -248,24 +210,24 @@ const ViewDetailsScreen = ({route}) => {
                   ]}>
                   <LinearGradient
                     colors={['rgba(255,255,255,0.1)', 'rgba(255,255,255,0.05)']}
-                    style={styles.itemGradient}>
+                    style={styles.entryGradient}>
                     <AppText
-                      title={`Item ${index + 1}`}
+                      title={`Entry ${index + 1}`}
                       titleSize={2}
                       titleColor={APPCOLORS.WHITE}
                       titleWeight
-                      style={styles.itemNumber}
+                      style={styles.entryNumber}
                     />
 
-                    <View style={styles.itemDetails}>
+                    <View style={styles.entryDetails}>
                       <View style={styles.detailRow}>
                         <AppText
-                          title="Description:"
+                          title="Account:"
                           titleSize={2}
                           titleColor={APPCOLORS.WHITE}
                         />
                         <AppText
-                          title={item.description || 'N/A'}
+                          title={entry.account || 'N/A'}
                           titleSize={2}
                           titleColor={APPCOLORS.WHITE}
                         />
@@ -273,59 +235,96 @@ const ViewDetailsScreen = ({route}) => {
 
                       <View style={styles.detailRow}>
                         <AppText
-                          title="Stock ID:"
+                          title="Account Name:"
                           titleSize={2}
                           titleColor={APPCOLORS.WHITE}
                         />
                         <AppText
-                          title={item.stock_id || 'N/A'}
+                          title={entry.account_name || 'N/A'}
+                          titleSize={2}
+                          titleColor={APPCOLORS.WHITE}
+                          style={styles.accountName}
+                        />
+                      </View>
+
+                      <View style={styles.detailRow}>
+                        <AppText
+                          title="Transaction Date:"
+                          titleSize={2}
+                          titleColor={APPCOLORS.WHITE}
+                        />
+                        <AppText
+                          title={entry.tran_date || 'N/A'}
                           titleSize={2}
                           titleColor={APPCOLORS.WHITE}
                         />
                       </View>
 
-                      {/* Combined Qty and Unit Price in one row */}
-                      <View style={styles.combinedRow}>
-                        <View style={styles.combinedItem}>
-                          <AppText
-                            title="Qty:"
-                            titleSize={2}
-                            titleColor={APPCOLORS.WHITE}
-                          />
-                          <AppText
-                            title={item.quantity || '0'}
-                            titleSize={2}
-                            titleColor={APPCOLORS.WHITE}
-                          />
-                        </View>
-                        <View style={styles.combinedItem}>
-                          <AppText
-                            title="Unit Price:"
-                            titleSize={2}
-                            titleColor={APPCOLORS.WHITE}
-                          />
-                          <AppText
-                            title={item.unit_price || '0'}
-                            titleSize={2}
-                            titleColor={APPCOLORS.WHITE}
-                          />
-                        </View>
+                      {/* Amounts Row */}
+                      <View style={styles.amountsRow}>
+                        {entry.debit && parseFloat(entry.debit) > 0 && (
+                          <View style={styles.amountItem}>
+                            <AppText
+                              title="Debit:"
+                              titleSize={2}
+                              titleColor={APPCOLORS.WHITE}
+                            />
+                            <AppText
+                              title={formatAmount(entry.debit)}
+                              titleSize={2}
+                              titleColor={APPCOLORS.WHITE}
+                              titleWeight
+                            />
+                          </View>
+                        )}
+
+                        {entry.credit && parseFloat(entry.credit) !== 0 && (
+                          <View style={styles.amountItem}>
+                            <AppText
+                              title="Credit:"
+                              titleSize={2}
+                              titleColor={APPCOLORS.WHITE}
+                            />
+                            <AppText
+                              title={formatAmount(entry.credit)}
+                              titleSize={2}
+                              titleColor={APPCOLORS.WHITE}
+                              titleWeight
+                            />
+                          </View>
+                        )}
                       </View>
 
-                      {/* Long Description */}
-                      {item.long_description && (
-                        <View style={styles.longDescSection}>
+                      {/* Memo */}
+                      {entry.memo_ && (
+                        <View style={styles.memoSection}>
                           <AppText
-                            title="Description:"
+                            title="Memo:"
                             titleSize={2}
                             titleColor={APPCOLORS.WHITE}
                             titleWeight
                           />
                           <AppText
-                            title={item.long_description}
+                            title={entry.memo_}
                             titleSize={2}
                             titleColor={APPCOLORS.WHITE}
-                            style={styles.longDescText}
+                            style={styles.memoText}
+                          />
+                        </View>
+                      )}
+
+                      {/* Cheque No in detail if available */}
+                      {entry.cheque && (
+                        <View style={styles.detailRow}>
+                          <AppText
+                            title="Cheque No:"
+                            titleSize={2}
+                            titleColor={APPCOLORS.WHITE}
+                          />
+                          <AppText
+                            title={entry.cheque}
+                            titleSize={2}
+                            titleColor={APPCOLORS.WHITE}
                           />
                         </View>
                       )}
@@ -377,67 +376,55 @@ const styles = {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    marginBottom: 6,
   },
-  totalRow: {
-    marginTop: 5,
-    paddingTop: 8,
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(255,255,255,0.3)',
-  },
-  divider: {
-    height: 1,
-    backgroundColor: 'rgba(255,255,255,0.3)',
-    marginVertical: 12,
-  },
-  section: {
-    marginTop: 5,
-  },
-  commentsText: {
-    marginTop: 4,
-    fontStyle: 'italic',
-  },
-  termsText: {
-    marginTop: 4,
-    lineHeight: 18,
-  },
-  itemCard: {
-    marginBottom: 10,
+  entryCard: {
+    marginBottom: 12,
     borderRadius: 12,
     overflow: 'hidden',
   },
-  itemGradient: {
+  entryGradient: {
     padding: 15,
     borderRadius: 12,
   },
-  itemNumber: {
+  entryNumber: {
     textAlign: 'center',
     marginBottom: 10,
   },
-  itemDetails: {
+  entryDetails: {
     gap: 6,
   },
-  combinedRow: {
+  accountName: {
+    flex: 1,
+    textAlign: 'right',
+    flexWrap: 'wrap',
+  },
+  amountsRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginTop: 4,
+    marginTop: 8,
+    paddingTop: 8,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255,255,255,0.2)',
   },
-  combinedItem: {
+  amountItem: {
     flex: 1,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 5,
   },
-  longDescSection: {
+  memoSection: {
     marginTop: 8,
     paddingTop: 8,
     borderTopWidth: 1,
     borderTopColor: 'rgba(255,255,255,0.2)',
   },
-  longDescText: {
+  memoText: {
     marginTop: 4,
+    fontStyle: 'italic',
     lineHeight: 16,
   },
 };
 
-export default ViewDetailsScreen;
+export default GLViewScreen;

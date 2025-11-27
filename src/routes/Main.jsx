@@ -79,6 +79,7 @@ import ViewLedger from '../screens/main/stacks/Finance/ViewLedger';
 import StockMovements from '../screens/main/stacks/Inventory/StockMovements';
 import ViewDetailsScreen from '../screens/main/stacks/AppAlerts/ViewDetailsScreen ';
 import ExpenseClaim from '../screens/main/stacks/Finance/ExpenseClaim';
+import GLViewScreen from '../screens/main/stacks/AppAlerts/GLViewScreen';
 
 const Stack = createNativeStackNavigator();
 const Main = () => {
@@ -185,6 +186,7 @@ const Main = () => {
       <Stack.Screen name="StockMovements" component={StockMovements} />
       <Stack.Screen name="ViewDetailsScreen" component={ViewDetailsScreen} />
       <Stack.Screen name="ExpenseClaim" component={ExpenseClaim} />
+      <Stack.Screen name="GLViewScreen" component={GLViewScreen} />
     </Stack.Navigator>
   );
 };

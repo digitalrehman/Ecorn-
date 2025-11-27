@@ -10,7 +10,6 @@ import Toast from 'react-native-toast-message';
 import {BASEURL} from '../../../../utils/BaseUrl';
 
 const ApprovalListScreen = ({route, navigation}) => {
-  // Add navigation here
   const {listKey, title} = route.params;
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -91,6 +90,9 @@ const ApprovalListScreen = ({route, navigation}) => {
     }
   };
 
+  // ✅ YAHAN LOGIC LAGAO: Check if current screen is Voucher Approval
+  const isVoucherScreen = listKey === 'voucher_approval';
+
   if (loading && data.length === 0) {
     return (
       <View style={{flex: 1, alignItems: 'center', justifyContent: 'center'}}>
@@ -113,7 +115,9 @@ const ApprovalListScreen = ({route, navigation}) => {
               total={item.total}
               trans_no={item.trans_no}
               type={item.type}
-              navigation={navigation} // Pass navigation here
+              navigation={navigation}
+              // ✅ YAHAN CONDITIONAL PROP PASS KARO
+              screenType={isVoucherScreen ? 'voucher_approval' : 'other'}
               onApprove={() => handleApprove(item)}
             />
           ))
