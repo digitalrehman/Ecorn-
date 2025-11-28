@@ -76,7 +76,7 @@ const ApprovalCard = ({
       formData.append('type', type);
 
       const response = await axios.post(
-        'http://ercon.de2solutions.com/mobile_dash/view_data.php',
+        `${BASEURL}view_data.php`,
         formData,
         {
           headers: {
@@ -84,9 +84,6 @@ const ApprovalCard = ({
           },
         },
       );
-
-      console.log('View API Response:', response.data);
-
       // Navigate to View Details Screen with the API data
       navigation.navigate('ViewDetailsScreen', {
         viewData: response.data,
@@ -121,7 +118,7 @@ const ApprovalCard = ({
       formData.append('type', type);
 
       const response = await axios.post(
-        'http://ercon.de2solutions.com/mobile_dash/view_data.php',
+        `${BASEURL}view_data.php`,
         formData,
         {
           headers: {
@@ -208,7 +205,7 @@ const ApprovalCard = ({
                     <ActivityIndicator size="small" color={APPCOLORS.WHITE} />
                   ) : (
                     <AppText
-                      title="Approve"
+                      title="Appr.."
                       titleSize={1.8}
                       titleColor={APPCOLORS.WHITE}
                       titleWeight

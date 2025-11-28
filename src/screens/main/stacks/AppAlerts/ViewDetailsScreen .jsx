@@ -249,28 +249,8 @@ const ViewDetailsScreen = ({route}) => {
                   <LinearGradient
                     colors={['rgba(255,255,255,0.1)', 'rgba(255,255,255,0.05)']}
                     style={styles.itemGradient}>
-                    <AppText
-                      title={`Item ${index + 1}`}
-                      titleSize={2}
-                      titleColor={APPCOLORS.WHITE}
-                      titleWeight
-                      style={styles.itemNumber}
-                    />
 
                     <View style={styles.itemDetails}>
-                      <View style={styles.detailRow}>
-                        <AppText
-                          title="Description:"
-                          titleSize={2}
-                          titleColor={APPCOLORS.WHITE}
-                        />
-                        <AppText
-                          title={item.description || 'N/A'}
-                          titleSize={2}
-                          titleColor={APPCOLORS.WHITE}
-                        />
-                      </View>
-
                       <View style={styles.detailRow}>
                         <AppText
                           title="Stock ID:"

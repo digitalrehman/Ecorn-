@@ -87,8 +87,8 @@ export const generateAndDownloadPDF = async (data, reference) => {
       });
       yPosition -= 15;
 
-      const comments = header.comments;
-      const lines = wrapText(comments, 80);
+      const comments = cleanText(header.comments);
+      const lines = wrapText(comments, width - 100, 9, font);
 
       lines.forEach(line => {
         if (yPosition < 100) {
@@ -111,7 +111,7 @@ export const generateAndDownloadPDF = async (data, reference) => {
 
     yPosition -= 20;
 
-    // Items Details
+    // Items Details with better handling for long descriptions
     if (details.length > 0) {
       page.drawText('Items Details', {
         x: 50,
@@ -123,11 +123,13 @@ export const generateAndDownloadPDF = async (data, reference) => {
       yPosition -= 30;
 
       details.forEach((item, index) => {
+        // Check if we need a new page before starting new item
         if (yPosition < 150) {
           page = pdfDoc.addPage([595, 842]);
           yPosition = height - 50;
         }
 
+        // Item header
         page.drawText(`Item ${index + 1}:`, {
           x: 50,
           y: yPosition,
@@ -137,8 +139,8 @@ export const generateAndDownloadPDF = async (data, reference) => {
         });
         yPosition -= 20;
 
+        // Basic item information in two columns
         const leftColumn = [
-          {label: 'Description:', value: item.description},
           {label: 'Stock ID:', value: item.stock_id},
           {label: 'Quantity:', value: item.quantity},
         ];
@@ -152,7 +154,7 @@ export const generateAndDownloadPDF = async (data, reference) => {
           {
             label: 'Total:',
             value: (
-              parseFloat(item.quantity || 0) * parseFloat(item.unit_price || 0)
+              parseFloat(item.quantity) * parseFloat(item.unit_price)
             ).toFixed(2),
           },
         ];
@@ -180,7 +182,7 @@ export const generateAndDownloadPDF = async (data, reference) => {
         });
 
         // Draw right column
-        yPosition += leftColumn.filter(field => field.value).length * 14;
+        yPosition += leftColumn.filter(field => field.value).length * 14; // Reset Y position
         rightColumn.forEach(field => {
           if (field.value) {
             page.drawText(`${field.label}`, {
@@ -203,8 +205,8 @@ export const generateAndDownloadPDF = async (data, reference) => {
         });
 
         yPosition -= 10;
-
-        // Long Description
+        
+        // Long Description with proper text wrapping
         if (item.long_description) {
           page.drawText('Detailed Description:', {
             x: 60,
@@ -215,13 +217,23 @@ export const generateAndDownloadPDF = async (data, reference) => {
           });
           yPosition -= 12;
 
-          const longDesc = item.long_description;
-          const descLines = wrapText(longDesc, 100);
+          const longDesc = cleanText(item.long_description);
+          const descLines = wrapText(longDesc, width - 120, 8, font);
 
           descLines.forEach(line => {
-            if (yPosition < 100) {
+            if (yPosition < 80) {
               page = pdfDoc.addPage([595, 842]);
               yPosition = height - 50;
+
+              // Redraw the item header on new page
+              page.drawText(`Item ${index + 1} (continued):`, {
+                x: 50,
+                y: yPosition,
+                size: 12,
+                font: boldFont,
+                color: rgb(0.2, 0.4, 0.6),
+              });
+              yPosition -= 25;
             }
 
             page.drawText(line, {
@@ -231,12 +243,15 @@ export const generateAndDownloadPDF = async (data, reference) => {
               font: font,
               color: rgb(0.2, 0.2, 0.2),
             });
-            yPosition -= 9;
+            yPosition -= 10;
           });
+
+          yPosition -= 10;
         }
 
-        yPosition -= 20;
+        yPosition -= 15;
 
+        // Separator line between items (except for last item)
         if (index < details.length - 1) {
           page.drawLine({
             start: {x: 50, y: yPosition},
@@ -270,26 +285,22 @@ export const generateAndDownloadPDF = async (data, reference) => {
     });
 
     const pdfBytes = await pdfDoc.save();
+    const downloadDir = RNBlobUtil.fs.dirs.DownloadDir;
 
     let downloadPath;
     if (Platform.OS === 'android') {
-      downloadPath = `${
-        RNBlobUtil.fs.dirs.DownloadDir
-      }/${reference}_${Date.now()}.pdf`;
+      downloadPath = `/storage/emulated/0/Download/${reference}_${Date.now()}.pdf`;
     } else {
-      downloadPath = `${
-        RNBlobUtil.fs.dirs.DocumentDir
-      }/${reference}_${Date.now()}.pdf`;
+      downloadPath = `${downloadDir}/${reference}_${Date.now()}.pdf`;
     }
 
-    // Convert to base64 and save
     const pdfBase64 = arrayBufferToBase64(pdfBytes);
     await RNBlobUtil.fs.writeFile(downloadPath, pdfBase64, 'base64');
 
     Toast.show({
       type: 'success',
       text1: 'PDF Downloaded Successfully',
-      text2: `File saved to Downloads`,
+      text2: `File: ${reference}.pdf`,
       visibilityTime: 3000,
     });
 
@@ -301,25 +312,51 @@ export const generateAndDownloadPDF = async (data, reference) => {
   }
 };
 
-// Helper function to wrap text
-const wrapText = (text, maxLineLength) => {
-  if (!text) return [];
-  const words = text.split(' ');
+// Improved text cleaning function
+const cleanText = (text) => {
+  if (!text) return '';
+  
+  return text
+    // Replace HTML entities
+    .replace(/&#039;/g, "'")
+    .replace(/&quot;/g, '"')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    // Replace newline characters with spaces
+    .replace(/\n/g, ' ')
+    .replace(/\r/g, ' ')
+    // Remove multiple spaces
+    .replace(/\s+/g, ' ')
+    .trim();
+};
+
+// Improved wrapText function that handles special characters
+const wrapText = (text, maxWidth, fontSize, font) => {
   const lines = [];
+  const words = text.split(' ');
   let currentLine = '';
 
   words.forEach(word => {
-    if ((currentLine + word).length <= maxLineLength) {
-      currentLine += (currentLine === '' ? '' : ' ') + word;
+    // Clean each word from any special characters
+    const cleanWord = word.replace(/[^\x20-\x7E]/g, '');
+    
+    if (cleanWord === '') return; // Skip empty words
+
+    const testLine = currentLine ? `${currentLine} ${cleanWord}` : cleanWord;
+    const testWidth = font.widthOfTextAtSize(testLine, fontSize);
+    
+    if (testWidth <= maxWidth) {
+      currentLine = testLine;
     } else {
-      if (currentLine !== '') {
+      if (currentLine) {
         lines.push(currentLine);
       }
-      currentLine = word;
+      currentLine = cleanWord;
     }
   });
 
-  if (currentLine !== '') {
+  if (currentLine) {
     lines.push(currentLine);
   }
 

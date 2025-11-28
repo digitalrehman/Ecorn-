@@ -31,7 +31,7 @@ const GLViewScreen = ({route}) => {
 
   // Format amount display
   const formatAmount = amount => {
-    if (!amount) return '0.00';
+    if (!amount || amount === '0') return '-';
     const num = parseFloat(amount);
     return num.toLocaleString('en-PK', {
       minimumFractionDigits: 2,
@@ -39,9 +39,37 @@ const GLViewScreen = ({route}) => {
     });
   };
 
+  // Calculate totals
+  const calculateTotals = () => {
+    let totalDebit = 0;
+    let totalCredit = 0;
+
+    details.forEach(entry => {
+      if (entry.debit && parseFloat(entry.debit) > 0) {
+        totalDebit += parseFloat(entry.debit);
+      }
+      if (entry.credit && parseFloat(entry.credit) !== 0) {
+        totalCredit += Math.abs(parseFloat(entry.credit));
+      }
+    });
+
+    return {totalDebit, totalCredit};
+  };
+
+  const {totalDebit, totalCredit} = calculateTotals();
+
+  // Shorten long account names
+  const shortenAccountName = name => {
+    if (!name) return 'N/A';
+    if (name.length > 40) {
+      return name.substring(0, 40) + '...';
+    }
+    return name;
+  };
+
   return (
     <View style={styles.container}>
-      <SimpleHeader title={`GL View - ${reference}`} />
+      <SimpleHeader title="General Ledger View" />
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
@@ -62,7 +90,7 @@ const GLViewScreen = ({route}) => {
               end={{x: 1, y: 1}}
               style={styles.card}>
               <AppText
-                title="Transaction Header"
+                title="Transaction Information"
                 titleSize={3}
                 titleColor={APPCOLORS.WHITE}
                 titleWeight
@@ -70,6 +98,19 @@ const GLViewScreen = ({route}) => {
               />
 
               <View style={styles.detailsGrid}>
+                <View style={styles.detailRow}>
+                  <AppText
+                    title="Reference:"
+                    titleSize={2}
+                    titleColor={APPCOLORS.WHITE}
+                  />
+                  <AppText
+                    title={header.reference || 'N/A'}
+                    titleSize={2}
+                    titleColor={APPCOLORS.WHITE}
+                  />
+                </View>
+
                 <View style={styles.detailRow}>
                   <AppText
                     title="Transaction No:"
@@ -98,12 +139,12 @@ const GLViewScreen = ({route}) => {
 
                 <View style={styles.detailRow}>
                   <AppText
-                    title="Reference:"
+                    title="Date:"
                     titleSize={2}
                     titleColor={APPCOLORS.WHITE}
                   />
                   <AppText
-                    title={header.reference || 'N/A'}
+                    title={header.cheque_date || header.trans_date || 'N/A'}
                     titleSize={2}
                     titleColor={APPCOLORS.WHITE}
                   />
@@ -129,7 +170,7 @@ const GLViewScreen = ({route}) => {
                     titleColor={APPCOLORS.WHITE}
                   />
                   <AppText
-                    title={header.real_name || 'N/A'}
+                    title={header.real_name || 'Administrator'}
                     titleSize={2}
                     titleColor={APPCOLORS.WHITE}
                   />
@@ -171,7 +212,7 @@ const GLViewScreen = ({route}) => {
           </Animated.View>
         )}
 
-        {/* GL Details Card */}
+        {/* GL Entries Card */}
         {details.length > 0 && (
           <Animated.View
             style={[
@@ -211,18 +252,10 @@ const GLViewScreen = ({route}) => {
                   <LinearGradient
                     colors={['rgba(255,255,255,0.1)', 'rgba(255,255,255,0.05)']}
                     style={styles.entryGradient}>
-                    <AppText
-                      title={`Entry ${index + 1}`}
-                      titleSize={2}
-                      titleColor={APPCOLORS.WHITE}
-                      titleWeight
-                      style={styles.entryNumber}
-                    />
-
                     <View style={styles.entryDetails}>
                       <View style={styles.detailRow}>
                         <AppText
-                          title="Account:"
+                          title="Account Code:"
                           titleSize={2}
                           titleColor={APPCOLORS.WHITE}
                         />
@@ -232,34 +265,16 @@ const GLViewScreen = ({route}) => {
                           titleColor={APPCOLORS.WHITE}
                         />
                       </View>
-
                       <View style={styles.detailRow}>
-                        <AppText
-                          title="Account Name:"
-                          titleSize={2}
-                          titleColor={APPCOLORS.WHITE}
-                        />
-                        <AppText
-                          title={entry.account_name || 'N/A'}
-                          titleSize={2}
-                          titleColor={APPCOLORS.WHITE}
-                          style={styles.accountName}
-                        />
+                        <View style={{flex: 1}}>
+                          <AppText
+                            title={shortenAccountName(entry.account_name)}
+                            titleSize={2}
+                            titleColor={APPCOLORS.WHITE}
+                            style={styles.accountName}
+                          />
+                        </View>
                       </View>
-
-                      <View style={styles.detailRow}>
-                        <AppText
-                          title="Transaction Date:"
-                          titleSize={2}
-                          titleColor={APPCOLORS.WHITE}
-                        />
-                        <AppText
-                          title={entry.tran_date || 'N/A'}
-                          titleSize={2}
-                          titleColor={APPCOLORS.WHITE}
-                        />
-                      </View>
-
                       {/* Amounts Row */}
                       <View style={styles.amountsRow}>
                         {entry.debit && parseFloat(entry.debit) > 0 && (
@@ -268,6 +283,7 @@ const GLViewScreen = ({route}) => {
                               title="Debit:"
                               titleSize={2}
                               titleColor={APPCOLORS.WHITE}
+                              titleWeight
                             />
                             <AppText
                               title={formatAmount(entry.debit)}
@@ -284,6 +300,7 @@ const GLViewScreen = ({route}) => {
                               title="Credit:"
                               titleSize={2}
                               titleColor={APPCOLORS.WHITE}
+                              titleWeight
                             />
                             <AppText
                               title={formatAmount(entry.credit)}
@@ -296,22 +313,24 @@ const GLViewScreen = ({route}) => {
                       </View>
 
                       {/* Memo */}
-                      {entry.memo_ && (
-                        <View style={styles.memoSection}>
-                          <AppText
-                            title="Memo:"
-                            titleSize={2}
-                            titleColor={APPCOLORS.WHITE}
-                            titleWeight
-                          />
-                          <AppText
-                            title={entry.memo_}
-                            titleSize={2}
-                            titleColor={APPCOLORS.WHITE}
-                            style={styles.memoText}
-                          />
-                        </View>
-                      )}
+                      {entry.memo_ &&
+                        entry.memo_ !== '0' &&
+                        entry.memo_.trim() !== '' && (
+                          <View style={styles.memoSection}>
+                            <AppText
+                              title="Memo:"
+                              titleSize={2}
+                              titleColor={APPCOLORS.WHITE}
+                              titleWeight
+                            />
+                            <AppText
+                              title={entry.memo_}
+                              titleSize={2}
+                              titleColor={APPCOLORS.WHITE}
+                              style={styles.memoText}
+                            />
+                          </View>
+                        )}
 
                       {/* Cheque No in detail if available */}
                       {entry.cheque && (
@@ -332,6 +351,38 @@ const GLViewScreen = ({route}) => {
                   </LinearGradient>
                 </Animated.View>
               ))}
+
+              {/* Totals Section */}
+              <View style={styles.totalsSection}>
+                <View style={styles.totalItem}>
+                  <AppText
+                    title="Total Debit:"
+                    titleSize={2.2}
+                    titleColor={APPCOLORS.WHITE}
+                    titleWeight
+                  />
+                  <AppText
+                    title={formatAmount(totalDebit)}
+                    titleSize={2.2}
+                    titleColor={APPCOLORS.WHITE}
+                    titleWeight
+                  />
+                </View>
+                <View style={styles.totalItem}>
+                  <AppText
+                    title="Total Credit:"
+                    titleSize={2.2}
+                    titleColor={APPCOLORS.WHITE}
+                    titleWeight
+                  />
+                  <AppText
+                    title={formatAmount(totalCredit)}
+                    titleSize={2.2}
+                    titleColor={APPCOLORS.WHITE}
+                    titleWeight
+                  />
+                </View>
+              </View>
             </LinearGradient>
           </Animated.View>
         )}
@@ -370,13 +421,12 @@ const styles = {
     marginBottom: 15,
   },
   detailsGrid: {
-    gap: 8,
+    gap: 10,
   },
   detailRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 6,
   },
   entryCard: {
     marginBottom: 12,
@@ -392,7 +442,7 @@ const styles = {
     marginBottom: 10,
   },
   entryDetails: {
-    gap: 6,
+    gap: 8,
   },
   accountName: {
     flex: 1,
@@ -424,6 +474,26 @@ const styles = {
     marginTop: 4,
     fontStyle: 'italic',
     lineHeight: 16,
+  },
+  totalsSection: {
+    marginTop: 15,
+  },
+  divider: {
+    height: 1,
+    backgroundColor: 'rgba(255,255,255,0.3)',
+    marginBottom: 12,
+  },
+  totalsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  totalItem: {
+    flex: 1,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 10,
   },
 };
 
