@@ -1,4 +1,4 @@
-import React, {useEffect, useState, useRef, useCallback} from 'react';
+import React, {useEffect, useState, useCallback} from 'react';
 import {
   View,
   Text,
@@ -6,9 +6,6 @@ import {
   TouchableOpacity,
   FlatList,
   ActivityIndicator,
-  Platform,
-  PermissionsAndroid,
-  Alert,
 } from 'react-native';
 import axios from 'axios';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -16,14 +13,15 @@ import LinearGradient from 'react-native-linear-gradient';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import SimpleHeader from '../../../../components/SimpleHeader';
 import {APPCOLORS} from '../../../../utils/APPCOLORS';
-import RNFetchBlob from 'react-native-blob-util';
 import {useFocusEffect, useRoute} from '@react-navigation/native';
 import { BASEURL } from '../../../../utils/BaseUrl';
+import { downloadFile } from '../../../../components/DownloadFile'; 
 
 export default function VoucherScreen({navigation}) {
   const [allData, setAllData] = useState([]);
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [downloading, setDownloading] = useState(false);
 
   const [fromDate, setFromDate] = useState(null);
   const [toDate, setToDate] = useState(null);
@@ -35,12 +33,11 @@ export default function VoucherScreen({navigation}) {
     fetchData();
   }, []);
 
-  // ✅ Sirf tabhi reload jab refresh param true aaye
   useFocusEffect(
     useCallback(() => {
       if (route.params?.refresh) {
         fetchData();
-        navigation.setParams({refresh: false}); // reset flag
+        navigation.setParams({refresh: false});
       }
     }, [route.params?.refresh]),
   );
@@ -48,9 +45,7 @@ export default function VoucherScreen({navigation}) {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const res = await axios.get(
-        `${BASEURL}dash_upload.php`,
-      );
+      const res = await axios.get(`${BASEURL}dash_upload.php`);
       let result = res.data?.data_cust_age || [];
       setAllData(result);
 
@@ -60,9 +55,7 @@ export default function VoucherScreen({navigation}) {
         return;
       }
 
-      // 🔹 bas last ke 30 record chahiye
       const last30 = result.slice(-30);
-
       setData(last30);
     } catch (error) {
       console.log('Error fetching data:', error);
@@ -70,83 +63,18 @@ export default function VoucherScreen({navigation}) {
     setLoading(false);
   };
 
-  const requestStoragePermission = async () => {
-    if (Platform.OS === 'android' && Platform.Version < 30) {
-      try {
-        const granted = await PermissionsAndroid.request(
-          PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
-          {
-            title: 'Storage Permission',
-            message: 'App needs access to your storage to download PDF',
-            buttonNeutral: 'Ask Me Later',
-            buttonNegative: 'Cancel',
-            buttonPositive: 'OK',
-          },
-        );
-        return granted === PermissionsAndroid.RESULTS.GRANTED;
-      } catch (err) {
-        console.warn(err);
-        return false;
-      }
+  // ✅ Download handler
+  const handleDownload = async (trans_no, type) => {
+    if (downloading) return;
+    
+    setDownloading(true);
+    try {
+      await downloadFile(trans_no, type);
+    } catch (error) {
+      console.log('Download handler error:', error);
     }
-    return true;
+    setDownloading(false);
   };
-
-  const detectFileType = async filePath => {
-    const base64Data = await RNFetchBlob.fs.readFile(filePath, 'base64');
-    const hex = Buffer.from(base64Data, 'base64')
-      .toString('hex')
-      .substring(0, 8)
-      .toUpperCase();
-
-    if (hex.startsWith('25504446')) return 'pdf'; // %PDF
-    if (hex.startsWith('FFD8FF')) return 'jpg'; // JPEG
-    if (hex.startsWith('89504E47')) return 'png'; // PNG
-    if (hex.startsWith('504B0304')) return 'zip'; // Could be docx/xlsx/pptx
-
-    return 'bin';
-  };
-const downloadFile = async (trans_no, type) => {
-  try {
-    const res = await RNFetchBlob.config({
-      fileCache: true,
-      addAndroidDownloads: {
-        useDownloadManager: true,
-        notification: true,
-        description: 'File downloaded',
-        mime: 'application/octet-stream',
-        path: RNFetchBlob.fs.dirs.DownloadDir + `/${trans_no}_${Date.now()}.tmp`,
-      },
-    }).fetch(
-      'POST',
-      `${BASEURL}dattachment_download.php`,
-      {
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-      `trans_no=${encodeURIComponent(trans_no)}&type=${encodeURIComponent(type)}`
-    );
-
-    const tempPath = res.path();
-
-    // 🔎 Detect extension
-    let ext = await detectFileType(tempPath);
-
-    if (ext === 'zip') {
-      if (type.toLowerCase().includes('doc')) ext = 'docx';
-      else if (type.toLowerCase().includes('xls')) ext = 'xlsx';
-      else if (type.toLowerCase().includes('ppt')) ext = 'pptx';
-    }
-
-    const finalPath = `${RNFetchBlob.fs.dirs.DownloadDir}/${trans_no}.${ext}`;
-    await RNFetchBlob.fs.mv(tempPath, finalPath);
-
-    Alert.alert('✅ Download Successful', `Saved to: ${finalPath}`);
-  } catch (err) {
-    console.log('❌ Download Error:', err);
-    Alert.alert('❌ Download Failed', 'Could not download file.');
-  }
-};
-
 
   const normalizeDate = date => {
     if (!date) return null;
@@ -161,7 +89,6 @@ const downloadFile = async (trans_no, type) => {
 
     let filtered = allData.filter(item => {
       const apiDate = item.tran_date?.split(' ')[0];
-
       let afterFrom = true;
       let beforeTo = true;
 
@@ -174,7 +101,6 @@ const downloadFile = async (trans_no, type) => {
       return afterFrom && beforeTo;
     });
 
-    // 🔹 filter ke baad bhi sirf last 30 hi dikhao
     setData(filtered.slice(-30));
   };
 
@@ -335,13 +261,17 @@ const downloadFile = async (trans_no, type) => {
                 </TouchableOpacity>
 
                 <TouchableOpacity
-                  disabled={!item.upload_status}
-                  onPress={() => downloadFile(item.trans_no, item.type)}>
-                  <Icon
-                    name="download"
-                    size={20}
-                    color={item.upload_status ? '#ffcc00' : 'gray'}
-                  />
+                  disabled={!item.upload_status || downloading}
+                  onPress={() => handleDownload(item.trans_no, item.type)}>
+                  {downloading ? (
+                    <ActivityIndicator size="small" color="#ffcc00" />
+                  ) : (
+                    <Icon
+                      name="download"
+                      size={20}
+                      color={item.upload_status ? '#ffcc00' : 'gray'}
+                    />
+                  )}
                 </TouchableOpacity>
               </View>
             </View>

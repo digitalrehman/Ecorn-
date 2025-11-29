@@ -6,11 +6,12 @@ import {
   Image,
   Text,
   StyleSheet,
+  ToastAndroid,
 } from 'react-native';
 import Pdf from 'react-native-pdf';
 import RNFetchBlob from 'react-native-blob-util';
 import FileViewer from 'react-native-file-viewer';
-import { BASEURL } from '../../../../utils/BaseUrl';
+import {BASEURL} from '../../../../utils/BaseUrl';
 
 const FileViewerScreen = ({route}) => {
   const {type, trans_no} = route.params;
@@ -21,36 +22,115 @@ const FileViewerScreen = ({route}) => {
     fetchFile();
   }, []);
 
-  const detectFileType = async path => {
-    try {
-      const base64Data = await RNFetchBlob.fs.readFile(path, 'base64');
-
-      const binary = atob(base64Data.substring(0, 50));
-
-      const hexSignature = Array.from(binary)
-        .map(ch => ch.charCodeAt(0).toString(16).padStart(2, '0'))
-        .join('')
-        .toUpperCase();
-
-      // --- PDFs ---
-      if (base64Data.startsWith('JVBERi0')) return 'pdf';
-
-      // --- Images ---
-      if (base64Data.startsWith('/9j/')) return 'jpg'; // JPEG
-      if (base64Data.startsWith('iVBORw0KGgo')) return 'png'; // PNG
-      if (base64Data.startsWith('R0lGOD')) return 'gif'; // GIF
-
-      // --- MS Office (old binary) ---
-      if (hexSignature.startsWith('D0CF11E0A1B11AE1')) return 'ms-office';
-
-      // --- MS Office (new XML = DOCX, XLSX, PPTX) ---
-      if (hexSignature.startsWith('504B0304')) return 'ms-office';
-
-      return 'unknown';
-    } catch (e) {
-      console.log('File detection error:', e);
-      return 'unknown';
+  // Show toast message
+  const showToast = (message, duration = ToastAndroid.SHORT) => {
+    if (Platform.OS === 'android') {
+      ToastAndroid.show(message, duration);
     }
+  };
+
+  const detectFileType = async filePath => {
+    try {
+      const base64Data = await RNFetchBlob.fs.readFile(filePath, 'base64');
+
+      if (base64Data.startsWith('/9j/') || base64Data.includes('/9j/')) {
+        return 'jpg';
+      }
+      if (base64Data.startsWith('iVBORw0KGgo') || base64Data.includes('PNG')) {
+        return 'png';
+      }
+      if (base64Data.startsWith('JVBERi') || base64Data.includes('%PDF')) {
+        return 'pdf';
+      }
+      if (base64Data.startsWith('R0lGOD')) {
+        return 'gif';
+      }
+
+      return 'jpg';
+      
+    } catch (error) {
+      return 'jpg';
+    }
+  };
+
+  const requestStoragePermission = async () => {
+    if (Platform.OS === 'android' && Platform.Version < 30) {
+      try {
+        const granted = await PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
+          {
+            title: 'Storage Permission',
+            message: 'App needs access to your storage to download files',
+            buttonNeutral: 'Ask Me Later',
+            buttonNegative: 'Cancel',
+            buttonPositive: 'OK',
+          },
+        );
+        return granted === PermissionsAndroid.RESULTS.GRANTED;
+      } catch (err) {
+        return false;
+      }
+    }
+    return true;
+  };
+
+  const downloadFile = async (trans_no, type) => {
+    try {
+      const hasPermission = await requestStoragePermission();
+      if (!hasPermission) {
+        showToast('Storage permission required', ToastAndroid.LONG);
+        return;
+      }
+
+      let fileExtension = 'jpg';
+      
+      if (type === '1' || type === 'pdf') fileExtension = 'pdf';
+      else if (type === '2' || type === 'image') fileExtension = 'jpg';
+      else if (type === '3') fileExtension = 'png';
+      else if (type === '4') fileExtension = 'docx';
+
+      const downloadPath = `${RNFetchBlob.fs.dirs.DownloadDir}/${trans_no}.${fileExtension}`;
+
+      const res = await RNFetchBlob.config({
+        fileCache: true,
+        addAndroidDownloads: {
+          useDownloadManager: true,
+          notification: true,
+          title: `Downloading ${trans_no}`,
+          description: 'File download in progress',
+          mime: getMimeType(fileExtension),
+          path: downloadPath,
+        },
+      }).fetch(
+        'POST',
+        `${BASEURL}dattachment_download.php`,
+        {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        `trans_no=${encodeURIComponent(trans_no)}&type=${encodeURIComponent(type)}`
+      );
+
+      showToast(`File downloaded: ${trans_no}.${fileExtension}`, ToastAndroid.LONG);
+      
+    } catch (err) {
+      showToast('Download failed', ToastAndroid.LONG);
+    }
+  };
+
+  const getMimeType = (extension) => {
+    const mimeTypes = {
+      'pdf': 'application/pdf',
+      'jpg': 'image/jpeg',
+      'jpeg': 'image/jpeg',
+      'png': 'image/png',
+      'doc': 'application/msword',
+      'docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'xls': 'application/vnd.ms-excel',
+      'xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'zip': 'application/zip',
+      'txt': 'text/plain'
+    };
+    return mimeTypes[extension] || 'application/octet-stream';
   };
 
   const fetchFile = async () => {
@@ -59,29 +139,26 @@ const FileViewerScreen = ({route}) => {
       formData.append('type', type);
       formData.append('trans_no', trans_no);
 
-      // Step 1: hit POST API to get file URL
-      const response = await fetch(
-        `${BASEURL}dattachment_view.php`,
-        {method: 'POST', body: formData},
-      );
+      const response = await fetch(`${BASEURL}dattachment_view.php`, {
+        method: 'POST',
+        body: formData,
+      });
+
       const data = await response.json();
 
       if (data?.url) {
-        // Step 2: download file
         const res = await RNFetchBlob.config({
           fileCache: true,
         }).fetch('GET', data.url);
 
         const path = res.path();
-
-        // Step 3: detect file type
         const detectedType = await detectFileType(path);
 
         setFileType(detectedType);
         setLocalPath(Platform.OS === 'android' ? `file://${path}` : path);
       }
     } catch (e) {
-      console.log('File fetch error:', e);
+      showToast('Error loading file', ToastAndroid.LONG);
     }
   };
 
@@ -94,7 +171,6 @@ const FileViewerScreen = ({route}) => {
     );
   }
 
-  // ✅ PDF rendering
   if (fileType === 'pdf') {
     return (
       <Pdf
@@ -105,7 +181,6 @@ const FileViewerScreen = ({route}) => {
     );
   }
 
-  // ✅ Images rendering
   if (['jpg', 'png', 'gif'].includes(fileType)) {
     return (
       <View style={{flex: 1, backgroundColor: '#000'}}>
@@ -117,28 +192,33 @@ const FileViewerScreen = ({route}) => {
     );
   }
 
-  // ✅ MS Office Handling
   if (fileType === 'ms-office') {
-    FileViewer.open(localPath)
-      .then(() => {
-        console.log('File opened successfully');
-      })
-      .catch(error => {
-        console.log('Error opening file:', error);
-      });
+    useEffect(() => {
+      if (localPath) {
+        FileViewer.open(localPath, {
+          showOpenWithDialog: true,
+          showAppsSuggestions: true,
+        })
+          .then(() => {
+            // File opened successfully
+          })
+          .catch(error => {
+            showToast('Cannot open file. Install supporting app.', ToastAndroid.LONG);
+          });
+      }
+    }, [localPath]);
 
     return (
       <View style={styles.center}>
         <ActivityIndicator size="large" color="#000" />
-        <Text style={styles.loadingText}>Opening MS Office file...</Text>
+        <Text style={styles.loadingText}>Opening document...</Text>
       </View>
     );
   }
 
-  // ✅ Unknown type
   return (
     <View style={styles.center}>
-      <Text style={styles.errorText}>⚠ Unsupported file format</Text>
+      <Text style={styles.errorText}>Unsupported file format</Text>
     </View>
   );
 };
