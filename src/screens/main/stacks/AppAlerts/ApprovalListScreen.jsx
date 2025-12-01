@@ -24,7 +24,7 @@ const ApprovalListScreen = ({route, navigation}) => {
     voucher_approval: 'data_unapprove_voucher',
     delivery_approval: 'data_unapprove_deliveries',
     electrocal_job_cards: 'data_electrical_job_cards',
-    mechanical_job_cards: 'data_Mechanical_job_cards',
+    mechnical_job_cards: 'data_Mechnical_job_cards', // ✅ Corrected: 'mechnical' not 'mechanical'
   };
 
   useEffect(() => {
@@ -36,8 +36,17 @@ const ApprovalListScreen = ({route, navigation}) => {
     try {
       const res = await axios.get(`${BASEURL}dash_approval.php`);
 
+      console.log('API Response keys:', Object.keys(res.data));
+      console.log('Looking for key:', keyMap[listKey]);
+      console.log('Data available:', res.data?.[keyMap[listKey]]);
+
       const mappedKey = keyMap[listKey];
       const newData = res.data?.[mappedKey] || [];
+
+      console.log('Fetched data:', newData);
+      console.log('Data type:', typeof newData);
+      console.log('Is array?', Array.isArray(newData));
+      console.log('Data length:', newData.length);
 
       setData(newData);
     } catch (err) {
@@ -63,7 +72,6 @@ const ApprovalListScreen = ({route, navigation}) => {
           },
         },
       );
-
       console.log('Approve Response:', res.data);
 
       if (res.data?.status === true) {
@@ -105,7 +113,7 @@ const ApprovalListScreen = ({route, navigation}) => {
     <View style={{flex: 1, backgroundColor: APPCOLORS.Secondary}}>
       <SimpleHeader title={title || 'Approvals'} />
       <ScrollView contentContainerStyle={{padding: 15, flexGrow: 1}}>
-        {data.length > 0 ? (
+        {data && data.length > 0 ? (
           data.map((item, index) => (
             <ApprovalCard
               key={index}
@@ -149,6 +157,17 @@ const ApprovalListScreen = ({route, navigation}) => {
                 paddingHorizontal: 20,
               }}>
               There are no records pending for approval in this module.
+            </Text>
+            <Text
+              style={{
+                textAlign: 'center',
+                marginTop: 10,
+                fontSize: 12,
+                color: APPCOLORS.WHITE,
+                paddingHorizontal: 20,
+                fontStyle: 'italic',
+              }}>
+              Key: {listKey} → Mapped to: {keyMap[listKey]}
             </Text>
           </View>
         )}

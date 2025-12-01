@@ -13,11 +13,11 @@ import {useNavigation} from '@react-navigation/native';
 import axios from 'axios';
 import SimpleHeader from '../../../../components/SimpleHeader';
 import {useSelector} from 'react-redux';
-import { BASEURL } from '../../../../utils/BaseUrl';
+import {BASEURL} from '../../../../utils/BaseUrl';
 
 const GrnDeliveryNote = ({route}) => {
   const navigation = useNavigation();
-  const {orderId, personId, locCode} = route.params || {};
+  const {orderId, personId, locCode, location, name} = route.params || {};
   const currentUser = useSelector(state => state.Data.currentData);
 
   const [items, setItems] = useState([]);
@@ -132,13 +132,9 @@ const GrnDeliveryNote = ({route}) => {
       formData.append('user_id', String(currentUser?.user_id ?? '1'));
       formData.append('purch_order_details', JSON.stringify(purchOrderDetails));
 
-      await axios.post(
-        `${BASEURL}post_service_purch_sale.php`,
-        formData,
-        {
-          headers: {'Content-Type': 'multipart/form-data'},
-        },
-      );
+      await axios.post(`${BASEURL}post_service_purch_sale.php`, formData, {
+        headers: {'Content-Type': 'multipart/form-data'},
+      });
 
       ToastAndroid.show(
         'Delivery Note submitted successfully!',
@@ -157,6 +153,18 @@ const GrnDeliveryNote = ({route}) => {
     <>
       <SimpleHeader title="GRN Note" />
       <View style={styles.container}>
+        {/* Location and Name Row */}
+        <View style={styles.infoRow}>
+          <View style={styles.infoContainer}>
+            <Text style={styles.infoLabel}>Location:</Text>
+            <Text style={styles.infoValue}>{locCode || 'N/A'}</Text>
+          </View>
+          <View style={styles.infoContainer}>
+            <Text style={styles.infoLabel}>Location Name:</Text>
+            <Text style={styles.infoValue}>{name || 'N/A'}</Text>
+          </View>
+        </View>
+
         <Text style={styles.heading}>GRN Items</Text>
 
         {/* Table Header */}
@@ -206,7 +214,7 @@ const GrnDeliveryNote = ({route}) => {
                   keyboardType="numeric"
                   maxLength={5}
                   onChangeText={text =>
-                    handleDeliveredChange(item.id, text, item.quantity)
+                    handleDeliveredChange(item.id, text, item.quantity_ordered)
                   }
                 />
               </View>
@@ -240,6 +248,32 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#FFFFFF',
     padding: 15,
+  },
+  // Location and Name Row Styles
+  infoRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 15,
+  },
+  infoContainer: {
+    flex: 1,
+    backgroundColor: '#F0F0F0',
+    borderRadius: 10,
+    padding: 12,
+    marginHorizontal: 5,
+    borderWidth: 1,
+    borderColor: '#ddd',
+  },
+  infoLabel: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#666',
+    marginBottom: 4,
+  },
+  infoValue: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#000',
   },
   heading: {
     color: '#000',

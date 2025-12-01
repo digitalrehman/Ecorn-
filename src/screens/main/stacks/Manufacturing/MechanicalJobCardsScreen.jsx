@@ -48,6 +48,7 @@ const MechanicalJobCardsScreen = ({navigation}) => {
     try {
       setLoading(true);
       const res = await axios.get(`${BASEURL}mechanical_job_cards.php`);
+
       if (res.data?.status === 'true') {
         const rows = res.data.data;
         setAllData(rows);
@@ -114,43 +115,57 @@ const MechanicalJobCardsScreen = ({navigation}) => {
   // 📌 Render table row
   const renderRow = ({item}) => (
     <View style={styles.row}>
-      <Text style={styles.cell}>{item.reference}</Text>
-      <Text style={styles.cell}>{formatDate(item.bulk_entry_date)}</Text>
+      <Text style={[styles.cell, {flex: 0.9}]}>{item.reference}</Text>
+      <Text style={[styles.cell, {flex: 0.8}]}>
+        {formatDate(item.bulk_entry_date)}
+      </Text>
 
       {/* 🔹 Order No column = Location name */}
-      <Text style={styles.cell}>{locationMap[item.location] || item.ref}</Text>
+      <Text style={[styles.cell, {flex: 1}]}>
+        {locationMap[item.location] || item.ref}
+      </Text>
 
-      <Text style={styles.cell}>{item.entry_by}</Text>
-      <View
-        style={[
-          styles.cell,
-          {flexDirection: 'row', justifyContent: 'space-around'},
-        ]}>
-        {/* 🔹 Estimate Icon */}
-        <TouchableOpacity
-          style={{alignItems: 'center'}}
-          onPress={() =>
-            navigation.navigate('MechanicalEstimate', {
-              job_id: item.job_id,
-              project_id: item.sale_order,
-              requisitionid: item.requisitionid,
-            })
-          }>
-          <Ionicons name="document-text-outline" size={22} color="#4cafef" />
-          <Text style={{color: COLORS.WHITE, fontSize: 8}}>Estimate</Text>
-        </TouchableOpacity>
+      <Text style={[styles.cell, {flex: 0.8}]}>{item.entry_by}</Text>
+      <View style={[styles.cell, {flex: 1.5}]}>
+        <View style={styles.actionContainer}>
+          {/* 🔹 Estimate Icon */}
+          <TouchableOpacity
+            style={styles.actionIcon}
+            onPress={() =>
+              navigation.navigate('MechanicalEstimate', {
+                job_id: item.job_id,
+                project_id: item.sale_order,
+                requisitionid: item.requisitionid,
+              })
+            }>
+            <Ionicons name="document-text-outline" size={20} color="#4cafef" />
+            <Text style={styles.iconLabel}>Estimate</Text>
+          </TouchableOpacity>
 
-        {/* 🔹 Produce Icon */}
-        <TouchableOpacity
-          style={{alignItems: 'center'}}
-          onPress={() =>
-            navigation.navigate('MechanicalProduce', {
-              sales_order: item.sale_order,
-            })
-          }>
-          <Ionicons name="hammer-outline" size={22} color="#ff9800" />
-          <Text style={{color: COLORS.WHITE, fontSize: 8}}>Produce</Text>
-        </TouchableOpacity>
+          {/* 🔹 Produce Icon */}
+          <TouchableOpacity
+            style={styles.actionIcon}
+            onPress={() =>
+              navigation.navigate('MechanicalProduce', {
+                sales_order: item.sale_order,
+              })
+            }>
+            <Ionicons name="hammer-outline" size={20} color="#ff9800" />
+            <Text style={styles.iconLabel}>Produce</Text>
+          </TouchableOpacity>
+
+          {/* 🔹 NEW: Manufacturing View Icon */}
+          <TouchableOpacity
+            style={styles.actionIcon}
+            onPress={() =>
+              navigation.navigate('ManufacturingView', {
+                trans_no: item.sale_order,
+              })
+            }>
+            <Ionicons name="eye-outline" size={20} color="#4CAF50" />
+            <Text style={styles.iconLabel}>View</Text>
+          </TouchableOpacity>
+        </View>
       </View>
     </View>
   );
@@ -236,11 +251,11 @@ const MechanicalJobCardsScreen = ({navigation}) => {
 
       {/* Table Header */}
       <View style={[styles.row, {backgroundColor: 'rgba(255,255,255,0.1)'}]}>
-        <Text style={styles.headerCell}>Ref</Text>
-        <Text style={styles.headerCell}>Date</Text>
-        <Text style={styles.headerCell}>Order No</Text>
-        <Text style={styles.headerCell}>User</Text>
-        <Text style={styles.headerCell}>Action</Text>
+        <Text style={[styles.headerCell, {flex: 0.9}]}>Ref</Text>
+        <Text style={[styles.headerCell, {flex: 0.8}]}>Date</Text>
+        <Text style={[styles.headerCell, {flex: 1}]}>Order No</Text>
+        <Text style={[styles.headerCell, {flex: 0.8}]}>User</Text>
+        <Text style={[styles.headerCell, {flex: 1.5}]}>Action</Text>
       </View>
 
       {/* Table Data */}
@@ -297,7 +312,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     justifyContent: 'center',
     borderRadius: 6,
-    backgroundColor: COLORS.Primary, // theme color
+    backgroundColor: COLORS.Primary,
   },
   row: {
     flexDirection: 'row',
@@ -305,8 +320,36 @@ const styles = StyleSheet.create({
     borderBottomWidth: 0.3,
     borderColor: '#555',
   },
-  cell: {flex: 1, color: COLORS.WHITE, fontSize: 13},
-  headerCell: {flex: 1, color: '#ddd', fontWeight: '700', fontSize: 13},
+  cell: {
+    color: COLORS.WHITE,
+    fontSize: 12,
+    textAlign: 'center',
+  },
+  headerCell: {
+    color: '#ddd',
+    fontWeight: '700',
+    fontSize: 12,
+    textAlign: 'center',
+  },
+  // Action container for 4 icons
+  actionContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    alignItems: 'center',
+    flexWrap: 'wrap',
+  },
+  actionIcon: {
+    alignItems: 'center',
+    paddingHorizontal: 3,
+    paddingVertical: 2,
+    minWidth: 40,
+  },
+  iconLabel: {
+    color: COLORS.WHITE,
+    fontSize: 8,
+    marginTop: 2,
+    textAlign: 'center',
+  },
   noDataBox: {
     marginTop: 40,
     alignItems: 'center',

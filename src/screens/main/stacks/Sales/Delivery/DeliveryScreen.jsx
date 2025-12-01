@@ -99,11 +99,9 @@ const DeliveryScreen = ({navigation}) => {
         person_id: person || '',
       };
 
-
       const res = await axios.post(`${BASEURL}pending_so.php`, postData, {
         headers: {'Content-Type': 'application/x-www-form-urlencoded'},
       });
-
 
       // 🧠 Extract JSON if extra text exists
       if (typeof res.data === 'string') {
@@ -113,7 +111,6 @@ const DeliveryScreen = ({navigation}) => {
 
       if (res.data?.status === 'true' && Array.isArray(res.data.data)) {
         const cleanData = [...res.data.data];
-        console.log('🧾 Transactions Count:', cleanData.length);
         setTransactions(cleanData);
       } else {
         console.log('⚠️ No valid data array received', res.data);
@@ -136,45 +133,59 @@ const DeliveryScreen = ({navigation}) => {
   };
 
   const renderItem = ({item, index}) => (
-  <Animatable.View
-    animation="fadeInUp"
-    duration={600}
-    delay={index * 100}
-    style={styles.row}>
-    
-    <View style={styles.cellWrapper}>
-      <Text style={styles.cell}>{item.reference || '-'}</Text>
-    </View>
+    <Animatable.View
+      animation="fadeInUp"
+      duration={600}
+      delay={index * 100}
+      style={styles.row}>
+      <View style={styles.cellWrapper}>
+        <Text style={styles.cell}>{item.reference || '-'}</Text>
+      </View>
 
-    <View style={styles.cellWrapper}>
-      <Text style={styles.cell}>
-        {new Date(item.ord_date).toLocaleDateString('en-GB')}
-      </Text>
-    </View>
+      <View style={styles.cellWrapper}>
+        <Text style={styles.cell}>
+          {new Date(item.ord_date).toLocaleDateString('en-GB')}
+        </Text>
+      </View>
 
-    <View style={styles.cellWrapper}>
-      <Text style={styles.cell}>{formatAmount(item.total)}</Text>
-    </View>
+      <View style={styles.cellWrapper}>
+        <Text style={styles.cell}>{formatAmount(item.total)}</Text>
+      </View>
 
-    <View style={[styles.cellWrapper, {borderRightWidth: 0}]}>
-      <TouchableOpacity
-        style={{alignItems: 'center'}}
-        onPress={() =>
-          navigation.navigate('DeliveryNote', {
-            orderId: item.order_no,
-            personId: item.person_id,
-            locCode: item.location,
-            price_list: item.price_list,
-            ship_via: item.ship_via,
-          })
-        }>
-        <Icon name="truck-delivery" size={22} color="#1a1c22" />
-      </TouchableOpacity>
-    </View>
-  </Animatable.View>
-);
+      <View style={[styles.cellWrapper, {borderRightWidth: 0}]}>
+        <View style={styles.actionContainer}>
+          {/* Delivery Icon */}
+          <TouchableOpacity
+            style={styles.iconButton}
+            onPress={() =>
+              navigation.navigate('DeliveryNote', {
+                orderId: item.order_no,
+                personId: item.person_id,
+                locCode: item.location,
+                price_list: item.price_list,
+                ship_via: item.ship_via,
+                name: item.name,
+                location: item.location_name,
+              })
+            }>
+            <Icon name="truck-delivery" size={22} color="#1a1c22" />
+          </TouchableOpacity>
 
-
+          {/* View Transaction Icon - NEW */}
+          <TouchableOpacity
+            style={[styles.iconButton, {marginLeft: 10}]}
+            onPress={() =>
+              navigation.navigate('ViewTransactions', {
+                trans_no: item.order_no,
+                type: 30, // Sales Order type
+              })
+            }>
+            <Icon name="eye-outline" size={22} color="#1a1c22" />
+          </TouchableOpacity>
+        </View>
+      </View>
+    </Animatable.View>
+  );
   return (
     <View style={styles.container}>
       <SimpleHeader title="Delivery" />
@@ -361,12 +372,21 @@ const styles = StyleSheet.create({
   },
   cell: {fontSize: 12, color: '#000', textAlign: 'center'},
   cellWrapper: {
-  flex: 1,
-  flexDirection: 'row',
-  alignItems: 'center',
-  justifyContent: 'center',
-  borderRightWidth: 1,
-  borderRightColor: '#d1d1d1',
-  paddingHorizontal: 4,
-}
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRightWidth: 1,
+    borderRightColor: '#d1d1d1',
+    paddingHorizontal: 4,
+  },
+  actionContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+
+  iconButton: {
+    padding: 5,
+  },
 });

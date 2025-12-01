@@ -108,6 +108,8 @@ const GrnAgainst = ({navigation, route}) => {
         headers: {'Content-Type': 'multipart/form-data'},
       });
 
+      console.log(res.data);
+
       // 🧠 Handle extra junk text
       if (typeof res.data === 'string') {
         const match = res.data.match(/\{.*\}/s);
@@ -166,9 +168,23 @@ const GrnAgainst = ({navigation, route}) => {
               orderId: item.order_no,
               personId: item.person_id,
               locCode: item.location,
+              location: item.location_name,
+              name: item.name,
             })
           }>
           <Icon name="truck-delivery" size={22} color="#1a1c22" />
+        </TouchableOpacity>
+
+        {/* View Transaction Icon - NEW */}
+        <TouchableOpacity
+          style={[styles.iconButton, {marginLeft: 10}]}
+          onPress={() =>
+            navigation.navigate('ViewTransactions', {
+              trans_no: item.order_no,
+              type: 30, // Sales Order type
+            })
+          }>
+          <Icon name="eye-outline" size={22} color="#1a1c22" />
         </TouchableOpacity>
       </View>
     </Animatable.View>
@@ -281,7 +297,7 @@ const GrnAgainst = ({navigation, route}) => {
         <View style={{alignItems: 'center', marginTop: 30}}>
           <Icon name="check-circle-outline" size={40} color="#4CAF50" />
           <Text style={{marginTop: 10, color: '#4CAF50', fontWeight: '600'}}>
-            All Purchase Orders are completed 🎉
+            All Purchase Orders are completed
           </Text>
         </View>
       ) : (
@@ -384,5 +400,14 @@ const styles = StyleSheet.create({
     borderRightWidth: 1,
     borderRightColor: '#d1d1d1',
     paddingHorizontal: 4,
+  },
+  actionContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+
+  iconButton: {
+    padding: 5,
   },
 });

@@ -9,7 +9,7 @@ import axios from 'axios';
 import SimpleHeader from '../../../../components/SimpleHeader';
 import AlertCards from '../../../../components/AlertCards';
 import {APPCOLORS} from '../../../../utils/APPCOLORS';
-import { BASEURL } from '../../../../utils/BaseUrl';
+import {BASEURL} from '../../../../utils/BaseUrl';
 
 const AlertScreen = ({navigation}) => {
   const [AllData, setAllData] = useState({});
@@ -23,9 +23,8 @@ const AlertScreen = ({navigation}) => {
   const getAllData = async () => {
     setLoading(true);
     try {
-      const res = await axios.get(
-        `${BASEURL}dash_approval.php`,
-      );
+      const res = await axios.get(`${BASEURL}dash_approval.php`);
+      console.log('API Response: ', res.data);
 
       const newData = res.data?.approval_data || {};
       setAllData(newData);

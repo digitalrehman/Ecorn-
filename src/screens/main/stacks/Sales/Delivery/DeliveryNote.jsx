@@ -12,11 +12,12 @@ import {
 import {useNavigation} from '@react-navigation/native';
 import axios from 'axios';
 import SimpleHeader from '../../../../../components/SimpleHeader';
-import { BASEURL } from '../../../../../utils/BaseUrl';
+import {BASEURL} from '../../../../../utils/BaseUrl';
 
 const DeliveryNote = ({route}) => {
   const navigation = useNavigation();
-  const {orderId, personId, locCode, price_list, ship_via} = route.params || {};
+  const {orderId, personId, locCode, price_list, ship_via, name, location} =
+    route.params || {};
 
   const [driverName, setDriverName] = useState('');
   const [vehicleName, setVehicleName] = useState('');
@@ -145,13 +146,9 @@ const DeliveryNote = ({route}) => {
       formData.append('purch_order_details', JSON.stringify(purchOrderDetails));
 
       console.log('Submitting form data:', formData);
-      await axios.post(
-        `${BASEURL}post_service_purch_sale.php`,
-        formData,
-        {
-          headers: {'Content-Type': 'multipart/form-data'},
-        },
-      );
+      await axios.post(`${BASEURL}post_service_purch_sale.php`, formData, {
+        headers: {'Content-Type': 'multipart/form-data'},
+      });
 
       ToastAndroid.show('Delivery Note submitted!', ToastAndroid.LONG);
       navigation.goBack();
@@ -167,7 +164,19 @@ const DeliveryNote = ({route}) => {
     <>
       <SimpleHeader title="Delivery Note" />
       <View style={styles.container}>
-        {/* Driver + Vehicle Inputs */}
+        {/* Location + Location Name - Second Row */}
+        <View style={styles.row}>
+          <View style={styles.locationContainer}>
+            <Text style={styles.locationLabel}>Customer Name:</Text>
+            <Text style={styles.locationValue}>{name || 'N/A'}</Text>
+          </View>
+          <View style={styles.locationContainer}>
+            <Text style={styles.locationLabel}>Location:</Text>
+            <Text style={styles.locationValue}>{location || 'N/A'}</Text>
+          </View>
+        </View>
+
+        {/* Driver + Vehicle Inputs - First Row */}
         <View style={styles.row}>
           <TextInput
             style={styles.input}
@@ -279,6 +288,26 @@ const styles = StyleSheet.create({
     marginHorizontal: 5,
     borderWidth: 1,
     borderColor: '#ddd',
+  },
+  locationContainer: {
+    flex: 1,
+    backgroundColor: '#F0F0F0',
+    borderRadius: 10,
+    padding: 12,
+    marginHorizontal: 5,
+    borderWidth: 1,
+    borderColor: '#ddd',
+  },
+  locationLabel: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#666',
+    marginBottom: 4,
+  },
+  locationValue: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#000',
   },
   heading: {
     color: '#000',
