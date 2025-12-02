@@ -24,7 +24,7 @@ const ApprovalListScreen = ({route, navigation}) => {
     voucher_approval: 'data_unapprove_voucher',
     delivery_approval: 'data_unapprove_deliveries',
     electrocal_job_cards: 'data_electrical_job_cards',
-    mechnical_job_cards: 'data_Mechnical_job_cards', // ✅ Corrected: 'mechnical' not 'mechanical'
+    mechnical_job_cards: 'data_Mechnical_job_cards',
   };
 
   useEffect(() => {
@@ -98,9 +98,6 @@ const ApprovalListScreen = ({route, navigation}) => {
     }
   };
 
-  // ✅ YAHAN LOGIC LAGAO: Check if current screen is Voucher Approval
-  const isVoucherScreen = listKey === 'voucher_approval';
-
   if (loading && data.length === 0) {
     return (
       <View style={{flex: 1, alignItems: 'center', justifyContent: 'center'}}>
@@ -124,8 +121,7 @@ const ApprovalListScreen = ({route, navigation}) => {
               trans_no={item.trans_no}
               type={item.type}
               navigation={navigation}
-              // ✅ YAHAN CONDITIONAL PROP PASS KARO
-              screenType={isVoucherScreen ? 'voucher_approval' : 'other'}
+              screenType={listKey}
               onApprove={() => handleApprove(item)}
             />
           ))

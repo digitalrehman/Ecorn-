@@ -24,18 +24,21 @@ const ApprovalCard = ({
   trans_no,
   type,
   navigation,
-  screenType, // Add this prop to identify screen type
+  screenType,
 }) => {
   const [viewLoading, setViewLoading] = useState(false);
   const [approveLoading, setApproveLoading] = useState(false);
   const [downloadLoading, setDownloadLoading] = useState(false);
   const [glViewLoading, setGlViewLoading] = useState(false);
 
-  // Check if this is Voucher screen
   const isVoucherScreen = screenType === 'voucher_approval';
 
-  // GL View API Call - Only for Voucher screen
+  const isJobCardScreen =
+    screenType === 'electrocal_job_cards' ||
+    screenType === 'mechnical_job_cards';
   const handleGLView = async () => {
+    if (!isVoucherScreen) return;
+
     setGlViewLoading(true);
     try {
       const formData = new FormData();
@@ -50,7 +53,6 @@ const ApprovalCard = ({
 
       console.log('GL View API Response:', response.data);
 
-      // Navigate to GL View Screen with the API data
       navigation.navigate('GLViewScreen', {
         glData: response.data,
         reference: reference,
@@ -67,27 +69,28 @@ const ApprovalCard = ({
       setGlViewLoading(false);
     }
   };
-
   const handleView = async () => {
     setViewLoading(true);
     try {
-      const formData = new FormData();
-      formData.append('trans_no', trans_no);
-      formData.append('type', type);
+      if (isJobCardScreen) {
+        navigation.navigate('ManufacturingView', {
+          trans_no: trans_no,
+        });
+      } else {
+        const formData = new FormData();
+        formData.append('trans_no', trans_no);
+        formData.append('type', type);
 
-      const response = await axios.post(
-        `${BASEURL}view_data.php`,
-        formData,
-        {
+        const response = await axios.post(`${BASEURL}view_data.php`, formData, {
           headers: {
             'Content-Type': 'multipart/form-data',
           },
-        },
-      );
-      // Navigate to View Details Screen with the API data
-      navigation.navigate('ViewDetailsScreen', {
-        viewData: response.data,
-      });
+        });
+
+        navigation.navigate('ViewDetailsScreen', {
+          viewData: response.data,
+        });
+      }
     } catch (error) {
       console.log('View API Error:', error);
       Toast.show({
@@ -112,20 +115,15 @@ const ApprovalCard = ({
   const handleDownloadPDF = async () => {
     setDownloadLoading(true);
     try {
-      // First get the data
       const formData = new FormData();
       formData.append('trans_no', trans_no);
       formData.append('type', type);
 
-      const response = await axios.post(
-        `${BASEURL}view_data.php`,
-        formData,
-        {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-          },
+      const response = await axios.post(`${BASEURL}view_data.php`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
         },
-      );
+      });
 
       const data = response.data;
       await generateAndDownloadPDF(data, reference);
@@ -186,7 +184,6 @@ const ApprovalCard = ({
               />
             </View>
 
-            {/* Buttons Row - Conditional rendering based on screen type */}
             <View style={styles.buttonsRow}>
               {/* Approve Button */}
               <TouchableOpacity
@@ -339,10 +336,10 @@ const styles = StyleSheet.create({
     minHeight: 36,
   },
   threeButton: {
-    flex: 1, // Equal width for 3 buttons
+    flex: 1,
   },
   fourButton: {
-    flex: 1, // Equal width for 4 buttons
+    flex: 1,
   },
   button: {
     paddingVertical: 8,

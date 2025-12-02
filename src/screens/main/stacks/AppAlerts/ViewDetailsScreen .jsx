@@ -1,5 +1,6 @@
 import React from 'react';
-import {View, ScrollView, Animated} from 'react-native';
+import {View, ScrollView, Animated, Text, StyleSheet} from 'react-native';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import SimpleHeader from '../../../../components/SimpleHeader';
 import AppText from '../../../../components/AppText';
 import {APPCOLORS} from '../../../../utils/APPCOLORS';
@@ -7,8 +8,8 @@ import LinearGradient from 'react-native-linear-gradient';
 
 const ViewDetailsScreen = ({route}) => {
   const {viewData} = route.params;
-  const header = viewData.data_header?.[0];
-  const details = viewData.data_detail || [];
+  const header = viewData?.data_header?.[0];
+  const details = viewData?.data_detail || [];
 
   // Animation values
   const fadeAnim = new Animated.Value(0);
@@ -28,6 +29,48 @@ const ViewDetailsScreen = ({route}) => {
       }),
     ]).start();
   }, []);
+
+  // Check if no data is available
+  const hasData = header || details.length > 0;
+
+  if (!hasData) {
+    return (
+      <View style={styles.container}>
+        <SimpleHeader title="View Details" />
+        <View style={styles.noDataContainer}>
+          <Animated.View
+            style={[
+              styles.noDataContent,
+              {
+                opacity: fadeAnim,
+                transform: [{translateY: slideAnim}],
+              },
+            ]}>
+            <Icon name="database-off" size={80} color={APPCOLORS.WHITE} />
+            <AppText
+              title="No Data Available"
+              titleSize={3}
+              titleColor={APPCOLORS.WHITE}
+              titleWeight
+              style={styles.noDataTitle}
+            />
+            <AppText
+              title="There are no details available to display."
+              titleSize={2}
+              titleColor={APPCOLORS.WHITE}
+              style={styles.noDataSubtitle}
+            />
+            <AppText
+              title="Please check if the transaction exists or try again later."
+              titleSize={1.8}
+              titleColor={APPCOLORS.WHITE}
+              style={styles.noDataMessage}
+            />
+          </Animated.View>
+        </View>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -249,7 +292,6 @@ const ViewDetailsScreen = ({route}) => {
                   <LinearGradient
                     colors={['rgba(255,255,255,0.1)', 'rgba(255,255,255,0.05)']}
                     style={styles.itemGradient}>
-
                     <View style={styles.itemDetails}>
                       <View style={styles.detailRow}>
                         <AppText
@@ -321,7 +363,7 @@ const ViewDetailsScreen = ({route}) => {
   );
 };
 
-const styles = {
+const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: APPCOLORS.Secondary,
@@ -332,6 +374,33 @@ const styles = {
   scrollContent: {
     padding: 15,
   },
+  // No Data Styles
+  noDataContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  noDataContent: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  noDataTitle: {
+    marginTop: 20,
+    marginBottom: 10,
+    textAlign: 'center',
+  },
+  noDataSubtitle: {
+    marginBottom: 10,
+    textAlign: 'center',
+    opacity: 0.9,
+  },
+  noDataMessage: {
+    textAlign: 'center',
+    opacity: 0.8,
+    paddingHorizontal: 20,
+  },
+  // Existing Styles
   cardWrapper: {
     borderRadius: 20,
     overflow: 'hidden',
@@ -389,10 +458,6 @@ const styles = {
     padding: 15,
     borderRadius: 12,
   },
-  itemNumber: {
-    textAlign: 'center',
-    marginBottom: 10,
-  },
   itemDetails: {
     gap: 6,
   },
@@ -418,6 +483,6 @@ const styles = {
     marginTop: 4,
     lineHeight: 16,
   },
-};
+});
 
 export default ViewDetailsScreen;

@@ -7,7 +7,6 @@ import NotificationScreen from '../screens/main/stacks/NotificationScreen';
 import MoreDetail from '../screens/main/stacks/DetailScreens/MoreDetail';
 import ViewAll from '../screens/main/stacks/DetailScreens/ViewAll';
 import AlertScreen from '../screens/main/stacks/AppAlerts/AlertScreen';
-import AlertsDetail from '../screens/main/stacks/AppAlerts/AlertsDetail';
 import NormalViewAll from '../screens/main/stacks/DetailScreens/NormalViewAll';
 import PdfScreen from '../screens/main/stacks/DetailScreens/PdfScreen';
 import ProfitAndLossScreen from '../screens/main/stacks/ProfitAndLoss/ProfitAndLossScreen';
@@ -95,7 +94,6 @@ const Main = () => {
       <Stack.Screen name="ViewAll" component={ViewAll} />
       <Stack.Screen name="NotificationScreen" component={NotificationScreen} />
       <Stack.Screen name="AlertScreen" component={AlertScreen} />
-      <Stack.Screen name="AlertsDetail" component={AlertsDetail} />
       <Stack.Screen name="NormalViewAll" component={NormalViewAll} />
       <Stack.Screen name="PdfScreen" component={PdfScreen} />
       <Stack.Screen
