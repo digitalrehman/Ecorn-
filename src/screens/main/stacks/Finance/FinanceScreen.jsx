@@ -8,13 +8,6 @@ import * as Animatable from 'react-native-animatable';
 
 const buttons = [
   {name: 'View Ledger', icon: 'book-open-page-variant', screen: 'ViewLedger'},
-  {name: 'Finance Approval', icon: 'check-decagram', screen: 'FinanceApproval'},
-  {
-    name: 'Upload Payment Document',
-    icon: 'file-upload',
-    screen: 'UploadPayment',
-  },
-  {name: 'View Cash Summary', icon: 'cash-multiple', screen: 'CashSummary'},
   {
     name: 'Expense Claim Submission',
     icon: 'file-document-edit',

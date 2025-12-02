@@ -64,36 +64,36 @@ const Ledger = ({navigation, route}) => {
       useNativeDriver: true,
     }).start();
   }, [fadeAnim]);
-const getLeger = () => {
-  setLoader(true);
-  let data = new FormData();
-  data.append('customer_id', item.customer_id);
-  data.append(
-    'from_date',
-    moment(fromDate).subtract(1, 'months').format('YYYY-MM-DD'),
-  );
-  data.append('to_date', moment(EndDate).format('YYYY-MM-DD'));
+  const getLeger = () => {
+    setLoader(true);
+    let data = new FormData();
+    data.append('customer_id', item.customer_id);
+    data.append(
+      'from_date',
+      moment(fromDate).subtract(1, 'months').format('YYYY-MM-DD'),
+    );
+    data.append('to_date', moment(EndDate).format('YYYY-MM-DD'));
 
-  axios
-    .post(`${BASEURL}dash_cust_ledger.php`, data, {
-      headers: {'Content-Type': 'multipart/form-data'},
-      timeout: 30000,
-    })
-    .then(res => {
-      setAgingData(res.data.data_cust_age || []);
-      setOpening(res.data.opening || 0);
-      calculateClosingBalance(res.data.data_cust_age, res.data.opening);
-    })
-    .catch(error => {
-      console.log(' API Error Details:', {
-        message: error.message,
-        code: error.code,
-        response: error.response,
-        request: error.request
-      });
-    })
-    .finally(() => setLoader(false));
-};
+    axios
+      .post(`${BASEURL}dash_cust_ledger.php`, data, {
+        headers: {'Content-Type': 'multipart/form-data'},
+        timeout: 30000,
+      })
+      .then(res => {
+        setAgingData(res.data.data_cust_age || []);
+        setOpening(res.data.opening || 0);
+        calculateClosingBalance(res.data.data_cust_age, res.data.opening);
+      })
+      .catch(error => {
+        console.log(' API Error Details:', {
+          message: error.message,
+          code: error.code,
+          response: error.response,
+          request: error.request,
+        });
+      })
+      .finally(() => setLoader(false));
+  };
 
   const getSupplierLeger = () => {
     setLoader(true);
@@ -112,7 +112,7 @@ const getLeger = () => {
       })
       .then(res => {
         setAgingData(res.data.data_cust_age);
-        console.log("Supplier Ledger Response:", res);
+        console.log('Supplier Ledger Response:', res);
         setOpening(res.data.opening);
         calculateClosingBalance(res.data.data_cust_age, res.data.opening);
       })
@@ -124,8 +124,8 @@ const getLeger = () => {
     setLoader(true);
     let data = new FormData();
     data.append('stock_id', item?.stock_id);
-    console.log("Item stock_id:", item?.stock_id);
-    
+    console.log('Item stock_id:', item?.stock_id);
+
     axios
       .post(`${BASEURL}dash_item_ledger.php`, data, {
         headers: {'Content-Type': 'multipart/form-data'},
@@ -133,7 +133,7 @@ const getLeger = () => {
       .then(res => {
         setAgingData(res.data.data_cust_age);
         console.log(res);
-        
+
         setOpening(0);
         setClosingBalance(0);
       })
@@ -193,7 +193,7 @@ const getLeger = () => {
     }
 
     let currentBalance = parseFloat(openingBalance) || 0;
-    
+
     transactions.forEach(transaction => {
       const debit = parseFloat(transaction.debit) || 0;
       const credit = parseFloat(transaction.credit) || 0;
@@ -218,12 +218,18 @@ const getLeger = () => {
 
   const getTitle = () => {
     switch (name) {
-      case 'Customer': return 'Customer Ledger';
-      case 'Suppliers': return 'Supplier Ledger';
-      case 'Items': return 'Item Ledger';
-      case 'Banks': return 'Bank Ledger';
-      case 'Audit': return 'Audit Trail';
-      default: return 'Ledger';
+      case 'Customer':
+        return 'Customer Ledger';
+      case 'Suppliers':
+        return 'Supplier Ledger';
+      case 'Items':
+        return 'Item Ledger';
+      case 'Banks':
+        return 'Bank Ledger';
+      case 'Audit':
+        return 'Audit Trail';
+      default:
+        return 'Ledger';
     }
   };
 
@@ -235,10 +241,7 @@ const getLeger = () => {
   const Row = ({label, value, isAmount = false}) => (
     <View style={styles.row}>
       <Text style={styles.rowLabel}>{label}</Text>
-      <Text style={[
-        styles.rowValue,
-        isAmount && styles.amountText
-      ]}>
+      <Text style={[styles.rowValue, isAmount && styles.amountText]}>
         {isAmount && value > 0 ? '+' : ''}
         {isAmount ? Math.abs(value).toFixed(2) : value?.toString() || '-'}
       </Text>
@@ -325,7 +328,9 @@ const getLeger = () => {
             <MaterialIcons
               name="file-download"
               size={26}
-              color={aging.length === 0 ? 'rgba(255,255,255,0.5)' : APPCOLORS.WHITE}
+              color={
+                aging.length === 0 ? 'rgba(255,255,255,0.5)' : APPCOLORS.WHITE
+              }
             />
           )}
         </TouchableOpacity>
@@ -443,7 +448,7 @@ const getLeger = () => {
           />
         ) : (
           <View style={styles.noDataContainer}>
-            <Icon
+            <MaterialIcons
               name="receipt-long"
               size={60}
               color={APPCOLORS.TEXTFIELDCOLOR}
