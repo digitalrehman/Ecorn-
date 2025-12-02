@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useRef} from 'react';
 import {
   View,
   ActivityIndicator,
@@ -6,139 +6,84 @@ import {
   Image,
   Text,
   StyleSheet,
-  ToastAndroid,
 } from 'react-native';
 import Pdf from 'react-native-pdf';
 import RNFetchBlob from 'react-native-blob-util';
 import FileViewer from 'react-native-file-viewer';
+import SimpleHeader from '../../../../components/SimpleHeader';
 import {BASEURL} from '../../../../utils/BaseUrl';
 
-const FileViewerScreen = ({route}) => {
+const FileViewerScreen = ({route, navigation}) => {
   const {type, trans_no} = route.params;
   const [localPath, setLocalPath] = useState(null);
   const [fileType, setFileType] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const filePathRef = useRef(null);
 
   useEffect(() => {
-    fetchFile();
+    fetchAndCacheFile();
+
+    return () => {
+      if (filePathRef.current) {
+        RNFetchBlob.fs.unlink(filePathRef.current).catch(() => {});
+      }
+    };
   }, []);
 
-  // Show toast message
-  const showToast = (message, duration = ToastAndroid.SHORT) => {
-    if (Platform.OS === 'android') {
-      ToastAndroid.show(message, duration);
+  const detectFileTypeFromHeaders = async response => {
+    const contentType =
+      response.headers['Content-Type'] || response.headers['content-type'];
+
+    if (contentType) {
+      if (contentType.includes('pdf')) return 'pdf';
+      if (contentType.includes('jpeg') || contentType.includes('jpg'))
+        return 'jpg';
+      if (contentType.includes('png')) return 'png';
+      if (contentType.includes('gif')) return 'gif';
+      if (
+        contentType.includes('msword') ||
+        contentType.includes('officedocument.wordprocessingml')
+      )
+        return 'docx';
+      if (
+        contentType.includes('excel') ||
+        contentType.includes('spreadsheetml')
+      )
+        return 'xlsx';
     }
+
+    return 'jpg';
   };
 
-  const detectFileType = async filePath => {
+  const detectFileTypeFast = async filePath => {
     try {
-      const base64Data = await RNFetchBlob.fs.readFile(filePath, 'base64');
+      const base64Data = await RNFetchBlob.fs.readFile(filePath, 'base64', 20);
 
-      if (base64Data.startsWith('/9j/') || base64Data.includes('/9j/')) {
-        return 'jpg';
-      }
-      if (base64Data.startsWith('iVBORw0KGgo') || base64Data.includes('PNG')) {
-        return 'png';
-      }
-      if (base64Data.startsWith('JVBERi') || base64Data.includes('%PDF')) {
+      if (base64Data.startsWith('/9j/')) return 'jpg';
+      if (base64Data.startsWith('iVBORw')) return 'png';
+      if (base64Data.startsWith('JVBERi') || base64Data.includes('%PDF'))
         return 'pdf';
-      }
-      if (base64Data.startsWith('R0lGOD')) {
-        return 'gif';
-      }
+      if (base64Data.startsWith('R0lGOD')) return 'gif';
+      if (base64Data.startsWith('UEsDB') || base64Data.startsWith('PK'))
+        return 'docx';
 
       return 'jpg';
-      
     } catch (error) {
       return 'jpg';
     }
   };
 
-  const requestStoragePermission = async () => {
-    if (Platform.OS === 'android' && Platform.Version < 30) {
-      try {
-        const granted = await PermissionsAndroid.request(
-          PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
-          {
-            title: 'Storage Permission',
-            message: 'App needs access to your storage to download files',
-            buttonNeutral: 'Ask Me Later',
-            buttonNegative: 'Cancel',
-            buttonPositive: 'OK',
-          },
-        );
-        return granted === PermissionsAndroid.RESULTS.GRANTED;
-      } catch (err) {
-        return false;
-      }
-    }
-    return true;
-  };
-
-  const downloadFile = async (trans_no, type) => {
+  const fetchAndCacheFile = async () => {
     try {
-      const hasPermission = await requestStoragePermission();
-      if (!hasPermission) {
-        showToast('Storage permission required', ToastAndroid.LONG);
-        return;
-      }
+      setLoading(true);
+      setError(null);
 
-      let fileExtension = 'jpg';
-      
-      if (type === '1' || type === 'pdf') fileExtension = 'pdf';
-      else if (type === '2' || type === 'image') fileExtension = 'jpg';
-      else if (type === '3') fileExtension = 'png';
-      else if (type === '4') fileExtension = 'docx';
-
-      const downloadPath = `${RNFetchBlob.fs.dirs.DownloadDir}/${trans_no}.${fileExtension}`;
-
-      const res = await RNFetchBlob.config({
-        fileCache: true,
-        addAndroidDownloads: {
-          useDownloadManager: true,
-          notification: true,
-          title: `Downloading ${trans_no}`,
-          description: 'File download in progress',
-          mime: getMimeType(fileExtension),
-          path: downloadPath,
-        },
-      }).fetch(
-        'POST',
-        `${BASEURL}dattachment_download.php`,
-        {
-          'Content-Type': 'application/x-www-form-urlencoded',
-        },
-        `trans_no=${encodeURIComponent(trans_no)}&type=${encodeURIComponent(type)}`
-      );
-
-      showToast(`File downloaded: ${trans_no}.${fileExtension}`, ToastAndroid.LONG);
-      
-    } catch (err) {
-      showToast('Download failed', ToastAndroid.LONG);
-    }
-  };
-
-  const getMimeType = (extension) => {
-    const mimeTypes = {
-      'pdf': 'application/pdf',
-      'jpg': 'image/jpeg',
-      'jpeg': 'image/jpeg',
-      'png': 'image/png',
-      'doc': 'application/msword',
-      'docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-      'xls': 'application/vnd.ms-excel',
-      'xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-      'zip': 'application/zip',
-      'txt': 'text/plain'
-    };
-    return mimeTypes[extension] || 'application/octet-stream';
-  };
-
-  const fetchFile = async () => {
-    try {
       const formData = new FormData();
       formData.append('type', type);
       formData.append('trans_no', trans_no);
 
+      const startTime = Date.now();
       const response = await fetch(`${BASEURL}dattachment_view.php`, {
         method: 'POST',
         body: formData,
@@ -146,79 +91,168 @@ const FileViewerScreen = ({route}) => {
 
       const data = await response.json();
 
-      if (data?.url) {
-        const res = await RNFetchBlob.config({
-          fileCache: true,
-        }).fetch('GET', data.url);
-
-        const path = res.path();
-        const detectedType = await detectFileType(path);
-
-        setFileType(detectedType);
-        setLocalPath(Platform.OS === 'android' ? `file://${path}` : path);
+      if (!data?.url) {
+        throw new Error('No file URL found');
       }
-    } catch (e) {
-      showToast('Error loading file', ToastAndroid.LONG);
+      let detectedType = await detectFileTypeFromHeaders(response);
+
+      const cacheDir =
+        Platform.OS === 'android'
+          ? RNFetchBlob.fs.dirs.CacheDir
+          : RNFetchBlob.fs.dirs.DocumentDir;
+
+      const fileName = `cache_${trans_no}_${Date.now()}`;
+      const fileExtension = detectedType === 'pdf' ? 'pdf' : 'img';
+      const cachePath = `${cacheDir}/${fileName}.${fileExtension}`;
+
+      const downloadResponse = await RNFetchBlob.config({
+        fileCache: true,
+        path: cachePath,
+      }).fetch('GET', data.url, {
+        'Cache-Control': 'max-age=3600',
+      });
+
+      const downloadPath = downloadResponse.path();
+      filePathRef.current = downloadPath;
+
+      const fileStats = await RNFetchBlob.fs.stat(downloadPath);
+      if (fileStats.size === 0) {
+        throw new Error('Downloaded file is empty');
+      }
+
+      if (detectedType === 'jpg') {
+        detectedType = await detectFileTypeFast(downloadPath);
+      }
+
+      setFileType(detectedType);
+      setLocalPath(
+        Platform.OS === 'android' ? `file://${downloadPath}` : downloadPath,
+      );
+
+      const endTime = Date.now();
+      console.log(
+        `File loaded in ${
+          endTime - startTime
+        }ms, Type: ${detectedType}, Size: ${fileStats.size} bytes`,
+      );
+    } catch (error) {
+      console.error('File loading error:', error);
+      setError('Failed to load file. Please try again.');
+    } finally {
+      setLoading(false);
     }
   };
 
-  if (!localPath) {
+  // Handle retry
+  const handleRetry = () => {
+    setError(null);
+    fetchAndCacheFile();
+  };
+
+  // Render loading state
+  if (loading) {
     return (
-      <View style={styles.center}>
-        <ActivityIndicator size="large" color="#000" />
-        <Text style={styles.loadingText}>Loading file...</Text>
+      <View style={{flex: 1, backgroundColor: '#fff'}}>
+        <SimpleHeader title="View File" />
+        <View style={styles.center}>
+          <ActivityIndicator size="large" color="#000" />
+          <Text style={styles.loadingText}>Loading file...</Text>
+        </View>
       </View>
     );
   }
 
-  if (fileType === 'pdf') {
+  // Render error state
+  if (error) {
     return (
-      <Pdf
-        source={{uri: localPath, cache: true}}
-        style={{flex: 1, backgroundColor: '#fff'}}
-        onError={err => console.log('PDF render error:', err)}
-      />
+      <View style={{flex: 1, backgroundColor: '#fff'}}>
+        <SimpleHeader title="View File" />
+        <View style={styles.center}>
+          <Text style={styles.errorText}>{error}</Text>
+          <Text style={styles.retryButton} onPress={handleRetry}>
+            Tap to Retry
+          </Text>
+        </View>
+      </View>
     );
   }
 
-  if (['jpg', 'png', 'gif'].includes(fileType)) {
+  // Render PDF
+  if (fileType === 'pdf') {
     return (
-      <View style={{flex: 1, backgroundColor: '#000'}}>
-        <Image
-          source={{uri: localPath}}
-          style={{flex: 1, resizeMode: 'contain'}}
+      <View style={{flex: 1, backgroundColor: '#fff'}}>
+        <SimpleHeader title="PDF Viewer" />
+        <Pdf
+          source={{uri: localPath, cache: true}}
+          style={{flex: 1, backgroundColor: '#fff'}}
+          onLoadComplete={(numberOfPages, filePath) => {
+            console.log(`PDF loaded: ${numberOfPages} pages`);
+          }}
+          onError={error => {
+            console.log('PDF render error:', error);
+            setError('Failed to load PDF');
+          }}
+          onPageChanged={(page, numberOfPages) => {
+            console.log(`Current page: ${page}/${numberOfPages}`);
+          }}
+          trustAllCerts={false}
         />
       </View>
     );
   }
 
-  if (fileType === 'ms-office') {
-    useEffect(() => {
-      if (localPath) {
-        FileViewer.open(localPath, {
-          showOpenWithDialog: true,
-          showAppsSuggestions: true,
-        })
-          .then(() => {
-            // File opened successfully
-          })
-          .catch(error => {
-            showToast('Cannot open file. Install supporting app.', ToastAndroid.LONG);
-          });
-      }
-    }, [localPath]);
-
+  // Render Image (JPG, PNG, GIF)
+  if (['jpg', 'png', 'gif'].includes(fileType)) {
     return (
-      <View style={styles.center}>
-        <ActivityIndicator size="large" color="#000" />
-        <Text style={styles.loadingText}>Opening document...</Text>
+      <View style={{flex: 1, backgroundColor: '#000'}}>
+        <SimpleHeader title="Image Viewer" />
+        <Image
+          source={{uri: localPath}}
+          style={{flex: 1, resizeMode: 'contain'}}
+          progressiveRenderingEnabled={true}
+          fadeDuration={300}
+          onLoad={() => console.log('Image loaded successfully')}
+          onError={() => setError('Failed to load image')}
+        />
       </View>
     );
   }
 
+  // Handle Office documents
+  if (['docx', 'xlsx'].includes(fileType)) {
+    useEffect(() => {
+      if (localPath && fileType) {
+        FileViewer.open(localPath, {
+          showOpenWithDialog: true,
+          showAppsSuggestions: true,
+          onDismiss: () => {
+            console.log('File viewer dismissed');
+          },
+        }).catch(error => {
+          console.log('File viewer error:', error);
+          setError('Cannot open file. Install supporting app.');
+        });
+      }
+    }, [localPath, fileType]);
+
+    return (
+      <View style={{flex: 1, backgroundColor: '#fff'}}>
+        <SimpleHeader title="Document Viewer" />
+        <View style={styles.center}>
+          <ActivityIndicator size="large" color="#000" />
+          <Text style={styles.loadingText}>Opening document...</Text>
+        </View>
+      </View>
+    );
+  }
+
+  // Default/unsupported format
   return (
-    <View style={styles.center}>
-      <Text style={styles.errorText}>Unsupported file format</Text>
+    <View style={{flex: 1, backgroundColor: '#fff'}}>
+      <SimpleHeader title="File Viewer" />
+      <View style={styles.center}>
+        <Text style={styles.errorText}>Unsupported file format</Text>
+      </View>
     </View>
   );
 };
@@ -231,14 +265,23 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
   loadingText: {
-    marginTop: 10,
-    fontSize: 14,
-    color: '#555',
+    marginTop: 15,
+    fontSize: 16,
+    color: '#666',
+    textAlign: 'center',
   },
   errorText: {
     fontSize: 16,
-    fontWeight: 'bold',
-    color: '#000',
+    color: '#d32f2f',
+    textAlign: 'center',
+    marginBottom: 20,
+    paddingHorizontal: 20,
+  },
+  retryButton: {
+    fontSize: 16,
+    color: '#1976d2',
+    textDecorationLine: 'underline',
+    marginTop: 10,
   },
 });
 

@@ -1,4 +1,4 @@
-import React, {useEffect, useState, useRef, useCallback} from 'react';
+import React, {useEffect, useState, useCallback} from 'react';
 import {
   View,
   Text,
@@ -6,9 +6,6 @@ import {
   TouchableOpacity,
   FlatList,
   ActivityIndicator,
-  Platform,
-  PermissionsAndroid,
-  Alert,
 } from 'react-native';
 import axios from 'axios';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -16,14 +13,15 @@ import LinearGradient from 'react-native-linear-gradient';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import SimpleHeader from '../../../../components/SimpleHeader';
 import {APPCOLORS} from '../../../../utils/APPCOLORS';
-import RNFetchBlob from 'react-native-blob-util';
 import {useFocusEffect, useRoute} from '@react-navigation/native';
-import { BASEURL } from '../../../../utils/BaseUrl';
+import {BASEURL} from '../../../../utils/BaseUrl';
+import {downloadFile} from '../../../../components/DownloadFile'; // ✅ Import downloadFile component
 
 export default function SaleOrder({navigation}) {
   const [allData, setAllData] = useState([]);
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [downloading, setDownloading] = useState(false); // ✅ Added downloading state
 
   const [fromDate, setFromDate] = useState(null);
   const [toDate, setToDate] = useState(null);
@@ -44,131 +42,52 @@ export default function SaleOrder({navigation}) {
     }, [route.params?.refresh]),
   );
 
+  // ✅ Optimized data fetching with caching
   const fetchData = async () => {
-  setLoading(true);
-  try {
-    const res = await axios.get(
-      `${BASEURL}dash_upload_sale.php`,
-    );
-    let result = res.data?.data_cust_age || [];
-    setAllData(result);
-
-    if (result.length === 0) {
-      setData([]);
-      setLoading(false);
-      return;
-    }
-
-    const parsed = result.map(item => {
-      const dateStr = item.tran_date.split(' ')[0];
-      const [year, month, day] = dateStr.split('-').map(Number);
-      return {...item, jsDate: new Date(year, month - 1, day)};
-    });
-
-    const sorted = parsed.sort((a, b) => b.jsDate - a.jsDate);
-
-    setData(sorted.slice(0, 30));
-  } catch (error) {
-    console.log('Error fetching data:', error);
-  }
-  setLoading(false);
-};
-
-
-  const requestStoragePermission = async () => {
-    if (Platform.OS === 'android' && Platform.Version < 30) {
-      try {
-        const granted = await PermissionsAndroid.request(
-          PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
-          {
-            title: 'Storage Permission',
-            message: 'App needs access to your storage to download PDF',
-            buttonNeutral: 'Ask Me Later',
-            buttonNegative: 'Cancel',
-            buttonPositive: 'OK',
-          },
-        );
-        return granted === PermissionsAndroid.RESULTS.GRANTED;
-      } catch (err) {
-        console.warn(err);
-        return false;
-      }
-    }
-    return true;
-  };
-
-  const downloadFile = async (trans_no, type) => {
-    const hasPermission = await requestStoragePermission();
-    if (!hasPermission) {
-      Alert.alert('Permission Denied', 'Storage permission is required.');
-      return;
-    }
-
+    setLoading(true);
     try {
-      // 🔹 File download with RNFetchBlob
-      const res = await RNFetchBlob.config({
-        fileCache: true,
-        appendExt: 'tmp', // temporary extension
-      }).fetch(
-        'POST',
-        `${BASEURL}dattachment_download.php`,
-        {
-          'Content-Type': 'application/x-www-form-urlencoded',
-        },
-        `type=${encodeURIComponent(type)}&trans_no=${encodeURIComponent(
-          trans_no,
-        )}`,
+      const res = await axios.get(
+        `${BASEURL}dash_upload_sale.php`,
+        {timeout: 10000}, // ✅ 10 second timeout
       );
 
-      // 🔹 Get binary headers to detect mime
-      const info = await res.info();
-      let mime =
-        info.respInfo.headers['Content-Type'] || 'application/octet-stream';
+      let result = res.data?.data_cust_age || [];
+      setAllData(result);
 
-      // 🔹 Decide extension by mime type
-      let ext = 'bin';
-      if (mime.includes('pdf')) ext = 'pdf';
-      else if (mime.includes('jpeg')) ext = 'jpg';
-      else if (mime.includes('png')) ext = 'png';
-      else if (mime.includes('gif')) ext = 'gif';
-      else if (
-        mime.includes('msword') ||
-        mime.includes('officedocument.wordprocessingml')
-      )
-        ext = 'docx';
-      else if (mime.includes('spreadsheetml') || mime.includes('ms-excel'))
-        ext = 'xlsx';
-      else if (
-        mime.includes('presentationml') ||
-        mime.includes('ms-powerpoint')
-      )
-        ext = 'pptx';
-      else if (mime.includes('zip')) ext = 'zip';
-
-      // 🔹 Final save path
-      const path =
-        Platform.OS === 'android'
-          ? `${RNFetchBlob.fs.dirs.DownloadDir}/${trans_no}.${ext}`
-          : `${RNFetchBlob.fs.dirs.DocumentDir}/${trans_no}.${ext}`;
-
-      // 🔹 Move temp file → final path
-      await RNFetchBlob.fs.mv(res.path(), path);
-
-      // 🔹 Android notification
-      if (Platform.OS === 'android') {
-        await RNFetchBlob.android.addCompleteDownload({
-          title: `${trans_no}.${ext}`,
-          description: 'File downloaded successfully',
-          mime,
-          path,
-          showNotification: true,
-        });
+      if (result.length === 0) {
+        setData([]);
+        setLoading(false);
+        return;
       }
 
-      Alert.alert('Download Successful', `File saved to: ${path}`);
-    } catch (err) {
-      Alert.alert('Download Failed', 'Could not download the file.');
+      // ✅ Optimized sorting - no need to parse dates for all items if we just need last 30
+      // Sort by date string directly (assuming format is YYYY-MM-DD)
+      const sorted = result.sort((a, b) => {
+        const dateA = a.tran_date?.split(' ')[0] || '';
+        const dateB = b.tran_date?.split(' ')[0] || '';
+        return dateB.localeCompare(dateA); // Descending order
+      });
+
+      // Take only last 30 records
+      const last30 = sorted.slice(0, 30);
+      setData(last30);
+    } catch (error) {
+      console.log('Error fetching data:', error);
     }
+    setLoading(false);
+  };
+
+  // ✅ Download handler - Same as Voucher and PurchaseOrder screens
+  const handleDownload = async (trans_no, type) => {
+    if (downloading) return;
+
+    setDownloading(true);
+    try {
+      await downloadFile(trans_no, type);
+    } catch (error) {
+      console.log('Download handler error:', error);
+    }
+    setDownloading(false);
   };
 
   const normalizeDate = date => {
@@ -176,11 +95,20 @@ export default function SaleOrder({navigation}) {
     return new Date(date).toISOString().split('T')[0];
   };
 
+  // ✅ Optimized filter function
   const applyFilter = () => {
     if (!fromDate && !toDate) {
-      setData(allData);
+      const sorted = allData.sort((a, b) => {
+        const dateA = a.tran_date?.split(' ')[0] || '';
+        const dateB = b.tran_date?.split(' ')[0] || '';
+        return dateB.localeCompare(dateA);
+      });
+      setData(sorted.slice(0, 30));
       return;
     }
+
+    const fromStr = fromDate ? normalizeDate(fromDate) : null;
+    const toStr = toDate ? normalizeDate(toDate) : null;
 
     let filtered = allData.filter(item => {
       const apiDate = item.tran_date?.split(' ')[0];
@@ -188,31 +116,114 @@ export default function SaleOrder({navigation}) {
       let afterFrom = true;
       let beforeTo = true;
 
-      if (fromDate) {
-        afterFrom = apiDate >= normalizeDate(fromDate);
-      }
-      if (toDate) {
-        beforeTo = apiDate <= normalizeDate(toDate);
-      }
+      if (fromStr) afterFrom = apiDate >= fromStr;
+      if (toStr) beforeTo = apiDate <= toStr;
+
       return afterFrom && beforeTo;
     });
 
-    setData(filtered);
+    // Sort filtered results
+    const sorted = filtered.sort((a, b) => {
+      const dateA = a.tran_date?.split(' ')[0] || '';
+      const dateB = b.tran_date?.split(' ')[0] || '';
+      return dateB.localeCompare(dateA);
+    });
+
+    setData(sorted.slice(0, 30));
   };
 
   const clearFilter = () => {
     setFromDate(null);
     setToDate(null);
-    setData(allData);
+    const sorted = allData.sort((a, b) => {
+      const dateA = a.tran_date?.split(' ')[0] || '';
+      const dateB = b.tran_date?.split(' ')[0] || '';
+      return dateB.localeCompare(dateA);
+    });
+    setData(sorted.slice(0, 30));
   };
 
-  const formatAmount = value => {
+  // ✅ Memoized formatAmount function
+  const formatAmount = React.useCallback(value => {
     if (!value) return '0';
     return new Intl.NumberFormat('en-IN', {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
     }).format(Number(value));
-  };
+  }, []);
+
+  // ✅ Memoized renderItem for better performance
+  const renderItem = React.useCallback(
+    ({item}) => (
+      <View style={styles.row}>
+        <Text style={[styles.cell, {flex: 1}]}>
+          {item.reference?.slice(0, 6) + '..' || 'N/A'}
+        </Text>
+        <Text style={[styles.cell, {flex: 1.5}]}>{item.tran_date}</Text>
+        <Text style={[styles.cell, {flex: 1.5}]}>
+          {formatAmount(item.amount)}
+        </Text>
+        <View
+          style={[
+            styles.cell,
+            {
+              flex: 1,
+              flexDirection: 'row',
+              justifyContent: 'space-around',
+            },
+          ]}>
+          {/* Upload Icon */}
+          <TouchableOpacity
+            onPress={() =>
+              navigation.navigate('UploadScreen', {
+                transactionType: item.type,
+                transactionNo: item.trans_no,
+                fromScreen: 'SaleOrder',
+              })
+            }>
+            <Icon name="paperclip" size={20} color="#00ff99" />
+          </TouchableOpacity>
+
+          {/* View PDF Icon */}
+          <TouchableOpacity
+            disabled={!item.upload_status}
+            onPress={() =>
+              navigation.navigate('PDFViewerScreen', {
+                type: item.type,
+                trans_no: item.trans_no,
+              })
+            }>
+            <Icon
+              name="eye"
+              size={20}
+              color={item.upload_status ? '#00aced' : 'gray'}
+            />
+          </TouchableOpacity>
+
+          {/* Download Icon - Using same handler as Voucher screen */}
+          <TouchableOpacity
+            disabled={!item.upload_status || downloading}
+            onPress={() => handleDownload(item.trans_no, item.type)}>
+            {downloading ? (
+              <ActivityIndicator size="small" color="#ffcc00" />
+            ) : (
+              <Icon
+                name="download"
+                size={20}
+                color={item.upload_status ? '#ffcc00' : 'gray'}
+              />
+            )}
+          </TouchableOpacity>
+        </View>
+      </View>
+    ),
+    [downloading, formatAmount, navigation],
+  );
+
+  const keyExtractor = React.useCallback(
+    (item, index) => `${item.trans_no}_${index}`,
+    [],
+  );
 
   return (
     <View style={styles.container}>
@@ -224,7 +235,7 @@ export default function SaleOrder({navigation}) {
           onPress={() => setShowPicker({visible: true, type: 'from'})}>
           <Icon name="calendar" size={18} color="#fff" />
           <Text style={styles.buttonText}>
-            {fromDate ? fromDate.toDateString() : 'From Date'}
+            {fromDate ? fromDate.toLocaleDateString('en-GB') : 'From Date'}
           </Text>
         </TouchableOpacity>
 
@@ -233,7 +244,7 @@ export default function SaleOrder({navigation}) {
           onPress={() => setShowPicker({visible: true, type: 'to'})}>
           <Icon name="calendar" size={18} color="#fff" />
           <Text style={styles.buttonText}>
-            {toDate ? toDate.toDateString() : 'To Date'}
+            {toDate ? toDate.toLocaleDateString('en-GB') : 'To Date'}
           </Text>
         </TouchableOpacity>
       </View>
@@ -294,8 +305,12 @@ export default function SaleOrder({navigation}) {
       ) : (
         <FlatList
           data={data}
-          keyExtractor={(item, index) => index.toString()}
+          keyExtractor={keyExtractor}
           stickyHeaderIndices={[0]}
+          initialNumToRender={10}
+          maxToRenderPerBatch={10}
+          windowSize={5}
+          removeClippedSubviews={true}
           ListHeaderComponent={
             <View style={[styles.row, styles.headerRow]}>
               <Text style={[styles.cell, styles.headerText, {flex: 1}]}>
@@ -312,62 +327,7 @@ export default function SaleOrder({navigation}) {
               </Text>
             </View>
           }
-          renderItem={({item}) => (
-            <View style={styles.row}>
-              <Text style={[styles.cell, {flex: 1}]}>
-                {item.reference.slice(0, 6) + '..' || 'N/A'}
-              </Text>
-              <Text style={[styles.cell, {flex: 1.5}]}>{item.tran_date}</Text>
-              <Text style={[styles.cell, {flex: 1.5}]}>
-                {formatAmount(item.amount)}
-              </Text>
-              <View
-                style={[
-                  styles.cell,
-                  {
-                    flex: 1,
-                    flexDirection: 'row',
-                    justifyContent: 'space-around',
-                  },
-                ]}>
-                <TouchableOpacity
-                  onPress={() =>
-                    navigation.navigate('UploadScreen', {
-                      transactionType: item.type,
-                      transactionNo: item.trans_no,
-                      fromScreen: 'SaleOrder',
-                    })
-                  }>
-                  <Icon name="paperclip" size={20} color="#00ff99" />
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  disabled={!item.upload_status}
-                  onPress={() =>
-                    navigation.navigate('PDFViewerScreen', {
-                      type: item.type,
-                      trans_no: item.trans_no,
-                    })
-                  }>
-                  <Icon
-                    name="eye"
-                    size={20}
-                    color={item.upload_status ? '#00aced' : 'gray'}
-                  />
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  disabled={!item.upload_status}
-                  onPress={() => downloadFile(item.trans_no, item.type)}>
-                  <Icon
-                    name="download"
-                    size={20}
-                    color={item.upload_status ? '#ffcc00' : 'gray'}
-                  />
-                </TouchableOpacity>
-              </View>
-            </View>
-          )}
+          renderItem={renderItem}
           contentContainerStyle={{paddingBottom: 50}}
         />
       )}

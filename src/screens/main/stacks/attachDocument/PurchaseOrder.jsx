@@ -1,4 +1,4 @@
-import React, {useEffect, useState, useRef, useCallback} from 'react';
+import React, {useEffect, useState, useCallback} from 'react';
 import {
   View,
   Text,
@@ -6,9 +6,6 @@ import {
   TouchableOpacity,
   FlatList,
   ActivityIndicator,
-  Platform,
-  PermissionsAndroid,
-  Alert,
 } from 'react-native';
 import axios from 'axios';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -16,14 +13,15 @@ import LinearGradient from 'react-native-linear-gradient';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import SimpleHeader from '../../../../components/SimpleHeader';
 import {APPCOLORS} from '../../../../utils/APPCOLORS';
-import RNFetchBlob from 'react-native-blob-util';
 import {useFocusEffect, useRoute} from '@react-navigation/native';
-import { BASEURL } from '../../../../utils/BaseUrl';
+import {BASEURL} from '../../../../utils/BaseUrl';
+import {downloadFile} from '../../../../components/DownloadFile'; //
 
 export default function PurchaseOrder({navigation}) {
   const [allData, setAllData] = useState([]);
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [downloading, setDownloading] = useState(false);
 
   const [fromDate, setFromDate] = useState(null);
   const [toDate, setToDate] = useState(null);
@@ -47,9 +45,7 @@ export default function PurchaseOrder({navigation}) {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const res = await axios.get(
-        `${BASEURL}dash_upload_purchase.php`,
-      );
+      const res = await axios.get(`${BASEURL}dash_upload_purchase.php`);
       let result = res.data?.data_cust_age || [];
       setAllData(result);
 
@@ -91,101 +87,17 @@ export default function PurchaseOrder({navigation}) {
     setLoading(false);
   };
 
-  const requestStoragePermission = async () => {
-    if (Platform.OS === 'android' && Platform.Version < 30) {
-      try {
-        const granted = await PermissionsAndroid.request(
-          PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
-          {
-            title: 'Storage Permission',
-            message: 'App needs access to your storage to download PDF',
-            buttonNeutral: 'Ask Me Later',
-            buttonNegative: 'Cancel',
-            buttonPositive: 'OK',
-          },
-        );
-        return granted === PermissionsAndroid.RESULTS.GRANTED;
-      } catch (err) {
-        console.warn(err);
-        return false;
-      }
-    }
-    return true;
-  };
+  // ✅ Download handler - Same as Voucher screen
+  const handleDownload = async (trans_no, type) => {
+    if (downloading) return;
 
-  const downloadFile = async (trans_no, type) => {
-    const hasPermission = await requestStoragePermission();
-    if (!hasPermission) {
-      Alert.alert('Permission Denied', 'Storage permission is required.');
-      return;
-    }
-
+    setDownloading(true);
     try {
-      // 🔹 File download with RNFetchBlob
-      const res = await RNFetchBlob.config({
-        fileCache: true,
-        appendExt: 'tmp', // temporary extension
-      }).fetch(
-        'POST',
-        `${BASEURL}dattachment_download.php`,
-        {
-          'Content-Type': 'application/x-www-form-urlencoded',
-        },
-        `type=${encodeURIComponent(type)}&trans_no=${encodeURIComponent(
-          trans_no,
-        )}`,
-      );
-
-      // 🔹 Get binary headers to detect mime
-      const info = await res.info();
-      let mime =
-        info.respInfo.headers['Content-Type'] || 'application/octet-stream';
-
-      // 🔹 Decide extension by mime type
-      let ext = 'bin';
-      if (mime.includes('pdf')) ext = 'pdf';
-      else if (mime.includes('jpeg')) ext = 'jpg';
-      else if (mime.includes('png')) ext = 'png';
-      else if (mime.includes('gif')) ext = 'gif';
-      else if (
-        mime.includes('msword') ||
-        mime.includes('officedocument.wordprocessingml')
-      )
-        ext = 'docx';
-      else if (mime.includes('spreadsheetml') || mime.includes('ms-excel'))
-        ext = 'xlsx';
-      else if (
-        mime.includes('presentationml') ||
-        mime.includes('ms-powerpoint')
-      )
-        ext = 'pptx';
-      else if (mime.includes('zip')) ext = 'zip';
-
-      // 🔹 Final save path
-      const path =
-        Platform.OS === 'android'
-          ? `${RNFetchBlob.fs.dirs.DownloadDir}/${trans_no}.${ext}`
-          : `${RNFetchBlob.fs.dirs.DocumentDir}/${trans_no}.${ext}`;
-
-      // 🔹 Move temp file → final path
-      await RNFetchBlob.fs.mv(res.path(), path);
-
-      // 🔹 Android notification
-      if (Platform.OS === 'android') {
-        await RNFetchBlob.android.addCompleteDownload({
-          title: `${trans_no}.${ext}`,
-          description: 'File downloaded successfully',
-          mime,
-          path,
-          showNotification: true,
-        });
-      }
-
-      Alert.alert('Download Successful', `File saved to: ${path}`);
-    } catch (err) {
-      console.log('Download Error:', err);
-      Alert.alert('Download Failed', 'Could not download the file.');
+      await downloadFile(trans_no, type);
+    } catch (error) {
+      console.log('Download handler error:', error);
     }
+    setDownloading(false);
   };
 
   const normalizeDate = date => {
@@ -347,6 +259,7 @@ export default function PurchaseOrder({navigation}) {
                     justifyContent: 'space-around',
                   },
                 ]}>
+                {/* Upload Icon */}
                 <TouchableOpacity
                   onPress={() =>
                     navigation.navigate('UploadScreen', {
@@ -358,6 +271,7 @@ export default function PurchaseOrder({navigation}) {
                   <Icon name="paperclip" size={20} color="#00ff99" />
                 </TouchableOpacity>
 
+                {/* View PDF Icon */}
                 <TouchableOpacity
                   disabled={!item.upload_status}
                   onPress={() =>
@@ -373,14 +287,19 @@ export default function PurchaseOrder({navigation}) {
                   />
                 </TouchableOpacity>
 
+                {/* Download Icon - Using same handler as Voucher screen */}
                 <TouchableOpacity
-                  disabled={!item.upload_status}
-                  onPress={() => downloadFile(item.trans_no, item.type)}>
-                  <Icon
-                    name="download"
-                    size={20}
-                    color={item.upload_status ? '#ffcc00' : 'gray'}
-                  />
+                  disabled={!item.upload_status || downloading}
+                  onPress={() => handleDownload(item.trans_no, item.type)}>
+                  {downloading ? (
+                    <ActivityIndicator size="small" color="#ffcc00" />
+                  ) : (
+                    <Icon
+                      name="download"
+                      size={20}
+                      color={item.upload_status ? '#ffcc00' : 'gray'}
+                    />
+                  )}
                 </TouchableOpacity>
               </View>
             </View>

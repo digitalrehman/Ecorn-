@@ -36,6 +36,10 @@ const ApprovalCard = ({
   const isJobCardScreen =
     screenType === 'electrocal_job_cards' ||
     screenType === 'mechnical_job_cards';
+
+  // ✅ Check if this is Location Transfer screen
+  const isLocationTransferScreen = screenType === 'location_transfer_app';
+
   const handleGLView = async () => {
     if (!isVoucherScreen) return;
 
@@ -50,9 +54,6 @@ const ApprovalCard = ({
           'Content-Type': 'multipart/form-data',
         },
       });
-
-      console.log('GL View API Response:', response.data);
-
       navigation.navigate('GLViewScreen', {
         glData: response.data,
         reference: reference,
@@ -69,14 +70,32 @@ const ApprovalCard = ({
       setGlViewLoading(false);
     }
   };
+
   const handleView = async () => {
     setViewLoading(true);
     try {
       if (isJobCardScreen) {
+        // For Electrical/Mechanical Job Cards
         navigation.navigate('ManufacturingView', {
           trans_no: trans_no,
         });
+      } else if (isLocationTransferScreen) {
+        // ✅ For Location Transfer - Use a specific view or same as others
+        const formData = new FormData();
+        formData.append('trans_no', trans_no);
+        formData.append('type', type);
+
+        const response = await axios.post(`${BASEURL}view_data.php`, formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        });
+
+        navigation.navigate('ViewDetailsScreen', {
+          viewData: response.data,
+        });
       } else {
+        // For other screens (Quotation, Order, PO, etc.)
         const formData = new FormData();
         formData.append('trans_no', trans_no);
         formData.append('type', type);
@@ -184,6 +203,7 @@ const ApprovalCard = ({
               />
             </View>
 
+            {/* Buttons Row */}
             <View style={styles.buttonsRow}>
               {/* Approve Button */}
               <TouchableOpacity

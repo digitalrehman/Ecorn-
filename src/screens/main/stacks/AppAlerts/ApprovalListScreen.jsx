@@ -25,6 +25,7 @@ const ApprovalListScreen = ({route, navigation}) => {
     delivery_approval: 'data_unapprove_deliveries',
     electrocal_job_cards: 'data_electrical_job_cards',
     mechnical_job_cards: 'data_Mechnical_job_cards',
+    location_transfer_app: 'data_unapprove_loc_transfer', // ✅ Corrected key
   };
 
   useEffect(() => {
@@ -38,15 +39,11 @@ const ApprovalListScreen = ({route, navigation}) => {
 
       console.log('API Response keys:', Object.keys(res.data));
       console.log('Looking for key:', keyMap[listKey]);
-      console.log('Data available:', res.data?.[keyMap[listKey]]);
+      console.log('ListKey received:', listKey);
+      console.log('Mapped key:', keyMap[listKey]);
 
       const mappedKey = keyMap[listKey];
       const newData = res.data?.[mappedKey] || [];
-
-      console.log('Fetched data:', newData);
-      console.log('Data type:', typeof newData);
-      console.log('Is array?', Array.isArray(newData));
-      console.log('Data length:', newData.length);
 
       setData(newData);
     } catch (err) {
@@ -114,12 +111,12 @@ const ApprovalListScreen = ({route, navigation}) => {
           data.map((item, index) => (
             <ApprovalCard
               key={index}
-              reference={item.reference}
-              ord_date={item.ord_date}
-              name={item.name}
-              total={item.total}
-              trans_no={item.trans_no}
-              type={item.type}
+              reference={item.reference || 'N/A'}
+              ord_date={item.ord_date || 'N/A'}
+              name={item.name || 'N/A'}
+              total={item.total || '0'}
+              trans_no={item.trans_no || 'N/A'}
+              type={item.type || 'N/A'}
               navigation={navigation}
               screenType={listKey}
               onApprove={() => handleApprove(item)}
