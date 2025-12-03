@@ -147,7 +147,6 @@ const ApprovalCard = ({
       const data = response.data;
       await generateAndDownloadPDF(data, reference);
     } catch (error) {
-      console.log('PDF Download Error:', error);
       Toast.show({
         type: 'error',
         text1: 'Download Failed',

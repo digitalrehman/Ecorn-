@@ -6,7 +6,7 @@ import {APPCOLORS} from '../../../../utils/APPCOLORS';
 import LinearGradient from 'react-native-linear-gradient';
 
 const GLViewScreen = ({route}) => {
-  const {glData, reference, transNo} = route.params;
+  const {glData} = route.params;
   const header = glData.data_header?.[0];
   const details = glData.data_detail || [];
 

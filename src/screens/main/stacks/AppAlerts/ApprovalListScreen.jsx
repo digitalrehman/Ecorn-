@@ -51,7 +51,7 @@ const ApprovalListScreen = ({route, navigation}) => {
   useEffect(() => {
     const today = new Date();
     const threeMonthsAgo = new Date();
-    threeMonthsAgo.setMonth(today.getMonth() - 3);
+    threeMonthsAgo.setMonth(today.getMonth() - 2);
 
     setFromDate(threeMonthsAgo);
     setToDate(today);
